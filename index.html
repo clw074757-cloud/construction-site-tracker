@@ -437,23 +437,58 @@ function renderDetail(pid){
         ${stages.length?stages.map(s=>stageCard(s,canEdit,isClient)).join(''):`<div class="text-xs text-gray-400 text-center py-6">尚未新增施工階段</div>`}
     </div>`;
 
-    // 驗收
+    // 驗收區塊已整合到上方兩階段驗收
+
+    // 驗收（兩階段）
+    const mgrInsp=inspList.filter(i=>i.inspector_role==='manager'||!i.inspector_role);
+    const clientInsp=inspList.filter(i=>i.inspector_role==='client');
+    const mgrPassed=mgrInsp.some(i=>i.status==='驗收通過');
+
     html+=`<details class="card mb-3"${inspList.length?' open':''}>
         <summary class="flex justify-between items-center">
-            <span class="font-black text-sm">✅ 驗收記錄 <span class="text-gray-400 font-normal text-xs">(${inspList.length})</span></span>
+            <span class="font-black text-sm">✅ 驗收記錄</span>
             ${canEdit?`<button onclick="event.preventDefault();openInsp(${pid})" class="btn btn-p btn-sm">＋ 新增</button>`:''}
         </summary>
-        <div class="mt-3 space-y-2">${inspList.map(i=>{
-            const isb={'待驗收':'by','驗收中':'bb','驗收通過':'bgn','驗收退件':'br'}[i.status]||'bg';
-            return `<div class="csm"><div class="flex justify-between items-start">
-                <div><span class="badge ${isb}">${i.status}</span><div class="text-xs text-gray-400 mt-0.5">${i.inspected_by||''} · ${new Date(i.inspected_at).toLocaleDateString('zh-TW')}</div></div>
-                ${canEdit?`<button onclick="delR('inspections',${i.id},${pid})" class="text-gray-300 hover:text-red-400 text-xl">×</button>`:''}
-            </div>${i.notes?`<div class="text-xs text-gray-500 mt-1">${i.notes}</div>`:''}${ig(i.image_urls)}</div>`;
-        }).join('')}${!inspList.length?`<div class="text-xs text-gray-400 text-center py-2">尚無驗收記錄</div>`:''}
+        <div class="mt-3">
+            <div class="text-xs font-black text-gray-400 uppercase mb-2">第一階段：設計師／統包驗收</div>
+            <div class="space-y-2 mb-3">${mgrInsp.map(i=>{
+                const isb={'待驗收':'by','驗收中':'bb','驗收通過':'bgn','驗收退件':'br'}[i.status]||'bg';
+                return `<div class="csm"><div class="flex justify-between items-start">
+                    <div><span class="badge ${isb}">${i.status}</span><div class="text-xs text-gray-400 mt-0.5">${i.inspected_by||''} · ${new Date(i.inspected_at).toLocaleDateString('zh-TW')}</div></div>
+                    ${canEdit?`<button onclick="delR('inspections',${i.id},${pid})" class="text-gray-300 hover:text-red-400 text-xl">×</button>`:''}
+                </div>${i.notes?`<div class="text-xs text-gray-500 mt-1">${i.notes}</div>`:''}${ig(i.image_urls)}</div>`;
+            }).join('')}${!mgrInsp.length?`<div class="text-xs text-gray-400 text-center py-1">尚無記錄</div>`:''}
+            </div>
+            <div class="text-xs font-black text-gray-400 uppercase mb-2 mt-3 pt-3 border-t border-gray-100">
+                第二階段：業主驗收
+                ${!mgrPassed?`<span class="badge bg ml-1 normal-case font-normal">等待第一階段通過</span>`:''}
+            </div>
+            <div class="space-y-2">${clientInsp.map(i=>{
+                const isb={'待驗收':'by','驗收中':'bb','驗收通過':'bgn','驗收退件':'br'}[i.status]||'bg';
+                return `<div class="csm"><div class="flex justify-between items-start">
+                    <div><span class="badge ${isb}">${i.status}</span><div class="text-xs text-gray-400 mt-0.5">${i.inspected_by||''} · ${new Date(i.inspected_at).toLocaleDateString('zh-TW')}</div></div>
+                    ${canEdit?`<button onclick="delR('inspections',${i.id},${pid})" class="text-gray-300 hover:text-red-400 text-xl">×</button>`:''}
+                </div>${i.notes?`<div class="text-xs text-gray-500 mt-1">${i.notes}</div>`:''}${ig(i.image_urls)}</div>`;
+            }).join('')}${!clientInsp.length?`<div class="text-xs text-gray-400 text-center py-1">${mgrPassed?'業主尚未驗收':'等待第一階段通過後開放'}</div>`:''}
+            </div>
         </div>
     </details>`;
 
+    // 刪除案場（管理員限定）
+    if(CU.role==='admin'){
+        html+=`<div class="mt-4 pt-4 border-t border-gray-200">
+            <button onclick="delProject(${pid})" class="btn btn-d btn-sm w-full">🗑 刪除此案場</button>
+        </div>`;
+    }
+
     document.getElementById('dcontent').innerHTML=html;
+}
+
+async function delProject(pid){
+    if(!confirm('確定刪除此案場？\n所有相關記錄（階段、回報、照片記錄）將一併刪除，此操作無法復原。'))return;
+    load(true,'刪除中...');
+    await DEL('projects',pid);
+    await loadAll();load(false);backToList();
 }
 
 function stageCard(s,canEdit,isClient){
@@ -516,9 +551,48 @@ function renderClient(){
         const stages=D.s.filter(s=>s.project_id===p.id);
         const done=stages.filter(s=>s.status==='完成').length;
         const pct=stages.length?Math.round(done/stages.length*100):0;
+        const designs=D.de.filter(d=>d.project_id===p.id);
+        // 第一階段驗收（設計師/統包）是否通過
+        const mgr1stPassed=D.ins.filter(i=>i.project_id===p.id&&i.inspector_role==='manager').some(i=>i.status==='驗收通過');
+        const clientInsp=D.ins.filter(i=>i.project_id===p.id&&i.inspector_role==='client');
+
         return `<div class="card mb-4">
-            <div class="flex justify-between items-start mb-3"><div><h3 class="font-black">${p.name}</h3><div class="text-xs text-gray-400">${p.address||''}</div></div><span class="badge ${SB[p.status]||'bg'}">${p.status}</span></div>
+            <div class="flex justify-between items-start mb-3">
+                <div><h3 class="font-black">${p.name}</h3><div class="text-xs text-gray-400">${p.address||''}</div></div>
+                <span class="badge ${SB[p.status]||'bg'}">${p.status}</span>
+            </div>
             <div class="mb-4"><div class="flex justify-between text-xs text-gray-400 mb-1"><span>施工進度</span><span>${pct}%</span></div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div></div>
+
+            ${designs.length?`<details class="mb-3 bg-gray-50 rounded-xl p-3" ${designs.some(d=>d.client_status==='待確認')?'open':''}>
+                <summary class="font-bold text-sm cursor-pointer">🎨 設計圖 <span class="text-gray-400 font-normal text-xs">(${designs.length} 版)</span>
+                ${designs.some(d=>d.client_status==='待確認')?`<span class="badge by ml-1">待您確認</span>`:''}</summary>
+                <div class="mt-3 space-y-3">${designs.map(d=>{
+                    const dsb={'待確認':'by','已確認':'bgn','退回修改':'br'}[d.client_status]||'bg';
+                    return `<div class="csm">
+                        <div class="flex justify-between items-start mb-1">
+                            <div><span class="font-bold text-sm">${d.version}</span><span class="badge ${dsb} ml-1">${d.client_status}</span><div class="text-xs text-gray-400">${d.design_date}</div></div>
+                            ${d.client_status==='待確認'?`<div class="flex gap-1">
+                                <button onclick="clientConfirmDesign(${d.id},${p.id},'已確認')" class="btn btn-sm bgn text-xs" style="background:#dcfce7;color:#166534;border:1px solid #bbf7d0">✓ 確認</button>
+                                <button onclick="clientConfirmDesign(${d.id},${p.id},'退回修改')" class="btn btn-sm br text-xs" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5">✗ 退回</button>
+                            </div>`:''}
+                        </div>
+                        ${d.designer_notes?`<div class="text-xs text-gray-500 bg-white rounded p-2 mb-1">${d.designer_notes}</div>`:''}
+                        ${ig(d.image_urls)}
+                    </div>`;
+                }).join('')}</div>
+            </details>`:''}
+
+            ${mgr1stPassed?`<details class="mb-3 bg-gray-50 rounded-xl p-3">
+                <summary class="font-bold text-sm cursor-pointer">✅ 業主驗收 <span class="text-gray-400 font-normal text-xs">(${clientInsp.length})</span></summary>
+                <div class="mt-2">
+                    ${clientInsp.map(i=>{
+                        const isb={'待驗收':'by','驗收中':'bb','驗收通過':'bgn','驗收退件':'br'}[i.status]||'bg';
+                        return `<div class="csm"><span class="badge ${isb}">${i.status}</span>${i.notes?`<div class="text-xs text-gray-500 mt-1">${i.notes}</div>`:''}${ig(i.image_urls)}</div>`;
+                    }).join('')}
+                    <button onclick="openClientInsp(${p.id})" class="btn btn-p btn-sm mt-2 w-full">＋ 提交驗收意見</button>
+                </div>
+            </details>`:''}
+
             <div>${stages.map(s=>{
                 const imgs=D.r.filter(r=>r.stage_id===s.id).flatMap(r=>Array.isArray(r.image_urls)?r.image_urls:[]);
                 return `<div class="tl-item"><div class="tl-dot" style="background:${dc[s.status]||'#ccc'}"></div>
@@ -531,20 +605,94 @@ function renderClient(){
     }).join('');
 }
 
+async function clientConfirmDesign(id,pid,status){
+    if(!confirm(status==='已確認'?'確認此設計版本？':'退回此版本並要求修改？'))return;
+    await PATCH('design_records',id,{client_status:status});
+    await loadAll();renderClient();
+}
+
+function openClientInsp(pid){
+    openM(`<h3 class="text-base font-black mb-4">✅ 提交驗收意見</h3>
+        <div class="space-y-3">
+            <div><label class="label">驗收結果</label><select id="ci-s" class="inp"><option>待驗收</option><option>驗收通過</option><option>驗收退件</option></select></div>
+            <div><label class="label">意見說明</label><textarea id="ci-n" class="inp" rows="3" placeholder="驗收意見..."></textarea></div>
+            <div onclick="document.getElementById('ci-f').click()" class="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center cursor-pointer hover:border-gray-400">
+                <input type="file" id="ci-f" accept="image/*" multiple class="hidden" onchange="prevF(this,'ci-pv','ci-ph')">
+                <div id="ci-ph"><div class="text-2xl mb-1">📷</div><div class="text-xs text-gray-400">上傳驗收照片</div></div>
+                <div id="ci-pv" class="hidden img-grid"></div>
+            </div>
+        </div>
+        <div class="flex gap-3 mt-5"><button onclick="closeM()" class="btn btn-s">取消</button><button onclick="saveClientInsp(${pid})" class="btn btn-p">提交</button></div>`);
+}
+async function saveClientInsp(pid){
+    load(true,'上傳照片中...');
+    const urls=await upFiles('ci-f');
+    await POST('inspections',{project_id:pid,inspector_role:'client',status:document.getElementById('ci-s').value,inspected_by:CU.name,notes:document.getElementById('ci-n').value.trim()||null,image_urls:urls,inspected_at:new Date().toISOString(),created_by:CU.id});
+    await loadAll();load(false);closeM();renderClient();
+}
+
 function renderAdmin(){
     const roles={admin:'管理員',manager:'專案負責人',worker:'工班',client:'業主'};
     document.getElementById('ulist').innerHTML=D.u.map(u=>`
-        <div class="flex justify-between items-center p-3 bg-white rounded-xl border border-gray-200">
-            <div><div class="font-bold text-sm">${u.name} <span class="badge bg ml-1">${roles[u.role]||u.role}</span></div>
-            ${u.company_name?`<div class="text-xs text-gray-400">${u.company_name}${u.worker_type?` · ${u.worker_type}`:''}</div>`:''}
-            ${u.phone?`<div class="text-xs text-gray-400">${u.phone}</div>`:''}</div>
-            <button onclick="delUser(${u.id})" class="btn btn-d btn-ic">✕</button>
-        </div>`).join('');
+        <details class="bg-white rounded-xl border border-gray-200 mb-2">
+            <summary class="flex justify-between items-center p-3 cursor-pointer">
+                <div><div class="font-bold text-sm">${u.name} <span class="badge bg ml-1">${roles[u.role]||u.role}</span></div>
+                ${u.company_name?`<div class="text-xs text-gray-400">${u.company_name}${u.worker_type?` · ${u.worker_type}`:''}</div>`:''}
+                ${u.phone?`<div class="text-xs text-gray-400">${u.phone}</div>`:''}</div>
+                <span class="text-gray-300 text-sm ml-2">✏️</span>
+            </summary>
+            <div class="p-3 pt-0 border-t border-gray-100 mt-1">
+                <div class="space-y-2">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div><label class="label">姓名</label><input id="eu-n-${u.id}" class="inp" value="${u.name}" style="height:38px;font-size:13px;"></div>
+                        <div><label class="label">密碼</label><input id="eu-p-${u.id}" class="inp" value="${u.password||''}" style="height:38px;font-size:13px;"></div>
+                    </div>
+                    <div><label class="label">角色</label>
+                        <select id="eu-r-${u.id}" class="inp" style="height:38px;font-size:13px;" onchange="toggleEditWF(${u.id},this.value)">
+                            <option value="manager" ${u.role==='manager'?'selected':''}>專案負責人</option>
+                            <option value="worker" ${u.role==='worker'?'selected':''}>工班</option>
+                            <option value="client" ${u.role==='client'?'selected':''}>業主</option>
+                            <option value="admin" ${u.role==='admin'?'selected':''}>管理員</option>
+                        </select>
+                    </div>
+                    <div id="eu-wf-${u.id}" class="${u.role==='worker'?'':'hidden'} space-y-2">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div><label class="label">公司名稱</label><input id="eu-c-${u.id}" class="inp" value="${u.company_name||''}" style="height:38px;font-size:13px;"></div>
+                            <div><label class="label">電話</label><input id="eu-ph-${u.id}" class="inp" value="${u.phone||''}" style="height:38px;font-size:13px;"></div>
+                        </div>
+                        <div><label class="label">工班類型</label>
+                            <select id="eu-wt-${u.id}" class="inp" style="height:38px;font-size:13px;">
+                                ${['泥作','木工','水電','油漆','鐵工','拆除','空調','其他'].map(t=>`<option ${u.worker_type===t?'selected':''}>${t}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 pt-1">
+                        <button onclick="saveEditUser(${u.id})" class="btn btn-p btn-sm flex-1">儲存</button>
+                        <button onclick="delUser(${u.id})" class="btn btn-d btn-sm">刪除</button>
+                    </div>
+                </div>
+            </div>
+        </details>`).join('');
     const rows=D.p.map(p=>{const f=calcFin(p.id);return `<div class="fin-row"><div><div class="font-bold text-sm">${p.name}</div><div class="text-xs text-gray-400">${p.status}</div></div><div class="text-right"><div class="mono text-xs text-gray-400">報價 $${fmt(f.quote)}</div><div class="mono font-bold ${f.profit>=0?'text-black':'text-gray-400'}">利潤 $${fmt(f.profit)}</div></div></div>`;}).join('');
     const tp=D.p.reduce((s,p)=>s+calcFin(p.id).profit,0);
     document.getElementById('afin').innerHTML=rows+`<div class="fin-total"><span class="font-black">總毛利</span><span class="mono font-black text-lg ${tp>=0?'':'text-gray-400'}">$${tp.toLocaleString()}</span></div>`;
 }
 function toggleWF(){document.getElementById('wf').classList.toggle('hidden',document.getElementById('nu-r').value!=='worker');}
+function toggleEditWF(id,role){document.getElementById(`eu-wf-${id}`).classList.toggle('hidden',role!=='worker');}
+async function saveEditUser(id){
+    const role=document.getElementById(`eu-r-${id}`).value;
+    const d={
+        name:document.getElementById(`eu-n-${id}`).value.trim(),
+        password:document.getElementById(`eu-p-${id}`).value.trim(),
+        role,
+        company_name:document.getElementById(`eu-c-${id}`)?.value.trim()||null,
+        phone:document.getElementById(`eu-ph-${id}`)?.value.trim()||null,
+        worker_type:role==='worker'?(document.getElementById(`eu-wt-${id}`)?.value||null):null,
+    };
+    if(!d.name||!d.password)return alert('姓名與密碼不能為空');
+    if(await PATCH('users',id,d)){await loadAll();renderAdmin();}
+    else alert('儲存失敗');
+}
 async function addUser(){
     const n=document.getElementById('nu-n').value.trim(),pw=document.getElementById('nu-p').value.trim(),role=document.getElementById('nu-r').value;
     if(!n||!pw)return alert('請填姓名與密碼');
@@ -757,10 +905,11 @@ async function saveExtra(pid){
 }
 
 function openInsp(pid){
-    openM(`<h3 class="text-base font-black mb-4">✅ 新增驗收記錄</h3>
+    openM(`<h3 class="text-base font-black mb-4">✅ 新增驗收記錄（第一階段）</h3>
+        <p class="text-xs text-gray-400 bg-gray-50 rounded p-2 mb-3">此為設計師／統包驗收，通過後業主才可進行第二階段驗收。</p>
         <div class="space-y-3">
             <div><label class="label">驗收狀態</label><select id="ins-s" class="inp"><option>待驗收</option><option>驗收中</option><option>驗收通過</option><option>驗收退件</option></select></div>
-            <div><label class="label">驗收人</label><input id="ins-b" class="inp" placeholder="驗收人姓名"></div>
+            <div><label class="label">驗收人</label><input id="ins-b" class="inp" placeholder="驗收人姓名" value="${CU.name}"></div>
             <div><label class="label">說明備註</label><textarea id="ins-n" class="inp" rows="2" placeholder="驗收說明..."></textarea></div>
             <div onclick="document.getElementById('ins-f').click()" class="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center cursor-pointer hover:border-gray-400">
                 <input type="file" id="ins-f" accept="image/*" multiple class="hidden" onchange="prevF(this,'ins-pv','ins-ph')">
@@ -773,7 +922,7 @@ function openInsp(pid){
 async function saveInsp(pid){
     load(true,'上傳照片中...');
     const urls=await upFiles('ins-f');
-    await POST('inspections',{project_id:pid,status:document.getElementById('ins-s').value,inspected_by:document.getElementById('ins-b').value.trim()||null,notes:document.getElementById('ins-n').value.trim()||null,image_urls:urls,inspected_at:new Date().toISOString(),created_by:CU.id});
+    await POST('inspections',{project_id:pid,inspector_role:'manager',status:document.getElementById('ins-s').value,inspected_by:document.getElementById('ins-b').value.trim()||null,notes:document.getElementById('ins-n').value.trim()||null,image_urls:urls,inspected_at:new Date().toISOString(),created_by:CU.id});
     await loadAll();load(false);closeM();renderDetail(pid);
 }
 
