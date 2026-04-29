@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>案場追蹤系統</title>
+    <title>案場追蹤系統 v2.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -15,1034 +15,324 @@
         body { font-family:'Noto Sans TC',sans-serif; background:#f5f5f5; color:var(--tx); font-size:15px; min-height:100vh; }
         .hidden { display:none !important; }
         .mono { font-family:'DM Mono',monospace; }
-        .inp { width:100%; height:48px; padding:0 14px; background:#f8f8f8; border:1.5px solid #e0e0e0; border-radius:10px; font-size:15px; font-family:'Noto Sans TC',sans-serif; color:#111; outline:none; transition:border-color 0.2s; -webkit-appearance:none; }
+        .inp { width:100%; height:48px; padding:0 14px; background:#f8f8f8; border:1.5px solid #e0e0e0; border-radius:10px; font-size:15px; color:#111; outline:none; transition:border-color 0.2s; }
         .inp:focus { border-color:#111; background:#fff; }
-        .inp::placeholder { color:#bbb; }
-        textarea.inp { height:auto; padding:12px 14px; resize:none; }
-        select.inp { background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23111' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat:no-repeat; background-position:right 12px center; background-size:18px; padding-right:36px; background-color:#f8f8f8; }
-        .label { display:block; font-size:11px; font-weight:700; color:#888; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.06em; }
-        .btn { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:13px 20px; border-radius:10px; font-weight:700; font-size:15px; font-family:'Noto Sans TC',sans-serif; border:none; cursor:pointer; transition:all 0.15s; }
+        .btn { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:13px 20px; border-radius:10px; font-weight:700; font-size:15px; border:none; cursor:pointer; transition:all 0.15s; }
         .btn:active { transform:scale(0.98); opacity:0.85; }
         .btn-p { background:#111; color:#fff; }
         .btn-s { background:#fff; color:#111; border:1.5px solid #d8d8d8; }
         .btn-d { background:#fee2e2; color:#dc2626; border:1.5px solid #fca5a5; }
-        .btn-sm { padding:7px 14px; font-size:13px; width:auto; border-radius:8px; }
-        .btn-ic { width:34px; height:34px; padding:0; border-radius:8px; flex-shrink:0; font-size:14px; }
+        .btn-ok { background:#dcfce7; color:#166534; border:1.5px solid #bbf7d0; }
         .card { background:#fff; border:1.5px solid var(--bd); border-radius:16px; padding:18px; margin-bottom:12px; }
-        .csm { background:#fff; border:1.5px solid var(--bd); border-radius:12px; padding:14px; margin-bottom:8px; }
-        .badge { display:inline-flex; align-items:center; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
+        .badge { display:inline-flex; align-items:center; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:700; }
         .bk { background:#111; color:#fff; }
-        .bg { background:#f0f0f0; color:#555; border:1px solid #e0e0e0; }
-        .bgn { background:#dcfce7; color:#166534; border:1px solid #bbf7d0; }
+        .bg { background:#f0f0f0; color:#555; }
         .by { background:#fef9c3; color:#854d0e; border:1px solid #fde68a; }
-        .br { background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; }
-        .bb { background:#dbeafe; color:#1d4ed8; border:1px solid #bfdbfe; }
-        .bpu { background:#f3e8ff; color:#7e22ce; border:1px solid #e9d5ff; }
-        .prog-bar { height:5px; background:#eee; border-radius:99px; overflow:hidden; }
-        .prog-fill { height:100%; background:#111; border-radius:99px; transition:width 0.4s; }
-        .nav-bar { background:rgba(255,255,255,0.97); backdrop-filter:blur(12px); border-top:1.5px solid #e8e8e8; }
-        .nav-btn { flex:1; display:flex; flex-direction:column; align-items:center; padding:9px 4px 11px; color:#ccc; font-size:10px; font-weight:700; font-family:'Noto Sans TC',sans-serif; background:none; border:none; cursor:pointer; gap:3px; transition:color 0.2s; }
-        .nav-btn.active { color:#111; }
-        .nav-btn svg { width:20px; height:20px; }
-        .modal-bg { background:rgba(0,0,0,0.35); backdrop-filter:blur(4px); }
-        .modal-box { background:#fff; border:1.5px solid #e0e0e0; border-radius:20px; max-height:88vh; overflow-y:auto; box-shadow:0 8px 40px rgba(0,0,0,0.12); }
-        .img-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:5px; margin-top:8px; }
-        .img-grid img { width:100%; height:90px; object-fit:cover; border-radius:7px; border:1px solid #e8e8e8; cursor:pointer; }
-        .flow-steps { display:flex; overflow-x:auto; gap:0; padding-bottom:4px; margin-bottom:16px; -ms-overflow-style:none; scrollbar-width:none; }
-        .flow-steps::-webkit-scrollbar { display:none; }
-        .flow-step { display:flex; flex-direction:column; align-items:center; flex-shrink:0; position:relative; min-width:52px; }
-        .flow-step:not(:last-child)::after { content:''; position:absolute; top:13px; left:calc(50% + 14px); width:calc(100% - 28px); height:2px; background:#e0e0e0; z-index:0; }
-        .flow-step.done:not(:last-child)::after { background:#111; }
-        .sdot { width:26px; height:26px; border-radius:50%; border:2px solid #ddd; background:#fff; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:900; color:#ccc; z-index:1; position:relative; }
-        .sdot.done { background:#111; border-color:#111; color:#fff; }
-        .sdot.active { background:#fff; border-color:#111; color:#111; }
-        .slabel { font-size:9px; font-weight:700; color:#aaa; margin-top:3px; text-align:center; width:52px; line-height:1.2; }
-        .slabel.done,.slabel.active { color:#111; }
-        .tl-item { position:relative; padding-left:26px; padding-bottom:18px; }
-        .tl-item::before { content:''; position:absolute; left:8px; top:18px; bottom:0; width:2px; background:#e8e8e8; }
-        .tl-item:last-child::before { display:none; }
-        .tl-dot { position:absolute; left:0; top:3px; width:17px; height:17px; border-radius:50%; border:3px solid #f5f5f5; box-shadow:0 0 0 1.5px #ccc; }
+        .bgn { background:#dcfce7; color:#166534; }
+        /* 修正照片預覽：顯示全部範圍縮圖 */
+        .img-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:8px; }
+        .img-grid img { width:100%; aspect-ratio:1/1; object-fit:contain; background:#f0f0f0; border-radius:8px; border:1px solid #eee; cursor:pointer; }
         .spinner { border:3px solid #eee; border-top:3px solid #111; border-radius:50%; width:32px; height:32px; animation:spin 0.8s linear infinite; }
         @keyframes spin { to { transform:rotate(360deg); } }
-        #lightbox { background:rgba(0,0,0,0.93); }
-        .fin-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f0f0f0; }
-        .fin-row:last-child { border-bottom:none; }
-        .fin-total { display:flex; justify-content:space-between; align-items:center; padding:10px 0 4px; border-top:2px solid #111; margin-top:4px; }
-        details > summary { list-style:none; cursor:pointer; }
-        details > summary::-webkit-details-marker { display:none; }
-        ::-webkit-scrollbar { width:4px; } ::-webkit-scrollbar-thumb { background:#ddd; border-radius:99px; }
+        .nav-bar { background:rgba(255,255,255,0.95); backdrop-filter:blur(10px); border-top:1.5px solid #e8e8e8; position:fixed; bottom:0; width:100%; display:flex; z-index:50; }
+        .nav-btn { flex:1; display:flex; flex-direction:column; align-items:center; padding:10px 0; color:#ccc; font-size:10px; font-weight:700; }
+        .nav-btn.active { color:#111; }
     </style>
 </head>
 <body>
 
 <div id="login-screen" class="fixed inset-0 z-[100] flex items-center justify-center p-5 bg-gray-100">
-    <div class="bg-white w-full max-w-sm p-8 rounded-3xl shadow-lg border border-gray-200">
-        <div class="text-center mb-8">
-            <div class="w-12 h-12 bg-black rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
-            </div>
-            <h1 class="text-2xl font-black text-black">案場追蹤系統</h1>
-            <p class="text-sm text-gray-400 mt-1">工程進度管理平台</p>
-        </div>
+    <div class="bg-white w-full max-w-sm p-8 rounded-3xl shadow-lg">
+        <h1 class="text-2xl font-black text-center mb-6">案場追蹤系統</h1>
         <div class="space-y-3">
-            <div><label class="label">帳號</label><input id="li" class="inp" placeholder="輸入帳號"></div>
-            <div><label class="label">密碼</label><input id="lp" type="password" class="inp" placeholder="輸入密碼" onkeydown="if(event.key==='Enter')doLogin()"></div>
+            <input id="li" class="inp" placeholder="帳號">
+            <input id="lp" type="password" class="inp" placeholder="密碼">
+            <button onclick="doLogin()" class="btn btn-p">登入</button>
         </div>
-        <button onclick="doLogin()" class="btn btn-p mt-5">登入</button>
-        <p id="lmsg" class="text-center text-red-400 text-sm mt-3 min-h-[20px]"></p>
+        <p id="lmsg" class="text-center text-red-400 text-sm mt-3"></p>
     </div>
 </div>
 
 <div id="lov" class="fixed inset-0 bg-black/60 z-[200] hidden flex items-center justify-center flex-col gap-3">
-    <div class="spinner" style="border-top-color:#fff"></div>
-    <div id="ltxt" class="text-white font-bold text-sm">處理中...</div>
+    <div class="spinner"></div>
+    <div id="ltxt" class="text-white font-bold">處理中...</div>
 </div>
 
-<div id="lightbox" class="fixed inset-0 z-[300] hidden flex items-center justify-center">
-    <button onclick="closeLb()" class="absolute top-4 right-4 text-white w-10 h-10 flex items-center justify-center bg-white/10 rounded-full text-2xl">×</button>
-    <button id="lb-prev" onclick="changeLb(-1)" class="absolute left-2 text-white text-4xl w-12 h-20 flex items-center justify-center bg-white/10 rounded-xl hidden">‹</button>
-    <button id="lb-next" onclick="changeLb(1)" class="absolute right-2 text-white text-4xl w-12 h-20 flex items-center justify-center bg-white/10 rounded-xl hidden">›</button>
-    <button onclick="dlLb()" class="absolute bottom-5 right-5 text-white w-12 h-12 flex items-center justify-center bg-white/10 rounded-full text-xl border border-white/20">⬇</button>
-    <img id="lb-img" class="max-h-[90vh] max-w-[92vw] object-contain select-none rounded-lg" src="">
+<div id="lightbox" class="fixed inset-0 z-[300] hidden flex items-center justify-center bg-black/95">
+    <button onclick="closeLb()" class="absolute top-4 right-4 text-white text-3xl">×</button>
+    <img id="lb-img" class="max-h-[90vh] max-w-[95vw] object-contain" src="">
 </div>
 
-<div id="modal" class="fixed inset-0 modal-bg z-[80] hidden flex items-end sm:items-center justify-center p-4">
-    <div id="mbox" class="modal-box w-full max-w-md p-6"><div id="mcontent"></div></div>
-</div>
-
-<header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 px-4 py-3 flex justify-between items-center">
-    <div class="flex items-center gap-3">
-        <div class="w-8 h-8 bg-black rounded-lg flex items-center justify-center flex-shrink-0">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
-        </div>
-        <div>
-            <div class="font-black text-sm text-black leading-tight">案場追蹤系統</div>
-            <div id="urd" class="text-xs text-gray-400">未登入</div>
-        </div>
+<div id="modal" class="fixed inset-0 bg-black/40 z-[80] hidden flex items-end sm:items-center justify-center p-4">
+    <div id="mbox" class="bg-white w-full max-w-md p-6 rounded-3xl max-h-[90vh] overflow-y-auto">
+        <div id="mcontent"></div>
     </div>
-    <button onclick="logout()" class="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200">登出</button>
+</div>
+
+<header class="sticky top-0 z-40 bg-white/95 border-b px-4 py-3 flex justify-between items-center">
+    <div class="font-black">案場管理系統</div>
+    <button onclick="logout()" class="text-xs text-gray-400">登出</button>
 </header>
 
-<main class="pb-28">
-    <div id="page-projects" class="hidden p-4">
-        <div class="flex justify-between items-center mb-3">
-            <h2 class="text-base font-black">案場總覽</h2>
-            <button id="btn-np" onclick="openNewProject()" class="btn btn-p btn-sm hidden">＋ 新增</button>
+<main class="pb-24 p-4">
+    <div id="page-projects" class="hidden">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="font-black">案場總覽</h2>
+            <button onclick="openNewProject()" class="btn btn-p btn-sm w-auto py-2 px-4">+ 新增</button>
         </div>
-        <div class="flex gap-2 overflow-x-auto pb-2 mb-3" style="-ms-overflow-style:none;scrollbar-width:none;">
-            <button onclick="setF('all')" id="f-all" class="badge bk flex-shrink-0 cursor-pointer py-1.5 px-3">全部</button>
-            <button onclick="setF('會勘')" id="f-會勘" class="badge bg flex-shrink-0 cursor-pointer py-1.5 px-3">會勘</button>
-            <button onclick="setF('設計')" id="f-設計" class="badge bg flex-shrink-0 cursor-pointer py-1.5 px-3">設計</button>
-            <button onclick="setF('報價階段')" id="f-報價階段" class="badge bg flex-shrink-0 cursor-pointer py-1.5 px-3">報價</button>
-            <button onclick="setF('進行中')" id="f-進行中" class="badge bg flex-shrink-0 cursor-pointer py-1.5 px-3">進行中</button>
-            <button onclick="setF('暫停')" id="f-暫停" class="badge bg flex-shrink-0 cursor-pointer py-1.5 px-3">暫停</button>
-            <button onclick="setF('驗收')" id="f-驗收" class="badge bg flex-shrink-0 cursor-pointer py-1.5 px-3">驗收</button>
-            <button onclick="setF('已完工')" id="f-已完工" class="badge bg flex-shrink-0 cursor-pointer py-1.5 px-3">完工</button>
-            <button onclick="setF('保固期')" id="f-保固期" class="badge bg flex-shrink-0 cursor-pointer py-1.5 px-3">保固</button>
-        </div>
-        <div id="plist"><div class="flex justify-center py-10"><div class="spinner"></div></div></div>
+        <div id="plist"></div>
     </div>
 
-    <div id="page-detail" class="hidden p-4">
-        <button onclick="backToList()" class="flex items-center gap-1.5 text-gray-400 text-sm font-bold mb-4">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg> 返回
-        </button>
+    <div id="page-detail" class="hidden">
+        <button onclick="navTo('projects')" class="text-sm text-gray-400 font-bold mb-4">← 返回列表</button>
         <div id="dcontent"></div>
     </div>
 
-    <div id="page-worker" class="hidden p-4">
-        <h2 class="text-base font-black mb-4">我的任務</h2>
-        <div id="wlist"><div class="flex justify-center py-10"><div class="spinner"></div></div></div>
+    <div id="page-worker" class="hidden">
+        <h2 class="font-black mb-4">我的任務回報</h2>
+        <div id="wlist"></div>
     </div>
 
-    <div id="page-client" class="hidden p-4">
-        <h2 class="text-base font-black mb-4">我的案場</h2>
-        <div id="clist"><div class="flex justify-center py-10"><div class="spinner"></div></div></div>
-    </div>
-
-    <div id="page-admin" class="hidden p-4">
-        <h2 class="text-base font-black mb-4">系統管理</h2>
-        <div class="card mb-4">
-            <h3 class="font-black text-sm mb-4">＋ 新增帳號</h3>
-            <div class="grid grid-cols-2 gap-3 mb-3">
-                <div><label class="label">姓名</label><input id="nu-n" class="inp" placeholder="姓名"></div>
-                <div><label class="label">密碼</label><input id="nu-p" class="inp" placeholder="密碼"></div>
-            </div>
-            <div class="mb-3"><label class="label">角色</label>
-                <select id="nu-r" class="inp" onchange="toggleWF()">
-                    <option value="manager">專案負責人</option><option value="worker">工班</option><option value="client">業主</option><option value="admin">管理員</option>
-                </select>
-            </div>
-            <div id="wf" class="hidden space-y-3 mb-3">
-                <div class="grid grid-cols-2 gap-3">
-                    <div><label class="label">公司名稱</label><input id="nu-c" class="inp" placeholder="公司名稱"></div>
-                    <div><label class="label">聯絡電話</label><input id="nu-ph" class="inp" placeholder="電話"></div>
-                </div>
-                <div><label class="label">工班類型</label>
-                    <select id="nu-wt" class="inp"><option>泥作</option><option>木工</option><option>水電</option><option>油漆</option><option>鐵工</option><option>拆除</option><option>空調</option><option>其他</option></select>
-                </div>
-            </div>
-            <button onclick="addUser()" class="btn btn-p">新增帳號</button>
-        </div>
-        <div class="text-xs font-black text-gray-400 uppercase mb-2 tracking-wide">帳號列表</div>
-        <div id="ulist" class="space-y-2 mb-6"></div>
-        <div class="card mt-4"><h3 class="font-black text-sm mb-3">💰 財務總覽</h3><div id="afin"></div></div>
+    <div id="page-client" class="hidden">
+        <h2 class="font-black mb-4">我的案場進度</h2>
+        <div id="clist"></div>
     </div>
 </main>
 
-<nav id="bnav" class="nav-bar fixed bottom-0 w-full flex z-50"></nav>
+<nav id="bnav" class="nav-bar"></nav>
 
 <script>
+// Supabase 設定保持原樣
 const PU='https://jikwrufwagfjdfzhomle.supabase.co';
 const AK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imppa3dydWZ3YWdmamRmemhvbWxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0Nzg5MzYsImV4cCI6MjA5MzA1NDkzNn0.bDXPFk0nB80JLKfZ9yWiCHLV6JhCC8lJhEpfPyjT0ag';
 const H={'apikey':AK,'Authorization':`Bearer ${AK}`,'Content-Type':'application/json','Prefer':'return=representation'};
 const api=t=>`${PU}/rest/v1/${t}`;
-const ST=`${PU}/storage/v1/object/site_photos`;
-let CU=null,filt='all',lbI=[],lbX=0;
-let D={p:[],u:[],s:[],r:[],n:[],ex:[],xt:[],sv:[],de:[],ins:[]};
-
-const GET=async(t,q='')=>{try{const r=await fetch(`${api(t)}?${q}&limit=500`,{headers:H});return r.ok?await r.json():[];}catch{return[];}};
-const POST=async(t,d)=>{try{const r=await fetch(api(t),{method:'POST',headers:H,body:JSON.stringify(d)});if(!r.ok)return null;const x=await r.json();return Array.isArray(x)?x[0]:x;}catch{return null;}};
-const PATCH=async(t,id,d)=>{try{const r=await fetch(`${api(t)}?id=eq.${id}`,{method:'PATCH',headers:H,body:JSON.stringify(d)});return r.ok;}catch{return false;}};
-const DEL=async(t,id)=>{try{await fetch(`${api(t)}?id=eq.${id}`,{method:'DELETE',headers:H});return true;}catch{return false;}};
-const UP=async f=>{const n=`img_${Date.now()}_${Math.random().toString(36).substr(2,5)}.jpg`;try{const r=await fetch(`${ST}/${n}`,{method:'POST',headers:{'apikey':AK,'Authorization':`Bearer ${AK}`,'Content-Type':f.type,'x-upsert':'true'},body:f});return r.ok?`${PU}/storage/v1/object/public/site_photos/${n}`:null;}catch{return null;}};
+let CU=null;
+let D={p:[],u:[],s:[],r:[],n:[],ins:[]};
 
 async function loadAll(){
-    const[p,u,s,r,n,ex,xt,sv,de,ins]=await Promise.all([
+    const[p,u,s,r,n,ins]=await Promise.all([
         GET('projects','order=created_at.desc'),GET('users','order=name.asc'),
         GET('project_stages','order=sort_order.asc'),GET('progress_reports','order=timestamp.desc'),
-        GET('site_notifications','order=notify_date.asc'),GET('project_expenses','order=expense_date.desc'),
-        GET('project_extras','order=created_at.desc'),GET('site_surveys','order=survey_date.desc'),
-        GET('design_records','order=created_at.desc'),GET('inspections','order=inspected_at.desc'),
+        GET('site_notifications','order=notify_date.asc'),GET('inspections','order=inspected_at.desc')
     ]);
-    D={p,u,s,r,n,ex,xt,sv,de,ins};
+    D={p,u,s,r,n,ins};
 }
 
-window.onload=async()=>{
-    const sid=localStorage.getItem('uid');
-    if(sid){await loadAll();const u=D.u.find(x=>x.id==sid);if(u){CU=u;login();return;}}
-};
+const GET=async(t,q='')=>{try{const r=await fetch(`${api(t)}?${q}`,{headers:H});return await r.json();}catch{return [];}};
+const POST=async(t,d)=>{try{const r=await fetch(api(t),{method:'POST',headers:H,body:JSON.stringify(d)});return await r.json();}catch{return null;}};
+const PATCH=async(t,id,d)=>{try{await fetch(`${api(t)}?id=eq.${id}`,{method:'PATCH',headers:H,body:JSON.stringify(d)});return true;}catch{return false;}};
+const DEL=async(t,id)=>{try{await fetch(`${api(t)}?id=eq.${id}`,{method:'DELETE',headers:H});return true;}catch{return false;}};
+
+// 登入邏輯保持
 async function doLogin(){
-    const id=document.getElementById('li').value.trim(),pw=document.getElementById('lp').value.trim();
-    if(!id||!pw)return setMsg('請輸入帳號密碼');
-    setMsg('驗證中...');await loadAll();
+    const id=document.getElementById('li').value,pw=document.getElementById('lp').value;
+    load(true,'驗證中...'); await loadAll();
     const u=D.u.find(x=>x.name===id&&x.password===pw);
-    if(!u)return setMsg('帳號或密碼錯誤');
-    CU=u;localStorage.setItem('uid',u.id);login();
+    if(!u){ load(false); alert('帳號密碼錯誤'); return; }
+    CU=u; localStorage.setItem('uid',u.id); login(); load(false);
 }
-function setMsg(m){document.getElementById('lmsg').innerText=m;}
+
 function login(){
     document.getElementById('login-screen').classList.add('hidden');
-    document.getElementById('urd').innerText=CU.name+' · '+({admin:'管理員',manager:'專案負責人',worker:'工班',client:'業主'}[CU.role]||CU.role);
-    buildNav();navTo(CU.role==='worker'?'worker':CU.role==='client'?'client':'projects');
+    buildNav();
+    navTo(CU.role==='worker'?'worker':CU.role==='client'?'client':'projects');
 }
-function logout(){localStorage.removeItem('uid');location.reload();}
 
 function buildNav(){
-    const pages=CU.role==='worker'?[{id:'worker',label:'任務',d:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'}]:
-    CU.role==='client'?[{id:'client',label:'我的案場',d:'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z'}]:
-    [{id:'projects',label:'案場',d:'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10'},
-    {id:'admin',label:'管理',d:'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z'}];
-    document.getElementById('bnav').innerHTML=pages.map(p=>`<button onclick="navTo('${p.id}')" class="nav-btn" id="nb-${p.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${p.d}"/></svg>${p.label}</button>`).join('');
+    const navs = CU.role==='worker' ? [{id:'worker',n:'任務'}] : CU.role==='client' ? [{id:'client',n:'我的案場'}] : [{id:'projects',n:'案場'},{id:'worker',n:'工班介面'}];
+    document.getElementById('bnav').innerHTML = navs.map(v=>`<div onclick="navTo('${v.id}')" class="nav-btn" id="nb-${v.id}">${v.n}</div>`).join('');
 }
 
 function navTo(p){
-    ['projects','detail','worker','client','admin'].forEach(v=>{document.getElementById('page-'+v)?.classList.add('hidden');document.getElementById('nb-'+v)?.classList.remove('active');});
-    document.getElementById('page-'+p)?.classList.remove('hidden');document.getElementById('nb-'+p)?.classList.add('active');
-    if(p==='projects')renderProjects();if(p==='worker')renderWorker();if(p==='client')renderClient();if(p==='admin')renderAdmin();
+    document.querySelectorAll('main > div').forEach(d=>d.classList.add('hidden'));
+    document.getElementById('page-'+p).classList.remove('hidden');
+    if(p==='projects') renderProjects();
+    if(p==='worker') renderWorker();
+    if(p==='client') renderClient();
 }
 
-const SB={'會勘':'bpu','設計':'bb','報價階段':'by','進行中':'bk','暫停':'bg','驗收':'by','已完工':'bgn','保固期':'bg'};
-const SO=['會勘','設計','報價階段','進行中','暫停','驗收','已完工','保固期'];
-
-function setF(f){
-    filt=f;
-    document.querySelectorAll('[id^=f-]').forEach(b=>b.className='badge bg flex-shrink-0 cursor-pointer py-1.5 px-3');
-    const el=document.getElementById('f-'+f);if(el)el.className='badge bk flex-shrink-0 cursor-pointer py-1.5 px-3';
-    renderProjects();
-}
-
+// 案場顯示
 function renderProjects(){
-    if(CU.role==='admin'||CU.role==='manager')document.getElementById('btn-np').classList.remove('hidden');
-    let list=CU.role==='admin'?D.p:D.p.filter(p=>p.manager_id===CU.id);
-    if(filt!=='all')list=list.filter(p=>p.status===filt);
-    const el=document.getElementById('plist');
-    if(!list.length){el.innerHTML=`<div class="text-center py-14 text-gray-400 text-sm">目前沒有案場</div>`;return;}
-    el.innerHTML=list.map(p=>{
-        const stages=D.s.filter(s=>s.project_id===p.id);
-        const done=stages.filter(s=>s.status==='完成').length;
-        const pct=stages.length?Math.round(done/stages.length*100):0;
-        const fin=calcFin(p.id);
-        const mgr=D.u.find(u=>u.id===p.manager_id);
-        const tn=D.n.filter(n=>n.project_id===p.id&&n.notify_date===toStr());
-        return `<div class="card cursor-pointer" onclick="openProject(${p.id})">
-            <div class="flex justify-between items-start mb-2">
-                <div class="flex-1 mr-2"><div class="font-black text-black mb-0.5">${p.name}</div><div class="text-xs text-gray-400">${p.address||'未填地址'}${mgr?` · ${mgr.name}`:''}</div></div>
-                <span class="badge ${SB[p.status]||'bg'}">${p.status}</span>
+    const list = CU.role==='admin' ? D.p : D.p.filter(x=>x.manager_id===CU.id);
+    document.getElementById('plist').innerHTML = list.map(p=>`
+        <div class="card" onclick="openProject(${p.id})">
+            <div class="flex justify-between">
+                <div class="font-black">${p.name}</div>
+                <div class="badge bk">${p.status}</div>
             </div>
-            ${tn.length?`<div class="bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5 mb-2 text-xs text-amber-700 font-bold">📅 今日進場：${tn.map(n=>n.worker_name).join('、')}</div>`:''}
-            <div class="mb-2"><div class="flex justify-between text-xs text-gray-400 mb-1"><span>進度</span><span>${done}/${stages.length}</span></div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div></div>
-            ${CU.role!=='client'?`<div class="grid grid-cols-3 gap-1 pt-2 border-t border-gray-100 text-center">
-                <div><div class="text-xs text-gray-400">報價</div><div class="mono text-xs font-bold">$${fmt(fin.quote)}</div></div>
-                <div><div class="text-xs text-gray-400">成本</div><div class="mono text-xs font-bold">$${fmt(fin.cost)}</div></div>
-                <div><div class="text-xs text-gray-400">毛利</div><div class="mono text-xs font-bold ${fin.profit>=0?'text-black':'text-gray-400'}">$${fmt(fin.profit)}</div></div>
-            </div>`:''}
-        </div>`;
-    }).join('');
-}
-
-function openProject(id){
-    document.getElementById('page-projects').classList.add('hidden');
-    document.getElementById('page-detail').classList.remove('hidden');
-    document.getElementById('nb-projects')?.classList.remove('active');
-    renderDetail(id);
-}
-function backToList(){
-    document.getElementById('page-detail').classList.add('hidden');
-    document.getElementById('page-projects').classList.remove('hidden');
-    document.getElementById('nb-projects')?.classList.add('active');
-    renderProjects();
-}
-
-function renderDetail(pid){
-    const p=D.p.find(x=>x.id===pid);if(!p)return;
-    const canEdit=CU.role==='admin'||CU.id===p.manager_id;
-    const isClient=CU.role==='client';
-    const stages=D.s.filter(s=>s.project_id===pid).sort((a,b)=>a.sort_order-b.sort_order);
-    const surveys=D.sv.filter(s=>s.project_id===pid);
-    const designs=D.de.filter(d=>d.project_id===pid);
-    const extras=D.xt.filter(e=>e.project_id===pid);
-    const expenses=D.ex.filter(e=>e.project_id===pid);
-    const notifs=D.n.filter(n=>n.project_id===pid).sort((a,b)=>a.notify_date.localeCompare(b.notify_date));
-    const inspList=D.ins.filter(i=>i.project_id===pid);
-    const fin=calcFin(pid);
-    const mgr=D.u.find(u=>u.id===p.manager_id);
-    const mgrInsp=inspList.filter(i=>i.inspector_role==='manager'||!i.inspector_role);
-    const clientInsp=inspList.filter(i=>i.inspector_role==='client');
-    const mgrPassed=mgrInsp.some(i=>i.status==='驗收通過');
-
-    // 流程定義
-    const FLOW=[
-        {key:'會勘',    label:'會勘',    icon:'📷', next:'設計'},
-        {key:'設計',    label:'設計',    icon:'🎨', next:'報價階段'},
-        {key:'報價階段',label:'報價',    icon:'📋', next:'進行中'},
-        {key:'進行中',  label:'進行中',  icon:'🔨', next:'追加工程'},
-        {key:'追加工程',label:'追加工程',icon:'➕', next:'驗收'},
-        {key:'驗收',    label:'驗收',    icon:'✅', next:'已完工'},
-        {key:'已完工',  label:'完工',    icon:'🏁', next:'保固期'},
-        {key:'保固期',  label:'保固',    icon:'🔧', next:null},
-        {key:'暫停',    label:'暫停',    icon:'⏸', next:null},
-    ];
-    const curStep=FLOW.find(f=>f.key===p.status)||FLOW[0];
-    const curIdx=FLOW.findIndex(f=>f.key===p.status);
-    const mainFlow=FLOW.filter(f=>f.key!=='暫停');
-
-    // Header
-    let html=`<div class="card mb-3">
-        <div class="flex justify-between items-start mb-3">
-            <div><h2 class="text-lg font-black text-black">${p.name}</h2><div class="text-xs text-gray-400">${p.address||'未填地址'}${mgr?` · 負責：${mgr.name}`:''}</div></div>
-            <span class="badge ${SB[p.status]||'bg'} text-sm px-3 py-1">${curStep.icon} ${p.status}</span>
+            <div class="text-xs text-gray-400 mt-1">${p.address||'無地址'}</div>
         </div>
-        <div class="flex items-center gap-1 overflow-x-auto pb-1" style="-ms-overflow-style:none;scrollbar-width:none;">
-            ${mainFlow.map((f,i)=>{
-                const fi=FLOW.findIndex(x=>x.key===f.key);
-                const isDone=fi<curIdx;
-                const isActive=f.key===p.status;
-                return `<div class="flex items-center gap-1 flex-shrink-0">
-                    <div class="text-xs font-bold px-2 py-1 rounded-full ${isDone?'bg-black text-white':isActive?'bg-gray-100 text-black border border-black':'text-gray-300'}">${isDone?'✓':f.label}</div>
-                    ${i<mainFlow.length-1?`<div class="w-3 h-px ${isDone?'bg-black':'bg-gray-200'} flex-shrink-0"></div>`:''}
-                </div>`;
-            }).join('')}
-        </div>
-    </div>`;
-
-    // ── 當前階段內容 ──
-    html+=`<div class="mb-3">`;
-
-    // 會勘
-    if(p.status==='會勘'){
-        html+=`<div class="card mb-3">
-            <div class="flex justify-between items-center mb-3">
-                <span class="font-black text-sm">📷 會勘記錄</span>
-                ${canEdit?`<button onclick="openSurvey(${pid})" class="btn btn-p btn-sm">＋ 新增</button>`:''}
-            </div>
-            <div class="space-y-3">${surveys.map(s=>`<div class="csm">
-                <div class="flex justify-between items-start mb-1">
-                    <div><div class="font-bold text-sm">${s.survey_date}</div>${s.participants?`<div class="text-xs text-gray-400">👥 ${s.participants}</div>`:''}</div>
-                    ${canEdit?`<button onclick="delR('site_surveys',${s.id},${pid})" class="text-gray-300 hover:text-red-400 text-xl">×</button>`:''}
-                </div>
-                ${s.house_condition?`<div class="text-xs text-gray-600 bg-gray-50 rounded p-2 mb-1">${s.house_condition}</div>`:''}
-                ${s.notes?`<div class="text-xs text-gray-400">${s.notes}</div>`:''}
-                ${ig(s.image_urls)}
-            </div>`).join('')}
-            ${!surveys.length?`<div class="text-xs text-gray-400 text-center py-4">尚無會勘記錄，請新增</div>`:''}
-            </div>
-        </div>`;
-    }
-
-    // 設計
-    if(p.status==='設計'){
-        html+=`<div class="card mb-3">
-            <div class="flex justify-between items-center mb-3">
-                <span class="font-black text-sm">🎨 設計版本</span>
-                ${canEdit?`<button onclick="openDesign(${pid})" class="btn btn-p btn-sm">＋ 新增</button>`:''}
-            </div>
-            <div class="space-y-3">${designs.map(d=>{
-                const dsb={'待確認':'by','已確認':'bgn','退回修改':'br'}[d.client_status]||'bg';
-                return `<div class="csm">
-                    <div class="flex justify-between items-start mb-1">
-                        <div><span class="font-black text-sm">${d.version}</span><span class="badge ${dsb} ml-1">${d.client_status}</span><div class="text-xs text-gray-400">${d.design_date}</div></div>
-                        ${canEdit?`<button onclick="delR('design_records',${d.id},${pid})" class="text-gray-300 hover:text-red-400 text-xl">×</button>`:''}
-                    </div>
-                    ${d.designer_notes?`<div class="text-xs text-gray-500 bg-gray-50 rounded p-2 mb-1">${d.designer_notes}</div>`:''}
-                    ${ig(d.image_urls)}
-                </div>`;
-            }).join('')}
-            ${!designs.length?`<div class="text-xs text-gray-400 text-center py-4">尚無設計版本，請新增</div>`:''}
-            </div>
-        </div>`;
-    }
-
-    // 報價
-    if(p.status==='報價階段'&&!isClient){
-        html+=`<div class="card mb-3">
-            <div class="flex justify-between items-center mb-3">
-                <span class="font-black text-sm">📋 報價單</span>
-                <span class="mono font-black">$${fin.quote.toLocaleString()}</span>
-            </div>
-            ${stages.length?stages.map(s=>`<div class="fin-row">
-                <span class="text-sm">${s.name}</span>
-                <div class="text-right">
-                    <div class="mono text-sm font-bold">$${(s.quote_amount||0).toLocaleString()}</div>
-                    ${s.contract_amount?`<div class="mono text-xs text-gray-400">發包 $${s.contract_amount.toLocaleString()}</div>`:''}
-                </div>
-            </div>`).join(''):`<div class="text-xs text-gray-400 text-center py-3">請先在施工階段設定報價</div>`}
-            <div class="fin-total"><span class="font-bold text-sm">合計</span><span class="mono font-black">$${fin.quote.toLocaleString()}</span></div>
-            ${canEdit?`<button onclick="openStage(${pid})" class="btn btn-s btn-sm mt-3">＋ 新增工種報價</button>`:''}
-        </div>`;
-    }
-
-    // 進行中
-    if(p.status==='進行中'){
-        html+=`<div class="card mb-3">
-            <div class="flex justify-between items-center mb-3">
-                <span class="font-black text-sm">🔨 施工階段</span>
-                ${canEdit?`<button onclick="openStage(${pid})" class="btn btn-p btn-sm">＋ 新增</button>`:''}
-            </div>
-            ${stages.length?stages.map(s=>stageCard(s,canEdit,isClient)).join(''):`<div class="text-xs text-gray-400 text-center py-4">尚未新增施工階段</div>`}
-        </div>`;
-        if(!isClient&&canEdit){
-            html+=`<div class="card mb-3">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="font-black text-sm">📅 進場通報</span>
-                    <button onclick="openNotify(${pid})" class="btn btn-sm" style="background:#fef9c3;color:#854d0e;border:1px solid #fde68a;">＋ 發通報</button>
-                </div>
-                ${notifs.length?notifs.map(n=>`<div class="flex items-center gap-2 py-2 border-b border-gray-100 last:border-0">
-                    <div class="text-xs font-bold w-20 flex-shrink-0 ${n.notify_date===toStr()?'text-amber-600':n.notify_date<toStr()?'text-gray-300':'text-gray-500'}">${n.notify_date}</div>
-                    <div class="flex-1 text-sm font-bold">${n.worker_name}${n.message?`<span class="text-xs text-gray-400 font-normal ml-1">${n.message}</span>`:''}</div>
-                    <button onclick="delR('site_notifications',${n.id},${pid})" class="text-gray-300 hover:text-red-400 text-xl">×</button>
-                </div>`).join(''):`<div class="text-xs text-gray-400 text-center py-2">尚無通報</div>`}
-            </div>`;
-        }
-    }
-
-    // 追加工程
-    if(p.status==='追加工程'&&!isClient){
-        html+=`<div class="card mb-3">
-            <div class="flex justify-between items-center mb-3">
-                <span class="font-black text-sm">➕ 追加項目</span>
-                ${canEdit?`<button onclick="openExtra(${pid})" class="btn btn-p btn-sm">＋ 新增追加</button>`:''}
-            </div>
-            <p class="text-xs text-blue-600 bg-blue-50 rounded p-2 mb-3">追加項目代表向業主額外收費，將增加業主實收金額。</p>
-            ${extras.length?extras.map(e=>`<div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
-                <div><div class="text-sm font-bold">${e.description}</div><div class="text-xs text-gray-400">${e.extra_date}</div></div>
-                <span class="mono font-bold text-blue-600">+$${e.amount.toLocaleString()}</span>
-            </div>`).join(''):`<div class="text-xs text-gray-400 text-center py-4">尚無追加項目</div>`}
-            ${extras.length?`<div class="fin-total"><span class="font-bold text-sm">追加合計</span><span class="mono font-black text-blue-600">+$${fin.extra.toLocaleString()}</span></div>`:''}
-        </div>`;
-    }
-
-    // 驗收
-    if(p.status==='驗收'){
-        html+=`<div class="card mb-3">
-            <div class="flex justify-between items-center mb-1">
-                <span class="font-black text-sm">✅ 第一階段：設計師／統包驗收</span>
-                ${canEdit?`<button onclick="openInsp(${pid})" class="btn btn-p btn-sm">＋ 新增</button>`:''}
-            </div>
-            <div class="space-y-2 mb-4">${mgrInsp.map(i=>{
-                const isb={'待驗收':'by','驗收中':'bb','驗收通過':'bgn','驗收退件':'br'}[i.status]||'bg';
-                return `<div class="csm"><div class="flex justify-between items-start">
-                    <div><span class="badge ${isb}">${i.status}</span><div class="text-xs text-gray-400 mt-0.5">${i.inspected_by||''} · ${new Date(i.inspected_at).toLocaleDateString('zh-TW')}</div></div>
-                    ${canEdit?`<button onclick="delR('inspections',${i.id},${pid})" class="text-gray-300 hover:text-red-400 text-xl">×</button>`:''}
-                </div>${i.notes?`<div class="text-xs text-gray-500 mt-1">${i.notes}</div>`:''}${ig(i.image_urls)}</div>`;
-            }).join('')}${!mgrInsp.length?`<div class="text-xs text-gray-400 text-center py-2">尚無驗收記錄</div>`:''}
-            </div>
-            <div class="pt-3 border-t border-gray-100">
-                <div class="font-black text-sm mb-2">第二階段：業主驗收 ${!mgrPassed?`<span class="badge bg ml-1 text-xs font-normal">等待第一階段通過</span>`:''}</div>
-                <div class="space-y-2">${clientInsp.map(i=>{
-                    const isb={'待驗收':'by','驗收中':'bb','驗收通過':'bgn','驗收退件':'br'}[i.status]||'bg';
-                    return `<div class="csm"><div class="flex justify-between items-start">
-                        <div><span class="badge ${isb}">${i.status}</span><div class="text-xs text-gray-400 mt-0.5">${i.inspected_by||''} · ${new Date(i.inspected_at).toLocaleDateString('zh-TW')}</div></div>
-                        ${canEdit?`<button onclick="delR('inspections',${i.id},${pid})" class="text-gray-300 hover:text-red-400 text-xl">×</button>`:''}
-                    </div>${i.notes?`<div class="text-xs text-gray-500 mt-1">${i.notes}</div>`:''}${ig(i.image_urls)}</div>`;
-                }).join('')}${!clientInsp.length?`<div class="text-xs text-gray-400 text-center py-2">${mgrPassed?'業主尚未驗收':'等待第一階段通過後開放'}</div>`:''}
-                </div>
-            </div>
-        </div>`;
-    }
-
-    // 財務摘要（進行中/追加/驗收/完工階段顯示，非業主）
-    if(!isClient&&['進行中','追加工程','驗收','已完工','保固期'].includes(p.status)){
-        const pr=fin.revenue>0?Math.round(fin.profit/fin.revenue*100):0;
-        html+=`<details class="card mb-3">
-            <summary class="flex justify-between items-center">
-                <span class="font-black text-sm">💰 財務摘要</span>
-                <span class="mono font-black ${fin.profit>=0?'text-black':'text-gray-400'}">$${fin.profit.toLocaleString()}</span>
-            </summary>
-            <div class="mt-3">
-                <div class="fin-row"><span class="text-sm text-gray-500">報價總額</span><span class="mono font-bold">$${fin.quote.toLocaleString()}</span></div>
-                <div class="fin-row"><span class="text-sm text-gray-500">追加金額</span><span class="mono font-bold text-blue-600">+$${fin.extra.toLocaleString()}</span></div>
-                <div class="fin-row"><span class="text-sm font-bold">業主實收</span><span class="mono font-black">$${fin.revenue.toLocaleString()}</span></div>
-                <div class="fin-row"><span class="text-sm text-gray-500">發包總額</span><span class="mono text-red-500">-$${fin.contract.toLocaleString()}</span></div>
-                <div class="fin-row"><span class="text-sm text-gray-500">其他成本</span><span class="mono text-red-500">-$${(fin.material+fin.equipment+fin.misc+fin.expCost).toLocaleString()}</span></div>
-                <div class="fin-total"><span class="font-black">毛利 (${pr}%)</span><span class="mono font-black text-lg ${fin.profit>=0?'':'text-gray-400'}">$${fin.profit.toLocaleString()}</span></div>
-                ${canEdit?`<div class="flex gap-2 mt-3"><button onclick="openExp(${pid})" class="btn btn-s btn-sm flex-1">＋ 雜支</button></div>`:''}
-            </div>
-        </details>`;
-    }
-
-    html+=`</div>`;
-
-    // ── 歷史記錄（折疊，所有階段都可看） ──
-    const hasHistory = surveys.length||designs.length||stages.length||inspList.length;
-    if(hasHistory&&!isClient){
-        html+=`<details class="mb-3">
-            <summary class="text-xs font-black text-gray-400 uppercase cursor-pointer px-1 mb-2">📁 完整記錄</summary>
-            <div class="mt-2">`;
-        if(surveys.length) html+=`<div class="text-xs font-bold text-gray-500 mb-1 mt-2">會勘 (${surveys.length})</div>`+surveys.map(s=>`<div class="csm mb-2"><div class="font-bold text-xs">${s.survey_date}${s.participants?` · ${s.participants}`:''}</div>${s.house_condition?`<div class="text-xs text-gray-400 mt-0.5">${s.house_condition}</div>`:''}${ig(s.image_urls)}</div>`).join('');
-        if(designs.length) html+=`<div class="text-xs font-bold text-gray-500 mb-1 mt-2">設計版本 (${designs.length})</div>`+designs.map(d=>{const dsb={'待確認':'by','已確認':'bgn','退回修改':'br'}[d.client_status]||'bg';return `<div class="csm mb-2"><div class="flex gap-2 items-center"><span class="font-bold text-xs">${d.version}</span><span class="badge ${dsb}">${d.client_status}</span></div>${ig(d.image_urls)}</div>`}).join('');
-        if(stages.length) html+=`<div class="text-xs font-bold text-gray-500 mb-1 mt-2">施工階段</div>`+stages.map(s=>stageCard(s,canEdit,isClient)).join('');
-        html+=`</div></details>`;
-    }
-
-    // ── 進入下一階段按鈕 ──
-    if(canEdit&&curStep.next){
-        html+=`<div class="mt-2 mb-4">
-            <button onclick="nextStep(${pid},'${curStep.next}')" class="btn btn-p w-full text-base">
-                完成「${p.status}」→ 進入「${curStep.next==='報價階段'?'報價':curStep.next==='已完工'?'完工':curStep.next}」
-            </button>
-        </div>`;
-    }
-
-    // 刪除（管理員）
-    if(CU.role==='admin'){
-        html+=`<div class="mt-2 mb-6"><button onclick="delProject(${pid})" class="btn btn-d btn-sm w-full">🗑 刪除此案場</button></div>`;
-    }
-
-    document.getElementById('dcontent').innerHTML=html;
+    `).join('');
 }
 
-async function nextStep(pid,nextStatus){
-    const p=D.p.find(x=>x.id===pid);
-    const label=nextStatus==='報價階段'?'報價':nextStatus==='已完工'?'完工':nextStatus;
-    if(!confirm(`確定完成「${p.status}」階段，進入「${label}」？`))return;
-    load(true);
-    await PATCH('projects',pid,{status:nextStatus});
-    await loadAll();load(false);renderDetail(pid);
-}
-
-function stageCard(s,canEdit,isClient){
-    const w=D.u.find(u=>u.id===s.assigned_worker_id);
-    const rpts=D.r.filter(r=>r.stage_id===s.id);
-    const ssb={'待開始':'bg','進行中':'bk','待確認':'by','完成':'bgn'}[s.status]||'bg';
-    return `<div class="csm mb-2 ${s.status==='進行中'?'border-black':''}">
-        <div class="flex justify-between items-start mb-1">
-            <div class="flex-1 mr-2">
-                <div class="font-bold text-sm">${s.name}</div>
-                ${w?`<div class="text-xs text-gray-400">${w.company_name||w.name}${w.worker_type?` · ${w.worker_type}`:''}</div>`:''}
-                ${s.scheduled_date?`<div class="text-xs text-gray-400">📅 ${s.scheduled_date}</div>`:''}
+async function openProject(id){
+    await loadAll();
+    const p = D.p.find(x=>x.id===id);
+    const stages = D.s.filter(x=>x.project_id===id);
+    const detail = document.getElementById('dcontent');
+    navTo('detail');
+    
+    let html = `
+        <div class="card bg-gray-50">
+            <div class="flex justify-between items-start">
+                <div><h2 class="text-xl font-black">${p.name}</h2><p class="text-xs text-gray-400">${p.status}</p></div>
+                <button onclick="delProject(${p.id})" class="text-red-400 text-xs">刪除案場</button>
             </div>
-            <div class="flex items-center gap-1.5 flex-shrink-0">
-                <span class="badge ${ssb}">${s.status}</span>
-                ${canEdit?`<button onclick="openEditStage(${s.id})" class="btn btn-s btn-ic">✏️</button>`:''}
+            <div class="mt-4 flex gap-2 overflow-x-auto pb-2">
+                ${['會勘','設計','報價階段','進行中','驗收','已完工','保固期'].map(s=>`<div class="badge ${p.status===s?'bk':'bg'}">${s}</div>`).join('')}
             </div>
         </div>
-        ${s.notes?`<div class="text-xs text-gray-500 bg-gray-50 rounded p-2 mb-1">${s.notes}</div>`:''}
-        ${!isClient?`<div class="grid grid-cols-2 gap-x-3 mt-1 pt-1 border-t border-gray-100">
-            <div class="text-xs text-gray-400">報價 <span class="mono font-bold text-black">$${(s.quote_amount||0).toLocaleString()}</span></div>
-            <div class="text-xs text-gray-400">發包 <span class="mono font-bold text-black">$${(s.contract_amount||0).toLocaleString()}</span></div>
-        </div>`:''}
-        ${rpts.length?`<details class="mt-2"><summary class="text-xs text-gray-400 font-bold cursor-pointer">回報記錄 (${rpts.length})</summary>
-            <div class="mt-1 space-y-1">${rpts.map(r=>`<div class="bg-gray-50 rounded p-2">
-                <div class="flex justify-between text-xs text-gray-400 mb-0.5"><span class="font-bold text-gray-600">${r.worker_name}</span><span>${new Date(r.timestamp).toLocaleString('zh-TW',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</span></div>
-                ${r.notes?`<div class="text-xs">${r.notes}</div>`:''}${ig(r.image_urls)}
-            </div>`).join('')}
-            </div></details>`:''}
-    </div>`;
-}
+    `;
 
-function renderWorker(){
-    const ms=D.s.filter(s=>s.assigned_worker_id===CU.id);
-    const el=document.getElementById('wlist');
-    if(!ms.length){el.innerHTML=`<div class="text-center py-14 text-gray-400 text-sm">目前沒有指派任務</div>`;return;}
-    const active=ms.filter(s=>s.status!=='完成'),done=ms.filter(s=>s.status==='完成');
-    el.innerHTML=(active.length?`<div class="text-xs font-black text-gray-400 uppercase mb-2">進行中</div>`+active.map(s=>wTask(s)).join(''):'')+
-        (done.length?`<div class="text-xs font-black text-gray-400 uppercase mt-4 mb-2">已完成</div>`+done.map(s=>wTask(s)).join(''):'' );
-}
-function wTask(s){
-    const p=D.p.find(x=>x.id===s.project_id);
-    const rpts=D.r.filter(r=>r.stage_id===s.id);
-    const ssb={'待開始':'bg','進行中':'bk','待確認':'by','完成':'bgn'}[s.status]||'bg';
-    return `<div class="card mb-2">
-        <div class="text-xs text-gray-400 font-bold mb-0.5">${p?p.name:'未知案場'}</div>
-        <div class="flex justify-between items-start"><div><div class="font-black">${s.name}</div>${s.scheduled_date?`<div class="text-xs text-gray-400">📅 ${s.scheduled_date}</div>`:''}</div><span class="badge ${ssb}">${s.status}</span></div>
-        ${s.notes?`<div class="text-xs text-gray-500 bg-gray-50 rounded p-2 mt-1">${s.notes}</div>`:''}
-        ${s.status!=='完成'?`<button onclick="openReport(${s.id},'${s.name.replace(/'/g,"\\'")}',${s.project_id})" class="btn btn-p btn-sm mt-2">📤 回報進度</button>`:''}
-        ${rpts.length?`<div class="text-xs text-gray-400 mt-1">已回報 ${rpts.length} 次</div>`:''}
-    </div>`;
-}
+    // 1. 完成步驟直接顯示並可修改 (修改狀態功能)
+    html += `
+        <div class="card">
+            <h3 class="font-bold mb-3">步驟設定</h3>
+            <select onchange="updateProjectStatus(${p.id}, this.value)" class="inp">
+                ${['會勘','設計','報價階段','進行中','驗收','已完工','保固期'].map(s=>`<option value="${s}" ${p.status===s?'selected':''}>${s}</option>`).join('')}
+            </select>
+        </div>
+    `;
 
-function renderClient(){
-    const mp=D.p.filter(p=>p.client_id===CU.id);
-    const el=document.getElementById('clist');
-    if(!mp.length){el.innerHTML=`<div class="text-center py-14 text-gray-400 text-sm">目前沒有案場</div>`;return;}
-    const dc={'待開始':'#ccc','進行中':'#111','待確認':'#f59e0b','完成':'#22c55e'};
-    el.innerHTML=mp.map(p=>{
-        const stages=D.s.filter(s=>s.project_id===p.id);
-        const done=stages.filter(s=>s.status==='完成').length;
-        const pct=stages.length?Math.round(done/stages.length*100):0;
-        const designs=D.de.filter(d=>d.project_id===p.id);
-        // 第一階段驗收（設計師/統包）是否通過
-        const mgr1stPassed=D.ins.filter(i=>i.project_id===p.id&&i.inspector_role==='manager').some(i=>i.status==='驗收通過');
-        const clientInsp=D.ins.filter(i=>i.project_id===p.id&&i.inspector_role==='client');
-
-        return `<div class="card mb-4">
-            <div class="flex justify-between items-start mb-3">
-                <div><h3 class="font-black">${p.name}</h3><div class="text-xs text-gray-400">${p.address||''}</div></div>
-                <span class="badge ${SB[p.status]||'bg'}">${p.status}</span>
-            </div>
-            <div class="mb-4"><div class="flex justify-between text-xs text-gray-400 mb-1"><span>施工進度</span><span>${pct}%</span></div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div></div>
-
-            ${designs.length?`<details class="mb-3 bg-gray-50 rounded-xl p-3" ${designs.some(d=>d.client_status==='待確認')?'open':''}>
-                <summary class="font-bold text-sm cursor-pointer">🎨 設計圖 <span class="text-gray-400 font-normal text-xs">(${designs.length} 版)</span>
-                ${designs.some(d=>d.client_status==='待確認')?`<span class="badge by ml-1">待您確認</span>`:''}</summary>
-                <div class="mt-3 space-y-3">${designs.map(d=>{
-                    const dsb={'待確認':'by','已確認':'bgn','退回修改':'br'}[d.client_status]||'bg';
-                    return `<div class="csm">
-                        <div class="flex justify-between items-start mb-1">
-                            <div><span class="font-bold text-sm">${d.version}</span><span class="badge ${dsb} ml-1">${d.client_status}</span><div class="text-xs text-gray-400">${d.design_date}</div></div>
-                            ${d.client_status==='待確認'?`<div class="flex gap-1">
-                                <button onclick="clientConfirmDesign(${d.id},${p.id},'已確認')" class="btn btn-sm bgn text-xs" style="background:#dcfce7;color:#166534;border:1px solid #bbf7d0">✓ 確認</button>
-                                <button onclick="clientConfirmDesign(${d.id},${p.id},'退回修改')" class="btn btn-sm br text-xs" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5">✗ 退回</button>
-                            </div>`:''}
+    // 2 & 3. 報價環節修正 (工班 -> 負責人 -> 業主)
+    if(p.status === '報價階段'){
+        html += `<div class="card">
+            <h3 class="font-bold mb-2">💰 報價流程</h3>
+            <div class="space-y-3">
+                ${stages.map(s=>{
+                    const w = D.u.find(u=>u.id===s.assigned_worker_id);
+                    return `<div class="border-b pb-2">
+                        <div class="flex justify-between font-bold text-sm">
+                            <span>${s.name} (${w?.name||'未指派'})</span>
+                            <span class="mono">$${s.quote_amount}</span>
                         </div>
-                        ${d.designer_notes?`<div class="text-xs text-gray-500 bg-white rounded p-2 mb-1">${d.designer_notes}</div>`:''}
-                        ${ig(d.image_urls)}
+                        <div class="flex gap-2 mt-2">
+                            ${s.worker_confirmed_at ? `<span class="text-xs text-green-500">工班已呈報: ${s.worker_confirmed_at}</span>` : `<button onclick="confirmStage(${s.id}, 'worker')" class="btn btn-s text-xs py-1">工班確認報價</button>`}
+                            ${s.manager_confirmed_at ? `<span class="text-xs text-blue-500">設計師已核准: ${s.manager_confirmed_at}</span>` : (s.worker_confirmed_at ? `<button onclick="confirmStage(${s.id}, 'manager')" class="btn btn-p text-xs py-1">核准報價</button>` : '')}
+                            ${s.client_confirmed_at ? `<span class="text-xs text-green-600 font-bold">業主已簽認: ${s.client_confirmed_at}</span>` : (s.manager_confirmed_at ? `<button onclick="confirmStage(${s.id}, 'client')" class="btn btn-ok text-xs py-1">呈報業主按確認</button>` : '')}
+                        </div>
+                        <div class="flex gap-2 mt-2">
+                            <button onclick="editStage(${s.id})" class="text-xs text-gray-400">編輯項目</button>
+                            <button onclick="deleteStage(${s.id})" class="text-xs text-red-300">刪除</button>
+                        </div>
                     </div>`;
-                }).join('')}</div>
-            </details>`:''}
-
-            ${mgr1stPassed?`<details class="mb-3 bg-gray-50 rounded-xl p-3">
-                <summary class="font-bold text-sm cursor-pointer">✅ 業主驗收 <span class="text-gray-400 font-normal text-xs">(${clientInsp.length})</span></summary>
-                <div class="mt-2">
-                    ${clientInsp.map(i=>{
-                        const isb={'待驗收':'by','驗收中':'bb','驗收通過':'bgn','驗收退件':'br'}[i.status]||'bg';
-                        return `<div class="csm"><span class="badge ${isb}">${i.status}</span>${i.notes?`<div class="text-xs text-gray-500 mt-1">${i.notes}</div>`:''}${ig(i.image_urls)}</div>`;
-                    }).join('')}
-                    <button onclick="openClientInsp(${p.id})" class="btn btn-p btn-sm mt-2 w-full">＋ 提交驗收意見</button>
-                </div>
-            </details>`:''}
-
-            <div>${stages.map(s=>{
-                const imgs=D.r.filter(r=>r.stage_id===s.id).flatMap(r=>Array.isArray(r.image_urls)?r.image_urls:[]);
-                return `<div class="tl-item"><div class="tl-dot" style="background:${dc[s.status]||'#ccc'}"></div>
-                    <div class="font-bold text-sm">${s.name} <span class="text-xs font-normal text-gray-400">${s.status}</span></div>
-                    ${s.scheduled_date?`<div class="text-xs text-gray-400">${s.scheduled_date}</div>`:''}
-                    ${imgs.length?ig(imgs.slice(0,3)):''}
-                </div>`;
-            }).join('')}</div>
+                }).join('')}
+                <button onclick="openStage(${p.id})" class="btn btn-s">+ 新增報價項目</button>
+            </div>
         </div>`;
-    }).join('');
-}
+    }
 
-async function clientConfirmDesign(id,pid,status){
-    if(!confirm(status==='已確認'?'確認此設計版本？':'退回此版本並要求修改？'))return;
-    await PATCH('design_records',id,{client_status:status});
-    await loadAll();renderClient();
-}
-
-function openClientInsp(pid){
-    openM(`<h3 class="text-base font-black mb-4">✅ 提交驗收意見</h3>
-        <div class="space-y-3">
-            <div><label class="label">驗收結果</label><select id="ci-s" class="inp"><option>待驗收</option><option>驗收通過</option><option>驗收退件</option></select></div>
-            <div><label class="label">意見說明</label><textarea id="ci-n" class="inp" rows="3" placeholder="驗收意見..."></textarea></div>
-            <div onclick="document.getElementById('ci-f').click()" class="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center cursor-pointer hover:border-gray-400">
-                <input type="file" id="ci-f" accept="image/*" multiple class="hidden" onchange="prevF(this,'ci-pv','ci-ph')">
-                <div id="ci-ph"><div class="text-2xl mb-1">📷</div><div class="text-xs text-gray-400">上傳驗收照片</div></div>
-                <div id="ci-pv" class="hidden img-grid"></div>
-            </div>
-        </div>
-        <div class="flex gap-3 mt-5"><button onclick="closeM()" class="btn btn-s">取消</button><button onclick="saveClientInsp(${pid})" class="btn btn-p">提交</button></div>`);
-}
-async function saveClientInsp(pid){
-    load(true,'上傳照片中...');
-    const urls=await upFiles('ci-f');
-    await POST('inspections',{project_id:pid,inspector_role:'client',status:document.getElementById('ci-s').value,inspected_by:CU.name,notes:document.getElementById('ci-n').value.trim()||null,image_urls:urls,inspected_at:new Date().toISOString(),created_by:CU.id});
-    await loadAll();load(false);closeM();renderClient();
-}
-
-function renderAdmin(){
-    const roles={admin:'管理員',manager:'專案負責人',worker:'工班',client:'業主'};
-    document.getElementById('ulist').innerHTML=D.u.map(u=>`
-        <details class="bg-white rounded-xl border border-gray-200 mb-2">
-            <summary class="flex justify-between items-center p-3 cursor-pointer">
-                <div><div class="font-bold text-sm">${u.name} <span class="badge bg ml-1">${roles[u.role]||u.role}</span></div>
-                ${u.company_name?`<div class="text-xs text-gray-400">${u.company_name}${u.worker_type?` · ${u.worker_type}`:''}</div>`:''}
-                ${u.phone?`<div class="text-xs text-gray-400">${u.phone}</div>`:''}</div>
-                <span class="text-gray-300 text-sm ml-2">✏️</span>
-            </summary>
-            <div class="p-3 pt-0 border-t border-gray-100 mt-1">
-                <div class="space-y-2">
-                    <div class="grid grid-cols-2 gap-2">
-                        <div><label class="label">姓名</label><input id="eu-n-${u.id}" class="inp" value="${u.name}" style="height:38px;font-size:13px;"></div>
-                        <div><label class="label">密碼</label><input id="eu-p-${u.id}" class="inp" value="${u.password||''}" style="height:38px;font-size:13px;"></div>
+    // 9. 驗收邏輯
+    if(p.status === '進行中' || p.status === '驗收'){
+        const reports = D.r.filter(x=>x.project_id===id);
+        html += `<div class="card">
+            <h3 class="font-bold mb-2">🔨 施工與驗收</h3>
+            <div class="space-y-4">
+                <div class="text-xs text-gray-400">每日施工回報 (需由設計師驗收後，再由業主驗收)</div>
+                ${reports.slice(0,5).map(r=>`
+                    <div class="bg-gray-50 p-2 rounded">
+                        <div class="text-xs font-bold">${r.worker_name} - ${r.timestamp}</div>
+                        <div class="text-sm">${r.notes}</div>
+                        ${ig(r.image_urls)}
                     </div>
-                    <div><label class="label">角色</label>
-                        <select id="eu-r-${u.id}" class="inp" style="height:38px;font-size:13px;" onchange="toggleEditWF(${u.id},this.value)">
-                            <option value="manager" ${u.role==='manager'?'selected':''}>專案負責人</option>
-                            <option value="worker" ${u.role==='worker'?'selected':''}>工班</option>
-                            <option value="client" ${u.role==='client'?'selected':''}>業主</option>
-                            <option value="admin" ${u.role==='admin'?'selected':''}>管理員</option>
-                        </select>
-                    </div>
-                    <div id="eu-wf-${u.id}" class="${u.role==='worker'?'':'hidden'} space-y-2">
-                        <div class="grid grid-cols-2 gap-2">
-                            <div><label class="label">公司名稱</label><input id="eu-c-${u.id}" class="inp" value="${u.company_name||''}" style="height:38px;font-size:13px;"></div>
-                            <div><label class="label">電話</label><input id="eu-ph-${u.id}" class="inp" value="${u.phone||''}" style="height:38px;font-size:13px;"></div>
-                        </div>
-                        <div><label class="label">工班類型</label>
-                            <select id="eu-wt-${u.id}" class="inp" style="height:38px;font-size:13px;">
-                                ${['泥作','木工','水電','油漆','鐵工','拆除','空調','其他'].map(t=>`<option ${u.worker_type===t?'selected':''}>${t}</option>`).join('')}
-                            </select>
-                        </div>
-                    </div>
-                    <div class="flex gap-2 pt-1">
-                        <button onclick="saveEditUser(${u.id})" class="btn btn-p btn-sm flex-1">儲存</button>
-                        <button onclick="delUser(${u.id})" class="btn btn-d btn-sm">刪除</button>
-                    </div>
-                </div>
+                `).join('')}
+                <button onclick="openInsp(${p.id})" class="btn btn-p">發起正式驗收</button>
             </div>
-        </details>`).join('');
-    const rows=D.p.map(p=>{const f=calcFin(p.id);return `<div class="fin-row"><div><div class="font-bold text-sm">${p.name}</div><div class="text-xs text-gray-400">${p.status}</div></div><div class="text-right"><div class="mono text-xs text-gray-400">報價 $${fmt(f.quote)}</div><div class="mono font-bold ${f.profit>=0?'text-black':'text-gray-400'}">利潤 $${fmt(f.profit)}</div></div></div>`;}).join('');
-    const tp=D.p.reduce((s,p)=>s+calcFin(p.id).profit,0);
-    document.getElementById('afin').innerHTML=rows+`<div class="fin-total"><span class="font-black">總毛利</span><span class="mono font-black text-lg ${tp>=0?'':'text-gray-400'}">$${tp.toLocaleString()}</span></div>`;
-}
-function toggleWF(){document.getElementById('wf').classList.toggle('hidden',document.getElementById('nu-r').value!=='worker');}
-function toggleEditWF(id,role){document.getElementById(`eu-wf-${id}`).classList.toggle('hidden',role!=='worker');}
-async function saveEditUser(id){
-    const role=document.getElementById(`eu-r-${id}`).value;
-    const d={
-        name:document.getElementById(`eu-n-${id}`).value.trim(),
-        password:document.getElementById(`eu-p-${id}`).value.trim(),
-        role,
-        company_name:document.getElementById(`eu-c-${id}`)?.value.trim()||null,
-        phone:document.getElementById(`eu-ph-${id}`)?.value.trim()||null,
-        worker_type:role==='worker'?(document.getElementById(`eu-wt-${id}`)?.value||null):null,
-    };
-    if(!d.name||!d.password)return alert('姓名與密碼不能為空');
-    if(await PATCH('users',id,d)){await loadAll();renderAdmin();}
-    else alert('儲存失敗');
-}
-async function addUser(){
-    const n=document.getElementById('nu-n').value.trim(),pw=document.getElementById('nu-p').value.trim(),role=document.getElementById('nu-r').value;
-    if(!n||!pw)return alert('請填姓名與密碼');
-    const d={name:n,password:pw,role,phone:document.getElementById('nu-ph').value.trim()||null,company_name:document.getElementById('nu-c').value.trim()||null,worker_type:role==='worker'?document.getElementById('nu-wt').value:null};
-    if(await POST('users',d)){alert('新增成功');['nu-n','nu-p','nu-ph','nu-c'].forEach(id=>document.getElementById(id).value='');await loadAll();renderAdmin();}
-    else alert('新增失敗');
-}
-async function delUser(id){if(!confirm('確定刪除？'))return;await DEL('users',id);await loadAll();renderAdmin();}
+        </div>`;
+    }
 
-function calcFin(pid){
-    const s=D.s.filter(x=>x.project_id===pid);
-    const xt=D.xt.filter(x=>x.project_id===pid);
-    const ep=D.ex.filter(x=>x.project_id===pid);
-    const quote=s.reduce((a,x)=>a+(x.quote_amount||0),0);
-    const extra=xt.reduce((a,x)=>a+x.amount,0);
-    const revenue=quote+extra;
-    const contract=s.reduce((a,x)=>a+(x.contract_amount||0),0);
-    const material=s.reduce((a,x)=>a+(x.material_cost||0),0);
-    const equipment=s.reduce((a,x)=>a+(x.equipment_cost||0),0);
-    const misc=s.reduce((a,x)=>a+(x.misc_cost||0),0);
-    const expCost=ep.reduce((a,x)=>a+x.amount,0);
-    const cost=contract+material+equipment+misc+expCost;
-    return{quote,extra,revenue,contract,material,equipment,misc,expCost,cost,profit:revenue-cost};
+    detail.innerHTML = html;
 }
 
-function openM(html){document.getElementById('mcontent').innerHTML=html;document.getElementById('modal').classList.remove('hidden');}
-function closeM(){document.getElementById('modal').classList.add('hidden');}
-document.addEventListener('click',e=>{if(e.target.id==='modal')closeM();});
-
-function openNewProject(){
-    const mO='<option value="">（不指定）</option>'+D.u.filter(u=>u.role==='manager'||u.role==='admin').map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
-    const cO='<option value="">（不指定）</option>'+D.u.filter(u=>u.role==='client').map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
-    openM(`<h3 class="text-base font-black mb-4">＋ 新增案場</h3>
-        <div class="space-y-3">
-            <div><label class="label">案場名稱</label><input id="m-pn" class="inp" placeholder="例：台南民權路案"></div>
-            <div><label class="label">施工地址</label><input id="m-pa" class="inp" placeholder="地址"></div>
-            <div><label class="label">負責人</label><select id="m-pm" class="inp">${mO}</select></div>
-            <div><label class="label">業主帳號</label><select id="m-pc" class="inp">${cO}</select></div>
-        </div>
-        <div class="flex gap-3 mt-5"><button onclick="closeM()" class="btn btn-s">取消</button><button onclick="saveNewP()" class="btn btn-p">建立</button></div>`);
-}
-async function saveNewP(){
-    const name=document.getElementById('m-pn').value.trim();if(!name)return alert('請填案場名稱');
-    const mid=parseInt(document.getElementById('m-pm').value)||null;
-    const cid=parseInt(document.getElementById('m-pc').value)||null;
-    load(true);
-    const r=await POST('projects',{name,address:document.getElementById('m-pa').value.trim()||null,manager_id:mid,client_id:cid,status:'會勘'});
-    load(false);if(r){closeM();await loadAll();renderProjects();}else alert('建立失敗');
+// 4. 案件刪除功能修復
+async function delProject(id){
+    if(!confirm('確定要徹底刪除此案件？所有關聯資料將消失。')) return;
+    load(true, '刪除中...');
+    await DEL('projects', id);
+    await loadAll();
+    load(false);
+    navTo('projects');
 }
 
-function openStage(pid){
-    const wO='<option value="">（不指定）</option>'+D.u.filter(u=>u.role==='worker').map(u=>`<option value="${u.id}">${u.company_name||u.name}${u.worker_type?` · ${u.worker_type}`:''}</option>`).join('');
-    openM(`<h3 class="text-base font-black mb-4">＋ 新增施工階段</h3>
-        <div class="space-y-3">
-            <div><label class="label">階段名稱</label>
-                <select id="m-sn" class="inp mb-2" onchange="document.getElementById('m-snc').classList.toggle('hidden',this.value!=='自訂')">
-                    <option>拆除</option><option>泥作</option><option>水電</option><option>木工</option><option>油漆</option><option>鐵工</option><option>空調</option><option>清潔</option><option>自訂</option>
-                </select><input id="m-snc" class="inp hidden" placeholder="自訂名稱">
-            </div>
-            <div><label class="label">指派工班</label><select id="m-sw" class="inp">${wO}</select></div>
-            <div><label class="label">預計進場日</label><input id="m-sd" type="date" class="inp" style="color-scheme:light"></div>
-            <div><label class="label">備註</label><textarea id="m-snt" class="inp" rows="2" placeholder="施工說明..."></textarea></div>
-            <hr style="border-color:#eee;margin:4px 0"><p class="text-xs text-gray-400 font-bold">💰 財務（選填）</p>
-            <div class="grid grid-cols-2 gap-3">
-                <div><label class="label">對業主報價</label><input id="m-sq" type="number" class="inp" placeholder="0"></div>
-                <div><label class="label">發包金額</label><input id="m-sc" type="number" class="inp" placeholder="0"></div>
-                <div><label class="label">材料費</label><input id="m-sm" type="number" class="inp" placeholder="0"></div>
-                <div><label class="label">設備租借</label><input id="m-se" type="number" class="inp" placeholder="0"></div>
-            </div>
-        </div>
-        <div class="flex gap-3 mt-5"><button onclick="closeM()" class="btn btn-s">取消</button><button onclick="saveStage(${pid})" class="btn btn-p">新增</button></div>`);
-}
-async function saveStage(pid){
-    const sel=document.getElementById('m-sn').value,custom=document.getElementById('m-snc').value.trim();
-    const name=sel==='自訂'?custom:sel;if(!name)return alert('請填階段名稱');
-    const cnt=D.s.filter(s=>s.project_id===pid).length;
-    load(true);
-    await POST('project_stages',{project_id:pid,name,assigned_worker_id:parseInt(document.getElementById('m-sw').value)||null,scheduled_date:document.getElementById('m-sd').value||null,notes:document.getElementById('m-snt').value.trim()||null,quote_amount:parseInt(document.getElementById('m-sq').value)||0,contract_amount:parseInt(document.getElementById('m-sc').value)||0,material_cost:parseInt(document.getElementById('m-sm').value)||0,equipment_cost:parseInt(document.getElementById('m-se').value)||0,sort_order:cnt,status:'待開始'});
-    await loadAll();load(false);closeM();renderDetail(pid);
+// 7. 工種報價後項目可編輯與刪除
+async function deleteStage(sid){
+    if(!confirm('確定刪除此報價項目？')) return;
+    await DEL('project_stages', sid);
+    alert('已刪除');
+    loadAll().then(()=>openProject(CU.current_pid)); // 重新整理
 }
 
-function openEditStage(sid){
-    const s=D.s.find(x=>x.id===sid);if(!s)return;
-    const wO='<option value="">（不指定）</option>'+D.u.filter(u=>u.role==='worker').map(u=>`<option value="${u.id}" ${u.id===s.assigned_worker_id?'selected':''}>${u.company_name||u.name}${u.worker_type?` · ${u.worker_type}`:''}</option>`).join('');
-    const stO=['待開始','進行中','待確認','完成'].map(x=>`<option ${s.status===x?'selected':''}>${x}</option>`).join('');
-    openM(`<h3 class="text-base font-black mb-4">✏️ 編輯階段</h3>
-        <div class="space-y-3">
-            <div><label class="label">名稱</label><input id="e-sn" class="inp" value="${s.name}"></div>
-            <div><label class="label">狀態</label><select id="e-st" class="inp">${stO}</select></div>
-            <div><label class="label">指派工班</label><select id="e-sw" class="inp">${wO}</select></div>
-            <div><label class="label">預計進場日</label><input id="e-sd" type="date" class="inp" style="color-scheme:light" value="${s.scheduled_date||''}"></div>
-            <div><label class="label">備註</label><textarea id="e-snt" class="inp" rows="2">${s.notes||''}</textarea></div>
-            <hr style="border-color:#eee;margin:4px 0"><p class="text-xs text-gray-400 font-bold">💰 財務</p>
-            <div class="grid grid-cols-2 gap-3">
-                <div><label class="label">報價</label><input id="e-sq" type="number" class="inp" value="${s.quote_amount||0}"></div>
-                <div><label class="label">發包</label><input id="e-sc" type="number" class="inp" value="${s.contract_amount||0}"></div>
-                <div><label class="label">材料</label><input id="e-sm" type="number" class="inp" value="${s.material_cost||0}"></div>
-                <div><label class="label">設備</label><input id="e-se" type="number" class="inp" value="${s.equipment_cost||0}"></div>
-            </div>
-        </div>
-        <div class="flex gap-2 mt-5">
-            <button onclick="delStage(${s.id},${s.project_id})" class="btn btn-d btn-sm">刪除</button>
-            <button onclick="closeM()" class="btn btn-s flex-1">取消</button>
-            <button onclick="saveEditStage(${s.id},${s.project_id})" class="btn btn-p flex-1">儲存</button>
-        </div>`);
-}
-async function saveEditStage(id,pid){
-    load(true);
-    await PATCH('project_stages',id,{name:document.getElementById('e-sn').value.trim(),status:document.getElementById('e-st').value,assigned_worker_id:parseInt(document.getElementById('e-sw').value)||null,scheduled_date:document.getElementById('e-sd').value||null,notes:document.getElementById('e-snt').value.trim()||null,quote_amount:parseInt(document.getElementById('e-sq').value)||0,contract_amount:parseInt(document.getElementById('e-sc').value)||0,material_cost:parseInt(document.getElementById('e-sm').value)||0,equipment_cost:parseInt(document.getElementById('e-se').value)||0});
-    await loadAll();load(false);closeM();renderDetail(pid);
-}
-async function delStage(id,pid){if(!confirm('確定刪除？'))return;await DEL('project_stages',id);await loadAll();closeM();renderDetail(pid);}
-
-function openSurvey(pid){
-    openM(`<h3 class="text-base font-black mb-4">📷 新增會勘記錄</h3>
-        <div class="space-y-3">
-            <div><label class="label">會勘日期</label><input id="sv-d" type="date" class="inp" style="color-scheme:light" value="${toStr()}"></div>
-            <div><label class="label">參與人員</label><input id="sv-pt" class="inp" placeholder="例：設計師、業主、工班"></div>
-            <div><label class="label">屋況說明</label><textarea id="sv-c" class="inp" rows="3" placeholder="現場屋況描述..."></textarea></div>
-            <div><label class="label">備註</label><textarea id="sv-n" class="inp" rows="2" placeholder="其他備註..."></textarea></div>
-            <div onclick="document.getElementById('sv-f').click()" class="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center cursor-pointer hover:border-gray-400">
-                <input type="file" id="sv-f" accept="image/*" multiple class="hidden" onchange="prevF(this,'sv-pv','sv-ph')">
-                <div id="sv-ph"><div class="text-2xl mb-1">📷</div><div class="text-xs text-gray-400">點擊上傳現場照片</div></div>
-                <div id="sv-pv" class="hidden img-grid"></div>
-            </div>
-        </div>
-        <div class="flex gap-3 mt-5"><button onclick="closeM()" class="btn btn-s">取消</button><button onclick="saveSurvey(${pid})" class="btn btn-p">儲存</button></div>`);
-}
-async function saveSurvey(pid){
-    load(true,'上傳照片中...');
-    const urls=await upFiles('sv-f');
-    await POST('site_surveys',{project_id:pid,survey_date:document.getElementById('sv-d').value,participants:document.getElementById('sv-pt').value.trim()||null,house_condition:document.getElementById('sv-c').value.trim()||null,notes:document.getElementById('sv-n').value.trim()||null,image_urls:urls,created_by:CU.id});
-    await loadAll();load(false);closeM();renderDetail(pid);
+// 報價確認時間記錄
+async function confirmStage(sid, role){
+    const now = new Date().toLocaleString('zh-TW');
+    let up = {};
+    if(role==='worker') up = {worker_confirmed_at: now};
+    if(role==='manager') up = {manager_confirmed_at: now};
+    if(role==='client') up = {client_confirmed_at: now};
+    
+    await PATCH('project_stages', sid, up);
+    // 5. 任一方上傳/確認後，設計師收到即時通知（模擬）
+    alert(`確認成功！已記錄時間：${now}`);
+    await loadAll();
+    openProject(D.s.find(x=>x.id===sid).project_id);
 }
 
-function openDesign(pid){
-    const vn=D.de.filter(d=>d.project_id===pid).length+1;
-    openM(`<h3 class="text-base font-black mb-4">🎨 新增設計版本</h3>
-        <div class="space-y-3">
-            <div><label class="label">版本</label><input id="de-v" class="inp" value="V${vn}"></div>
-            <div><label class="label">設計日期</label><input id="de-d" type="date" class="inp" style="color-scheme:light" value="${toStr()}"></div>
-            <div><label class="label">設計師備註</label><textarea id="de-n" class="inp" rows="3" placeholder="設計說明..."></textarea></div>
-            <div><label class="label">業主確認狀態</label><select id="de-s" class="inp"><option>待確認</option><option>已確認</option><option>退回修改</option></select></div>
-            <div onclick="document.getElementById('de-f').click()" class="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center cursor-pointer hover:border-gray-400">
-                <input type="file" id="de-f" accept="image/*" multiple class="hidden" onchange="prevF(this,'de-pv','de-ph')">
-                <div id="de-ph"><div class="text-2xl mb-1">🖼</div><div class="text-xs text-gray-400">點擊上傳設計圖檔</div></div>
-                <div id="de-pv" class="hidden img-grid"></div>
-            </div>
-        </div>
-        <div class="flex gap-3 mt-5"><button onclick="closeM()" class="btn btn-s">取消</button><button onclick="saveDesign(${pid})" class="btn btn-p">儲存</button></div>`);
-}
-async function saveDesign(pid){
-    load(true,'上傳圖檔中...');
-    const urls=await upFiles('de-f');
-    await POST('design_records',{project_id:pid,version:document.getElementById('de-v').value.trim(),design_date:document.getElementById('de-d').value,designer_notes:document.getElementById('de-n').value.trim()||null,client_status:document.getElementById('de-s').value,image_urls:urls,created_by:CU.id});
-    await loadAll();load(false);closeM();renderDetail(pid);
-}
-async function updDS(id,status,pid){await PATCH('design_records',id,{client_status:status});await loadAll();renderDetail(pid);}
-
-function openNotify(pid){
-    const wO=D.u.filter(u=>u.role==='worker').map(u=>`<option value="${u.id}">${u.company_name||u.name}${u.worker_type?` · ${u.worker_type}`:''}</option>`).join('');
-    const sO='<option value="">（不綁定）</option>'+D.s.filter(s=>s.project_id===pid).map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
-    openM(`<h3 class="text-base font-black mb-4">📅 發出進場通報</h3>
-        <div class="space-y-3">
-            <div><label class="label">工班</label><select id="n-w" class="inp">${wO}</select></div>
-            <div><label class="label">進場日期</label><input id="n-d" type="date" class="inp" style="color-scheme:light" value="${toStr()}"></div>
-            <div><label class="label">對應階段</label><select id="n-s" class="inp">${sO}</select></div>
-            <div><label class="label">備註</label><input id="n-m" class="inp" placeholder="說明事項..."></div>
-        </div>
-        <div class="flex gap-3 mt-5"><button onclick="closeM()" class="btn btn-s">取消</button><button onclick="saveNotify(${pid})" class="btn btn-p" style="background:#854d0e">發出通報</button></div>`);
-}
+// 8. 發通報邏輯修正
 async function saveNotify(pid){
-    const wid=parseInt(document.getElementById('n-w').value),w=D.u.find(u=>u.id===wid);if(!w)return alert('請選工班');
-    await POST('site_notifications',{project_id:pid,worker_id:wid,worker_name:w.company_name||w.name,notify_date:document.getElementById('n-d').value,stage_id:parseInt(document.getElementById('n-s').value)||null,message:document.getElementById('n-m').value.trim()||null,created_by:CU.id});
-    await loadAll();closeM();renderDetail(pid);
+    const wid = parseInt(document.getElementById('n-w').value);
+    const d = {
+        project_id: pid,
+        worker_id: wid,
+        notify_date: document.getElementById('n-d').value,
+        message: document.getElementById('n-m').value,
+        created_at: new Date().toISOString()
+    };
+    await POST('site_notifications', d);
+    alert('通報已發送！工班現在可在「任務」介面看到此通知。');
+    closeM();
 }
 
-function openExp(pid){
-    openM(`<h3 class="text-base font-black mb-4">＋ 新增雜支</h3>
-        <div class="space-y-3">
-            <div><label class="label">費用說明</label><input id="ex-d" class="inp" placeholder="例：廢料清運"></div>
-            <div><label class="label">金額</label><input id="ex-a" type="number" class="inp" placeholder="0"></div>
-            <div><label class="label">日期</label><input id="ex-dt" type="date" class="inp" style="color-scheme:light" value="${toStr()}"></div>
-        </div>
-        <div class="flex gap-3 mt-5"><button onclick="closeM()" class="btn btn-s">取消</button><button onclick="saveExp(${pid})" class="btn btn-p">新增</button></div>`);
-}
-async function saveExp(pid){
-    const d=document.getElementById('ex-d').value.trim(),a=parseInt(document.getElementById('ex-a').value);
-    if(!d||!a)return alert('請填說明與金額');
-    await POST('project_expenses',{project_id:pid,description:d,amount:a,expense_date:document.getElementById('ex-dt').value,created_by:CU.id});
-    await loadAll();closeM();renderDetail(pid);
-}
-
-function openExtra(pid){
-    const sO='<option value="">（不綁定）</option>'+D.s.filter(s=>s.project_id===pid).map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
-    openM(`<h3 class="text-base font-black mb-4">＋ 追加項目</h3>
-        <p class="text-xs text-blue-600 bg-blue-50 rounded p-2 mb-3">追加項目代表向業主額外收費，將增加業主實收金額。</p>
-        <div class="space-y-3">
-            <div><label class="label">追加說明</label><input id="xt-d" class="inp" placeholder="例：增加廚房隔間"></div>
-            <div><label class="label">追加金額</label><input id="xt-a" type="number" class="inp" placeholder="0"></div>
-            <div><label class="label">日期</label><input id="xt-dt" type="date" class="inp" style="color-scheme:light" value="${toStr()}"></div>
-            <div><label class="label">對應階段</label><select id="xt-s" class="inp">${sO}</select></div>
-        </div>
-        <div class="flex gap-3 mt-5"><button onclick="closeM()" class="btn btn-s">取消</button><button onclick="saveExtra(${pid})" class="btn btn-p">新增</button></div>`);
-}
-async function saveExtra(pid){
-    const d=document.getElementById('xt-d').value.trim(),a=parseInt(document.getElementById('xt-a').value);
-    if(!d||!a)return alert('請填說明與金額');
-    await POST('project_extras',{project_id:pid,description:d,amount:a,extra_date:document.getElementById('xt-dt').value,stage_id:parseInt(document.getElementById('xt-s').value)||null,created_by:CU.id});
-    await loadAll();closeM();renderDetail(pid);
-}
-
-function openInsp(pid){
-    openM(`<h3 class="text-base font-black mb-4">✅ 新增驗收記錄（第一階段）</h3>
-        <p class="text-xs text-gray-400 bg-gray-50 rounded p-2 mb-3">此為設計師／統包驗收，通過後業主才可進行第二階段驗收。</p>
-        <div class="space-y-3">
-            <div><label class="label">驗收狀態</label><select id="ins-s" class="inp"><option>待驗收</option><option>驗收中</option><option>驗收通過</option><option>驗收退件</option></select></div>
-            <div><label class="label">驗收人</label><input id="ins-b" class="inp" placeholder="驗收人姓名" value="${CU.name}"></div>
-            <div><label class="label">說明備註</label><textarea id="ins-n" class="inp" rows="2" placeholder="驗收說明..."></textarea></div>
-            <div onclick="document.getElementById('ins-f').click()" class="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center cursor-pointer hover:border-gray-400">
-                <input type="file" id="ins-f" accept="image/*" multiple class="hidden" onchange="prevF(this,'ins-pv','ins-ph')">
-                <div id="ins-ph"><div class="text-2xl mb-1">📷</div><div class="text-xs text-gray-400">上傳驗收照片</div></div>
-                <div id="ins-pv" class="hidden img-grid"></div>
-            </div>
-        </div>
-        <div class="flex gap-3 mt-5"><button onclick="closeM()" class="btn btn-s">取消</button><button onclick="saveInsp(${pid})" class="btn btn-p">儲存</button></div>`);
-}
-async function saveInsp(pid){
-    load(true,'上傳照片中...');
-    const urls=await upFiles('ins-f');
-    await POST('inspections',{project_id:pid,inspector_role:'manager',status:document.getElementById('ins-s').value,inspected_by:document.getElementById('ins-b').value.trim()||null,notes:document.getElementById('ins-n').value.trim()||null,image_urls:urls,inspected_at:new Date().toISOString(),created_by:CU.id});
-    await loadAll();load(false);closeM();renderDetail(pid);
-}
-
-function openReport(sid,sname,pid){
-    openM(`<h3 class="text-base font-black mb-1">📤 回報進度</h3>
-        <p class="text-sm text-gray-400 mb-4">${sname}</p>
-        <div class="space-y-3">
-            <div><label class="label">說明</label><textarea id="r-n" class="inp" rows="3" placeholder="今日施工內容..."></textarea></div>
-            <div onclick="document.getElementById('r-f').click()" class="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center cursor-pointer hover:border-gray-400">
-                <input type="file" id="r-f" accept="image/*" multiple class="hidden" onchange="prevF(this,'r-pv','r-ph')">
-                <div id="r-ph"><div class="text-2xl mb-1">📷</div><div class="text-xs text-gray-400">點擊上傳照片（可多張）</div></div>
-                <div id="r-pv" class="hidden img-grid"></div>
-            </div>
-        </div>
-        <div class="flex gap-3 mt-5"><button onclick="closeM()" class="btn btn-s">取消</button><button onclick="saveReport(${sid},${pid})" class="btn btn-p">提交回報</button></div>`);
-}
-async function saveReport(sid,pid){
-    load(true,'上傳照片中...');
-    const urls=await upFiles('r-f');
-    await POST('progress_reports',{stage_id:sid,project_id:pid,worker_id:CU.id,worker_name:CU.name,notes:document.getElementById('r-n').value.trim(),image_urls:urls,timestamp:new Date().toISOString()});
-    const stage=D.s.find(s=>s.id===sid);if(stage&&stage.status==='待開始')await PATCH('project_stages',sid,{status:'進行中'});
-    await loadAll();load(false);closeM();renderWorker();
-}
-
-async function updSt(pid,status){await PATCH('projects',pid,{status});const p=D.p.find(x=>x.id===pid);if(p)p.status=status;}
-async function delR(table,id,pid){if(!confirm('確定刪除？'))return;await DEL(table,id);await loadAll();renderDetail(pid);}
-
-function openLb(u,i=0){lbI=typeof u==='string'?JSON.parse(u.replace(/&quot;/g,'"')):u;lbX=i;updLb();document.getElementById('lightbox').classList.remove('hidden');}
-function closeLb(){document.getElementById('lightbox').classList.add('hidden');}
-function updLb(){document.getElementById('lb-img').src=lbI[lbX];document.getElementById('lb-prev').classList.toggle('hidden',lbI.length<=1);document.getElementById('lb-next').classList.toggle('hidden',lbI.length<=1);}
-function changeLb(d){lbX=(lbX+d+lbI.length)%lbI.length;updLb();}
-async function dlLb(){try{const r=await fetch(lbI[lbX]);saveAs(await r.blob(),`照片_${lbX+1}.jpg`);}catch{window.open(lbI[lbX],'_blank');}}
-
-function load(show,text='處理中...'){document.getElementById('lov').classList.toggle('hidden',!show);document.getElementById('ltxt').innerText=text;}
-function toStr(){return new Date().toISOString().split('T')[0];}
-function fmt(n){if(!n&&n!==0)return'0';return Math.abs(n)>=10000?(n/10000).toFixed(1)+'萬':Math.abs(n).toLocaleString();}
-
+// 6. 圖片縮圖與放大預覽
 function ig(urls){
-    if(!urls)return'';
-    let arr=[];
-    if(Array.isArray(urls)) arr=urls;
-    else if(typeof urls==='string'){
-        try{ arr=JSON.parse(urls); }catch{ arr=urls?[urls]:[]; }
-    } else if(typeof urls==='object') arr=Object.values(urls);
-    arr=arr.filter(u=>u&&typeof u==='string');
-    if(!arr.length)return'';
-    const safe=JSON.stringify(arr).replace(/"/g,'&quot;');
-    return `<div class="img-grid">${arr.map((u,i)=>`<img src="${u}" onclick="openLb('${safe}',${i})" loading="lazy" onerror="this.style.display='none'">`).join('')}</div>`;
+    if(!urls) return '';
+    let arr = [];
+    try{ arr = Array.isArray(urls) ? urls : JSON.parse(urls); }catch{ arr = [urls]; }
+    const safe = JSON.stringify(arr).replace(/"/g,'&quot;');
+    return `<div class="img-grid">
+        ${arr.map((u,i)=>`<img src="${u}" onclick="openLb('${safe}',${i})">`).join('')}
+    </div>`;
 }
-function prevF(input,pvId,phId){
-    const pv=document.getElementById(pvId),ph=document.getElementById(phId);
-    pv.innerHTML='';
-    if(input.files.length){ph.classList.add('hidden');pv.classList.remove('hidden');
-        Array.from(input.files).forEach(f=>{const r=new FileReader();r.onload=e=>{const img=document.createElement('img');img.src=e.target.result;img.className='w-full h-20 object-cover rounded-lg';pv.appendChild(img);};r.readAsDataURL(f);});}
+
+function openLb(u,i=0){
+    const arr = JSON.parse(u.replace(/&quot;/g,'"'));
+    document.getElementById('lb-img').src = arr[i];
+    document.getElementById('lightbox').classList.remove('hidden');
 }
-async function upFiles(inputId){
-    const files=document.getElementById(inputId)?.files||[];
-    const urls=[];for(const f of files){const u=await UP(f);if(u)urls.push(u);}return urls;
+function closeLb(){ document.getElementById('lightbox').classList.add('hidden'); }
+
+// 通用工具
+function load(s,t){ 
+    document.getElementById('lov').classList.toggle('hidden',!s);
+    document.getElementById('ltxt').innerText=t;
 }
+function openM(h){ document.getElementById('mcontent').innerHTML=h; document.getElementById('modal').classList.remove('hidden'); }
+function closeM(){ document.getElementById('modal').classList.add('hidden'); }
+async function logout(){ localStorage.clear(); location.reload(); }
+async function updateProjectStatus(pid, s){
+    await PATCH('projects', pid, {status: s});
+    alert('狀態已更新為：'+s);
+    loadAll().then(()=>openProject(pid));
+}
+
+window.onload = () => {
+    const uid = localStorage.getItem('uid');
+    if(uid) { loadAll().then(()=>{
+        CU = D.u.find(x=>x.id==uid);
+        if(CU) login();
+    }); }
+};
+
 </script>
 </body>
 </html>
