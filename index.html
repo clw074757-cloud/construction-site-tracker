@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>案場追蹤系統</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --surface: #13131a;
+            --surface2: #1c1c26;
+            --border: #2a2a3a;
+            --accent: #6366f1;
+            --accent2: #818cf8;
+            --warn: #f59e0b;
+            --danger: #ef4444;
+            --success: #10b981;
+            --text: #e2e8f0;
+            --text2: #94a3b8;
+            --text3: #475569;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; min-height: 100vh; }
+        .hidden { display: none !important; }
+
+        /* 登入畫面 */
+        #login-screen { background: radial-gradient(ellipse at 30% 20%, #1e1b4b 0%, #0a0a0f 60%); }
+        .login-card { background: rgba(19,19,26,0.9); backdrop-filter: blur(20px); border: 1px solid rgba(99,102,241,0.3); border-radius: 24px; }
+
+        /* 輸入框 */
+        .inp { width: 100%; height: 48px; padding: 0 14px; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px; font-size: 15px; font-family: 'Noto Sans TC', sans-serif; color: var(--text); outline: none; transition: border-color 0.2s; -webkit-appearance: none; }
+        .inp:focus { border-color: var(--accent); }
+        .inp::placeholder { color: var(--text3); }
+        textarea.inp { height: auto; padding: 12px 14px; resize: none; }
+        select.inp { background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 12px center; background-size: 18px; padding-right: 36px; }
+
+        /* 按鈕 */
+        .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 13px 20px; border-radius: 10px; font-weight: 700; font-size: 15px; font-family: 'Noto Sans TC', sans-serif; border: none; cursor: pointer; transition: all 0.2s; }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-primary:hover { background: var(--accent2); }
+        .btn-secondary { background: var(--surface2); color: var(--text); border: 1.5px solid var(--border); }
+        .btn-success { background: var(--success); color: #fff; }
+        .btn-warn { background: var(--warn); color: #000; }
+        .btn-danger { background: var(--danger); color: #fff; }
+        .btn-sm { padding: 7px 14px; font-size: 13px; width: auto; border-radius: 8px; }
+        .btn-icon { width: 36px; height: 36px; padding: 0; border-radius: 8px; flex-shrink: 0; }
+
+        /* 卡片 */
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 14px; }
+        .card-accent { border-color: rgba(99,102,241,0.4); background: linear-gradient(135deg, rgba(99,102,241,0.05) 0%, var(--surface) 100%); }
+
+        /* 標籤 */
+        .label { display: block; font-size: 12px; font-weight: 700; color: var(--text2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .badge-indigo { background: rgba(99,102,241,0.15); color: var(--accent2); border: 1px solid rgba(99,102,241,0.3); }
+        .badge-green { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+        .badge-warn { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+        .badge-red { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+        .badge-gray { background: rgba(71,85,105,0.3); color: var(--text2); border: 1px solid var(--border); }
+        .badge-blue { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
+
+        /* 底部導航 */
+        .nav-bar { background: rgba(13,13,20,0.95); backdrop-filter: blur(12px); border-top: 1px solid var(--border); }
+        .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 10px 4px 12px; color: var(--text3); font-size: 11px; font-weight: 700; font-family: 'Noto Sans TC', sans-serif; background: none; border: none; cursor: pointer; gap: 4px; transition: color 0.2s; }
+        .nav-btn.active { color: var(--accent2); }
+        .nav-btn svg { width: 22px; height: 22px; fill: currentColor; }
+
+        /* 進度條 */
+        .progress-bar { height: 6px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 99px; transition: width 0.4s ease; }
+
+        /* 狀態顏色 */
+        .status-報價階段 { color: #a78bfa; } .status-進行中 { color: #34d399; } .status-暫停 { color: #fbbf24; } .status-已完工 { color: #60a5fa; } .status-保固期 { color: #f9a8d4; }
+        .dot-報價階段 { background: #a78bfa; } .dot-進行中 { background: #34d399; } .dot-暫停 { background: #fbbf24; } .dot-已完工 { background: #60a5fa; } .dot-保固期 { background: #f9a8d4; }
+
+        /* 財務數字 */
+        .mono { font-family: 'DM Mono', monospace; }
+        .profit-positive { color: #34d399; }
+        .profit-negative { color: #f87171; }
+
+        /* Modal */
+        .modal-overlay { background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); }
+        .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; max-height: 90vh; overflow-y: auto; }
+
+        /* 分隔線 */
+        .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+        /* Checkbox */
+        .check-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; margin-bottom: 6px; }
+        .check-item input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--accent); flex-shrink: 0; }
+
+        /* 載入動畫 */
+        .spinner { border: 3px solid var(--surface2); border-top: 3px solid var(--accent); border-radius: 50%; width: 36px; height: 36px; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* 燈箱 */
+        #lightbox { background: rgba(0,0,0,0.96); }
+
+        /* 照片格 */
+        .img-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
+        .img-grid img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; transition: opacity 0.2s; }
+        .img-grid img:hover { opacity: 0.85; }
+
+        /* 階段卡片 */
+        .stage-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+        .stage-card.status-完成 { border-color: rgba(16,185,129,0.3); }
+        .stage-card.status-進行中 { border-color: rgba(99,102,241,0.4); }
+        .stage-card.status-待確認 { border-color: rgba(245,158,11,0.4); }
+
+        /* 時間軸（業主用） */
+        .timeline-item { position: relative; padding-left: 28px; padding-bottom: 20px; }
+        .timeline-item::before { content: ''; position: absolute; left: 8px; top: 20px; bottom: 0; width: 2px; background: var(--border); }
+        .timeline-item:last-child::before { display: none; }
+        .timeline-dot { position: absolute; left: 0; top: 4px; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--bg); }
+
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+
+        /* 滾動條 */
+        ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+    </style>
+</head>
+<body>
+
+<!-- ===== 登入畫面 ===== -->
+<div id="login-screen" class="fixed inset-0 z-[100] flex items-center justify-center p-5">
+    <div class="login-card w-full max-w-sm p-8">
+        <div class="text-center mb-8">
+            <div class="w-14 h-14 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center mx-auto mb-4">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+            <h1 class="text-2xl font-black text-white">案場追蹤系統</h1>
+            <p class="text-sm text-slate-500 mt-1">工程進度管理平台</p>
+        </div>
+        <div class="space-y-3">
+            <div><label class="label">帳號</label><input id="login-id" class="inp" placeholder="輸入帳號"></div>
+            <div><label class="label">密碼</label><input id="login-pwd" type="password" class="inp" placeholder="輸入密碼" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        </div>
+        <button onclick="doLogin()" class="btn btn-primary mt-5">登入</button>
+        <p id="login-msg" class="text-center text-red-400 text-sm mt-3 min-h-[20px]"></p>
+    </div>
+</div>
+
+<!-- ===== 載入遮罩 ===== -->
+<div id="loading-overlay" class="fixed inset-0 bg-black/80 z-[200] hidden flex items-center justify-center flex-col gap-4">
+    <div class="spinner"></div>
+    <div id="loading-text" class="text-slate-400 font-bold text-sm">處理中...</div>
+</div>
+
+<!-- ===== 燈箱 ===== -->
+<div id="lightbox" class="fixed inset-0 z-[300] hidden flex items-center justify-center">
+    <button onclick="closeLightbox()" class="absolute top-4 right-4 text-white w-10 h-10 flex items-center justify-center bg-white/10 rounded-full text-2xl">×</button>
+    <button id="lb-prev" onclick="changeLb(-1)" class="absolute left-2 text-white text-4xl w-12 h-20 flex items-center justify-center bg-white/10 rounded-xl hidden">‹</button>
+    <button id="lb-next" onclick="changeLb(1)" class="absolute right-2 text-white text-4xl w-12 h-20 flex items-center justify-center bg-white/10 rounded-xl hidden">›</button>
+    <button onclick="dlCurrentLb()" class="absolute bottom-5 right-5 text-white w-12 h-12 flex items-center justify-center bg-white/10 rounded-full text-xl border border-white/20">⬇</button>
+    <img id="lb-img" class="max-h-[90vh] max-w-[92vw] object-contain select-none rounded-lg" src="">
+</div>
+
+<!-- ===== 通用 Modal ===== -->
+<div id="modal" class="fixed inset-0 modal-overlay z-[80] hidden flex items-end sm:items-center justify-center p-4">
+    <div id="modal-box" class="modal-box w-full max-w-md p-6">
+        <div id="modal-content"></div>
+    </div>
+</div>
+
+<!-- ===== Header ===== -->
+<header class="sticky top-0 z-40 bg-[#0a0a0f]/90 backdrop-blur-md border-b border-[var(--border)] px-4 py-3 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+        </div>
+        <div>
+            <div class="font-black text-sm text-white leading-tight">案場追蹤系統</div>
+            <div id="user-role-display" class="text-xs text-slate-500">未登入</div>
+        </div>
+    </div>
+    <button onclick="logout()" class="text-xs font-bold text-slate-400 bg-[var(--surface2)] px-3 py-1.5 rounded-lg border border-[var(--border)] hover:border-red-500/50 hover:text-red-400 transition-colors">登出</button>
+</header>
+
+<!-- ===== 主內容 ===== -->
+<main class="pb-28 min-h-screen">
+
+    <!-- 案場總覽（負責人/管理員） -->
+    <div id="page-projects" class="hidden p-4">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-black text-white">案場總覽</h2>
+            <button id="btn-new-project" onclick="openNewProject()" class="btn btn-primary btn-sm hidden">＋ 新增案場</button>
+        </div>
+        <!-- 狀態篩選 -->
+        <div class="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide">
+            <button onclick="filterProjects('all')" class="badge badge-indigo flex-shrink-0 cursor-pointer" id="filter-all">全部</button>
+            <button onclick="filterProjects('報價階段')" class="badge badge-gray flex-shrink-0 cursor-pointer" id="filter-報價階段">報價階段</button>
+            <button onclick="filterProjects('進行中')" class="badge badge-green flex-shrink-0 cursor-pointer" id="filter-進行中">進行中</button>
+            <button onclick="filterProjects('暫停')" class="badge badge-warn flex-shrink-0 cursor-pointer" id="filter-暫停">暫停</button>
+            <button onclick="filterProjects('已完工')" class="badge badge-blue flex-shrink-0 cursor-pointer" id="filter-已完工">已完工</button>
+            <button onclick="filterProjects('保固期')" class="badge badge-gray flex-shrink-0 cursor-pointer" id="filter-保固期">保固期</button>
+        </div>
+        <div id="projects-list"><div class="flex justify-center py-10"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- 案場詳細 -->
+    <div id="page-project-detail" class="hidden p-4">
+        <button onclick="backToProjects()" class="flex items-center gap-2 text-slate-400 text-sm font-bold mb-4 hover:text-white transition-colors">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            返回案場列表
+        </button>
+        <div id="project-detail-content"></div>
+    </div>
+
+    <!-- 工班任務 -->
+    <div id="page-worker" class="hidden p-4">
+        <h2 class="text-lg font-black text-white mb-4">我的任務</h2>
+        <div id="worker-tasks-list"><div class="flex justify-center py-10"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- 業主檢視 -->
+    <div id="page-client" class="hidden p-4">
+        <h2 class="text-lg font-black text-white mb-4">我的案場</h2>
+        <div id="client-projects-list"><div class="flex justify-center py-10"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- 後台管理 -->
+    <div id="page-admin" class="hidden p-4">
+        <h2 class="text-lg font-black text-white mb-4">系統管理</h2>
+
+        <!-- 帳號管理 -->
+        <div class="card card-accent mb-4">
+            <h3 class="font-black text-white mb-4">👤 帳號管理</h3>
+            <div class="grid grid-cols-2 gap-3 mb-3">
+                <div><label class="label">姓名</label><input id="new-name" class="inp" placeholder="姓名"></div>
+                <div><label class="label">帳號</label><input id="new-loginid" class="inp" placeholder="登入帳號"></div>
+            </div>
+            <div class="grid grid-cols-2 gap-3 mb-3">
+                <div><label class="label">密碼</label><input id="new-pwd" class="inp" placeholder="密碼"></div>
+                <div><label class="label">角色</label>
+                    <select id="new-role" class="inp" onchange="toggleWorkerFields()">
+                        <option value="manager">專案負責人</option>
+                        <option value="worker">工班</option>
+                        <option value="client">業主</option>
+                        <option value="admin">管理員</option>
+                    </select>
+                </div>
+            </div>
+            <div id="worker-fields" class="hidden">
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div><label class="label">公司名稱</label><input id="new-company" class="inp" placeholder="公司名稱"></div>
+                    <div><label class="label">聯絡電話</label><input id="new-phone" class="inp" placeholder="電話"></div>
+                </div>
+                <div><label class="label">工班類型</label>
+                    <select id="new-worker-type" class="inp">
+                        <option>泥作</option><option>木工</option><option>水電</option><option>油漆</option><option>鐵工</option><option>拆除</option><option>空調</option><option>其他</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="addUser()" class="btn btn-primary mt-3">＋ 新增帳號</button>
+        </div>
+
+        <h3 class="font-bold text-slate-300 mb-3">現有帳號</h3>
+        <div id="users-list" class="space-y-2 mb-6"></div>
+
+        <!-- 所有案場財務總覽 -->
+        <div class="card mt-4">
+            <h3 class="font-black text-white mb-4">💰 所有案場財務總覽</h3>
+            <div id="admin-financials"></div>
+        </div>
+    </div>
+
+</main>
+
+<!-- ===== 底部導航 ===== -->
+<nav id="bottom-nav" class="nav-bar fixed bottom-0 w-full flex z-50"></nav>
+
+<script>
+// ============ 設定 ============
+const PROJECT_URL = 'https://jikwrufwagfjdfzhomle.supabase.co';
+const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imppa3dydWZ3YWdmamRmemhvbWxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0Nzg5MzYsImV4cCI6MjA5MzA1NDkzNn0.bDXPFk0nB80JLKfZ9yWiCHLV6JhCC8lJhEpfPyjT0ag';
+const H = { 'apikey': ANON_KEY, 'Authorization': `Bearer ${ANON_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+const API = (t) => `${PROJECT_URL}/rest/v1/${t}`;
+const STORAGE = `${PROJECT_URL}/storage/v1/object/site_photos`;
+
+let currentUser = null, allProjects = [], allUsers = [], allStages = [], allReports = [], allNotifications = [], allExpenses = [];
+let currentFilter = 'all';
+let lbImgs = [], lbIdx = 0;
+
+// ============ 初始化 ============
+window.onload = async () => {
+    const saved = localStorage.getItem('user_id');
+    if (saved) {
+        const u = await fetchOne('users', `id=eq.${saved}`);
+        if (u) { currentUser = u; await loadAll(); performLogin(); return; }
+    }
+};
+
+async function fetchAll(table, query = '') {
+    const r = await fetch(`${API(table)}?${query}&limit=500`, { headers: H });
+    if (!r.ok) return [];
+    return await r.json();
+}
+async function fetchOne(table, query) {
+    const r = await fetch(`${API(table)}?${query}&limit=1`, { headers: H });
+    if (!r.ok) return null;
+    const d = await r.json();
+    return d[0] || null;
+}
+async function insert(table, data) {
+    const r = await fetch(API(table), { method: 'POST', headers: H, body: JSON.stringify(data) });
+    if (!r.ok) return null;
+    const d = await r.json();
+    return Array.isArray(d) ? d[0] : d;
+}
+async function update(table, id, data) {
+    const r = await fetch(`${API(table)}?id=eq.${id}`, { method: 'PATCH', headers: H, body: JSON.stringify(data) });
+    return r.ok;
+}
+async function del(table, id) {
+    const r = await fetch(`${API(table)}?id=eq.${id}`, { method: 'DELETE', headers: H });
+    return r.ok;
+}
+async function uploadImg(file) {
+    const n = `img_${Date.now()}_${Math.random().toString(36).substr(2,5)}.jpg`;
+    const r = await fetch(`${STORAGE}/${n}`, { method: 'POST', headers: { 'apikey': ANON_KEY, 'Authorization': `Bearer ${ANON_KEY}`, 'Content-Type': file.type, 'x-upsert': 'true' }, body: file });
+    if (!r.ok) return null;
+    return `${PROJECT_URL}/storage/v1/object/public/site_photos/${n}`;
+}
+
+async function loadAll() {
+    allProjects = await fetchAll('projects', 'order=created_at.desc');
+    allUsers = await fetchAll('users', 'order=name.asc');
+    allStages = await fetchAll('project_stages', 'order=sort_order.asc');
+    allReports = await fetchAll('progress_reports', 'order=timestamp.desc');
+    allNotifications = await fetchAll('site_notifications', 'order=notify_date.asc');
+    allExpenses = await fetchAll('project_expenses', 'order=expense_date.desc');
+}
+
+// ============ 登入 ============
+async function doLogin() {
+    const id = document.getElementById('login-id').value.trim();
+    const pwd = document.getElementById('login-pwd').value.trim();
+    if (!id || !pwd) return showMsg('請輸入帳號密碼');
+    showMsg('驗證中...');
+    const u = await fetchOne('users', `name=eq.${encodeURIComponent(id)}&password=eq.${encodeURIComponent(pwd)}`);
+    if (!u) {
+        // 也試試用 id 欄位找（未來擴充）
+        return showMsg('帳號或密碼錯誤');
+    }
+    currentUser = u;
+    localStorage.setItem('user_id', u.id);
+    await loadAll();
+    performLogin();
+}
+function showMsg(m) { document.getElementById('login-msg').innerText = m; }
+
+function performLogin() {
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('user-role-display').innerText = currentUser.name + ' · ' + roleLabel(currentUser.role);
+    setupNav();
+    navTo(defaultPage());
+}
+
+function roleLabel(r) { return { admin: '管理員', manager: '專案負責人', worker: '工班', client: '業主' }[r] || r; }
+function defaultPage() {
+    if (currentUser.role === 'worker') return 'worker';
+    if (currentUser.role === 'client') return 'client';
+    return 'projects';
+}
+function logout() { localStorage.removeItem('user_id'); currentUser = null; location.reload(); }
+
+// ============ 導航 ============
+function setupNav() {
+    const nav = document.getElementById('bottom-nav');
+    let btns = [];
+    if (currentUser.role === 'worker') {
+        btns = [{ id: 'worker', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', txt: '我的任務' }];
+    } else if (currentUser.role === 'client') {
+        btns = [{ id: 'client', icon: 'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z', txt: '我的案場' }];
+    } else {
+        btns = [
+            { id: 'projects', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10', txt: '案場' },
+            { id: 'admin', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z', txt: '管理' }
+        ];
+    }
+    nav.innerHTML = btns.map(b => `<button onclick="navTo('${b.id}')" class="nav-btn" id="nb-${b.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${b.icon}"/></svg>${b.txt}</button>`).join('');
+}
+
+function navTo(p) {
+    ['projects', 'project-detail', 'worker', 'client', 'admin'].forEach(v => {
+        document.getElementById('page-' + v).classList.add('hidden');
+        const b = document.getElementById('nb-' + v);
+        if (b) b.classList.remove('active');
+    });
+    document.getElementById('page-' + p).classList.remove('hidden');
+    const b = document.getElementById('nb-' + p);
+    if (b) b.classList.add('active');
+    // 渲染對應頁面
+    if (p === 'projects') renderProjects();
+    if (p === 'worker') renderWorker();
+    if (p === 'client') renderClient();
+    if (p === 'admin') renderAdmin();
+}
+
+// ============ 案場總覽 ============
+function filterProjects(f) {
+    currentFilter = f;
+    document.querySelectorAll('[id^=filter-]').forEach(b => b.classList.replace('badge-indigo', 'badge-gray') || b.classList.replace('badge-green', 'badge-gray') || b.classList.replace('badge-warn', 'badge-gray') || b.classList.replace('badge-blue', 'badge-gray'));
+    document.getElementById('filter-' + f)?.classList.replace('badge-gray', 'badge-indigo');
+    renderProjects();
+}
+
+function renderProjects() {
+    // 只有 admin 顯示新增按鈕
+    if (currentUser.role === 'admin' || currentUser.role === 'manager') {
+        document.getElementById('btn-new-project').classList.remove('hidden');
+    }
+    let projects = currentUser.role === 'admin'
+        ? allProjects
+        : allProjects.filter(p => p.manager_id === currentUser.id);
+
+    if (currentFilter !== 'all') projects = projects.filter(p => p.status === currentFilter);
+
+    const el = document.getElementById('projects-list');
+    if (projects.length === 0) {
+        el.innerHTML = `<div class="text-center py-14 text-slate-500"><div class="text-4xl mb-3">📭</div><div class="font-bold">目前沒有案場</div></div>`;
+        return;
+    }
+
+    el.innerHTML = projects.map(p => {
+        const stages = allStages.filter(s => s.project_id === p.id);
+        const done = stages.filter(s => s.status === '完成').length;
+        const pct = stages.length ? Math.round(done / stages.length * 100) : 0;
+        const fin = calcFinancials(p.id);
+        const manager = allUsers.find(u => u.id === p.manager_id);
+        const todayNotifs = allNotifications.filter(n => n.project_id === p.id && n.notify_date === todayStr());
+        const statusColors = { '報價階段': 'badge-gray', '進行中': 'badge-green', '暫停': 'badge-warn', '已完工': 'badge-blue', '保固期': 'badge-gray' };
+
+        return `<div class="card card-accent cursor-pointer hover:border-indigo-500/50 transition-colors" onclick="openProject(${p.id})">
+            <div class="flex justify-between items-start mb-3">
+                <div class="flex-1 mr-3">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="w-2 h-2 rounded-full dot-${p.status} flex-shrink-0"></span>
+                        <span class="font-black text-white text-base">${p.name}</span>
+                    </div>
+                    <div class="text-xs text-slate-500">${p.address || '未填地址'}</div>
+                    ${manager ? `<div class="text-xs text-slate-500 mt-0.5">負責：${manager.name}</div>` : ''}
+                </div>
+                <span class="badge ${statusColors[p.status] || 'badge-gray'} flex-shrink-0">${p.status}</span>
+            </div>
+            ${todayNotifs.length ? `<div class="bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2 mb-3 text-xs text-amber-400 font-bold">📅 今日進場：${todayNotifs.map(n => n.worker_name).join('、')}</div>` : ''}
+            <div class="mb-3">
+                <div class="flex justify-between text-xs text-slate-500 mb-1.5">
+                    <span>施工進度</span><span>${done}/${stages.length} 階段完成</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+            </div>
+            ${currentUser.role !== 'client' ? `<div class="grid grid-cols-3 gap-2 pt-3 border-t border-[var(--border)]">
+                <div class="text-center"><div class="text-xs text-slate-500 mb-0.5">報價</div><div class="mono text-xs font-bold text-white">$${fmtNum(fin.quote)}</div></div>
+                <div class="text-center"><div class="text-xs text-slate-500 mb-0.5">成本</div><div class="mono text-xs font-bold text-white">$${fmtNum(fin.cost)}</div></div>
+                <div class="text-center"><div class="text-xs text-slate-500 mb-0.5">毛利</div><div class="mono text-xs font-bold ${fin.profit >= 0 ? 'profit-positive' : 'profit-negative'}">$${fmtNum(fin.profit)}</div></div>
+            </div>` : ''}
+        </div>`;
+    }).join('');
+}
+
+function calcFinancials(projectId) {
+    const stages = allStages.filter(s => s.project_id === projectId);
+    const expenses = allExpenses.filter(e => e.project_id === projectId);
+    const quote = stages.reduce((s, x) => s + (x.client_quote || 0), 0);
+    const stageCost = stages.reduce((s, x) => s + (x.worker_cost || 0) + (x.material_cost || 0) + (x.equipment_cost || 0) + (x.misc_cost || 0), 0);
+    const expCost = expenses.reduce((s, x) => s + (x.amount || 0), 0);
+    const cost = stageCost + expCost;
+    return { quote, cost, profit: quote - cost };
+}
+
+function fmtNum(n) {
+    if (!n && n !== 0) return '0';
+    return Math.abs(n) >= 10000 ? (n / 10000).toFixed(1) + '萬' : n.toLocaleString();
+}
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+
+// ============ 案場詳細 ============
+function openProject(id) {
+    const p = allProjects.find(x => x.id === id);
+    if (!p) return;
+    document.getElementById('page-projects').classList.add('hidden');
+    document.getElementById('page-project-detail').classList.remove('hidden');
+    document.getElementById('nb-projects')?.classList.remove('active');
+    renderProjectDetail(p);
+}
+
+function backToProjects() {
+    document.getElementById('page-project-detail').classList.add('hidden');
+    document.getElementById('page-projects').classList.remove('hidden');
+    document.getElementById('nb-projects')?.classList.add('active');
+    renderProjects();
+}
+
+function renderProjectDetail(p) {
+    const stages = allStages.filter(s => s.project_id === p.id).sort((a, b) => a.sort_order - b.sort_order);
+    const fin = calcFinancials(p.id);
+    const expenses = allExpenses.filter(e => e.project_id === p.id);
+    const notifs = allNotifications.filter(n => n.project_id === p.id).sort((a, b) => a.notify_date.localeCompare(b.notify_date));
+    const manager = allUsers.find(u => u.id === p.manager_id);
+    const canEdit = currentUser.role === 'admin' || currentUser.id === p.manager_id;
+    const isClient = currentUser.role === 'client';
+
+    const statusOpts = ['報價階段', '進行中', '暫停', '已完工', '保固期'].map(s =>
+        `<option ${p.status === s ? 'selected' : ''}>${s}</option>`).join('');
+
+    let html = `
+    <div class="card card-accent mb-4">
+        <div class="flex justify-between items-start mb-2">
+            <div>
+                <h2 class="text-xl font-black text-white">${p.name}</h2>
+                <div class="text-sm text-slate-400 mt-0.5">${p.address || '未填地址'}</div>
+                ${manager ? `<div class="text-xs text-slate-500 mt-1">負責人：${manager.name}</div>` : ''}
+            </div>
+            ${canEdit ? `<select onchange="updateProjectStatus(${p.id}, this.value)" class="inp text-sm" style="width:auto;height:36px;padding:0 32px 0 10px;">${statusOpts}</select>` : `<span class="badge badge-green">${p.status}</span>`}
+        </div>
+        ${p.warranty_end_date ? `<div class="text-xs text-pink-400 mt-1">🔧 保固到期：${p.warranty_end_date}</div>` : ''}
+    </div>`;
+
+    // 財務摘要（非業主）
+    if (!isClient) {
+        const profitRate = fin.quote > 0 ? Math.round(fin.profit / fin.quote * 100) : 0;
+        html += `<div class="card mb-4">
+            <h3 class="font-bold text-slate-300 text-sm mb-3">💰 財務摘要</h3>
+            <div class="grid grid-cols-2 gap-3 mb-3">
+                <div class="bg-[var(--surface2)] rounded-xl p-3 text-center">
+                    <div class="text-xs text-slate-500 mb-1">對業主報價</div>
+                    <div class="mono font-black text-white text-lg">$${fin.quote.toLocaleString()}</div>
+                </div>
+                <div class="bg-[var(--surface2)] rounded-xl p-3 text-center">
+                    <div class="text-xs text-slate-500 mb-1">實際總成本</div>
+                    <div class="mono font-black text-white text-lg">$${fin.cost.toLocaleString()}</div>
+                </div>
+            </div>
+            <div class="bg-[var(--surface2)] rounded-xl p-3 flex justify-between items-center">
+                <div>
+                    <div class="text-xs text-slate-500 mb-0.5">毛利</div>
+                    <div class="mono font-black text-xl ${fin.profit >= 0 ? 'profit-positive' : 'profit-negative'}">$${fin.profit.toLocaleString()}</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-xs text-slate-500 mb-0.5">利潤率</div>
+                    <div class="font-black text-lg ${fin.profit >= 0 ? 'profit-positive' : 'profit-negative'}">${profitRate}%</div>
+                </div>
+            </div>
+            ${canEdit ? `<button onclick="openExpenseModal(${p.id})" class="btn btn-secondary mt-3 btn-sm">＋ 新增雜支</button>` : ''}
+            ${expenses.length ? `<div class="mt-3 space-y-1">${expenses.map(e => `<div class="flex justify-between text-xs text-slate-400 bg-[var(--surface2)] px-3 py-2 rounded"><span>${e.expense_date} ${e.description}</span><span class="mono text-red-400">-$${e.amount.toLocaleString()}</span></div>`).join('')}</div>` : ''}
+        </div>`;
+    }
+
+    // 進場通報
+    if (!isClient && canEdit) {
+        html += `<div class="card mb-4">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-bold text-slate-300 text-sm">📅 進場通報</h3>
+                <button onclick="openNotifyModal(${p.id})" class="btn btn-warn btn-sm">＋ 發通報</button>
+            </div>
+            ${notifs.length ? notifs.map(n => {
+                const isPast = n.notify_date < todayStr();
+                return `<div class="flex items-center gap-3 py-2 border-b border-[var(--border)] last:border-0">
+                    <div class="text-xs font-bold ${n.notify_date === todayStr() ? 'text-amber-400' : isPast ? 'text-slate-600' : 'text-slate-400'} w-20 flex-shrink-0">${n.notify_date}</div>
+                    <div class="flex-1"><span class="font-bold text-white text-sm">${n.worker_name}</span>${n.message ? `<div class="text-xs text-slate-500">${n.message}</div>` : ''}</div>
+                    ${canEdit ? `<button onclick="delNotif(${n.id})" class="text-slate-600 hover:text-red-400 text-lg leading-none">×</button>` : ''}
+                </div>`;
+            }).join('') : '<div class="text-xs text-slate-600 text-center py-2">尚無通報記錄</div>'}
+        </div>`;
+    }
+
+    // 施工階段
+    html += `<div class="mb-4">
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-slate-300 text-sm">🔨 施工階段</h3>
+            ${canEdit ? `<button onclick="openStageModal(${p.id})" class="btn btn-primary btn-sm">＋ 新增階段</button>` : ''}
+        </div>
+        ${stages.length ? stages.map(s => renderStageCard(s, canEdit, isClient)).join('') : `<div class="text-center py-8 text-slate-600 text-sm">尚未新增施工階段</div>`}
+    </div>`;
+
+    document.getElementById('project-detail-content').innerHTML = html;
+}
+
+function renderStageCard(s, canEdit, isClient) {
+    const worker = allUsers.find(u => u.id === s.assigned_worker_id);
+    const reports = allReports.filter(r => r.stage_id === s.id);
+    const statusBadge = { '待開始': 'badge-gray', '進行中': 'badge-indigo', '待確認': 'badge-warn', '完成': 'badge-green' };
+
+    const finHtml = !isClient ? `
+        <div class="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-[var(--border)]">
+            <div><div class="text-xs text-slate-500">報價</div><div class="mono text-sm font-bold text-white">$${(s.client_quote || 0).toLocaleString()}</div></div>
+            <div><div class="text-xs text-slate-500">工資</div><div class="mono text-sm font-bold text-white">$${(s.worker_cost || 0).toLocaleString()}</div></div>
+            <div><div class="text-xs text-slate-500">材料</div><div class="mono text-sm font-bold text-white">$${(s.material_cost || 0).toLocaleString()}</div></div>
+            <div><div class="text-xs text-slate-500">設備</div><div class="mono text-sm font-bold text-white">$${(s.equipment_cost || 0).toLocaleString()}</div></div>
+        </div>` : '';
+
+    const reportImgs = reports.flatMap(r => Array.isArray(r.image_urls) ? r.image_urls : []);
+    const imgHtml = reportImgs.length ? `<div class="img-grid mt-2">${reportImgs.slice(0, 6).map((u, i) => `<img src="${u}" onclick="openLb(${JSON.stringify(reportImgs).replace(/"/g, '&quot;')},${i})" loading="lazy">`).join('')}</div>` : '';
+
+    const reportsHtml = reports.length ? `<details class="mt-3"><summary class="text-xs text-slate-400 font-bold cursor-pointer hover:text-white">📋 回報記錄 (${reports.length})</summary><div class="mt-2 space-y-2">${reports.map(r => `<div class="bg-[var(--bg)] rounded-lg p-3"><div class="flex justify-between text-xs text-slate-500 mb-1"><span class="font-bold text-slate-300">${r.worker_name}</span><span>${new Date(r.timestamp).toLocaleString('zh-TW', {month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</span></div>${r.notes ? `<div class="text-sm text-slate-300">${r.notes}</div>` : ''}${Array.isArray(r.image_urls) && r.image_urls.length ? `<div class="img-grid">${r.image_urls.map((u,i)=>`<img src="${u}" onclick="openLb(${JSON.stringify(r.image_urls).replace(/"/g,'&quot;')},${i})" loading="lazy">`).join('')}</div>` : ''}</div>`).join('')}</div></details>` : '';
+
+    return `<div class="stage-card status-${s.status}">
+        <div class="flex justify-between items-start mb-2">
+            <div class="flex-1 mr-2">
+                <div class="font-bold text-white">${s.name}</div>
+                ${worker ? `<div class="text-xs text-slate-500 mt-0.5">👷 ${worker.company_name || worker.name} · ${worker.worker_type || ''}</div>` : ''}
+                ${s.scheduled_date ? `<div class="text-xs text-slate-500">📅 ${s.scheduled_date}</div>` : ''}
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <span class="badge ${statusBadge[s.status] || 'badge-gray'} text-xs">${s.status}</span>
+                ${canEdit ? `<button onclick="openEditStage(${s.id})" class="btn btn-secondary btn-icon text-xs">✏️</button>` : ''}
+            </div>
+        </div>
+        ${s.notes ? `<div class="text-xs text-slate-400 bg-[var(--bg)] rounded p-2 mt-1">${s.notes}</div>` : ''}
+        ${finHtml}
+        ${reportsHtml}
+        ${imgHtml}
+    </div>`;
+}
+
+async function updateProjectStatus(id, status) {
+    await update('projects', id, { status });
+    const p = allProjects.find(x => x.id === id);
+    if (p) p.status = status;
+}
+
+// ============ 工班頁面 ============
+function renderWorker() {
+    const myStages = allStages.filter(s => s.assigned_worker_id === currentUser.id);
+    const today = todayStr();
+    const todayNotifs = allNotifications.filter(n => n.worker_id === currentUser.id && n.notify_date === today);
+    const el = document.getElementById('worker-tasks-list');
+
+    if (todayNotifs.length) {
+        // 今日通報橫幅
+    }
+
+    if (myStages.length === 0) {
+        el.innerHTML = `<div class="text-center py-14 text-slate-500"><div class="text-4xl mb-3">✅</div><div class="font-bold">目前沒有指派任務</div></div>`;
+        return;
+    }
+
+    const active = myStages.filter(s => s.status !== '完成');
+    const done = myStages.filter(s => s.status === '完成');
+
+    el.innerHTML = (active.length ? `<h3 class="text-xs font-bold text-slate-500 uppercase mb-2">進行中任務</h3>` + active.map(s => renderWorkerTask(s)).join('') : '') +
+        (done.length ? `<h3 class="text-xs font-bold text-slate-500 uppercase mt-4 mb-2">已完成</h3>` + done.map(s => renderWorkerTask(s)).join('') : '');
+}
+
+function renderWorkerTask(s) {
+    const p = allProjects.find(x => x.id === s.project_id);
+    const reports = allReports.filter(r => r.stage_id === s.id);
+    const statusBadge = { '待開始': 'badge-gray', '進行中': 'badge-indigo', '待確認': 'badge-warn', '完成': 'badge-green' };
+
+    return `<div class="card mb-3">
+        <div class="flex justify-between items-start mb-2">
+            <div>
+                <div class="text-xs text-indigo-400 font-bold mb-0.5">${p ? p.name : '未知案場'}</div>
+                <div class="font-black text-white">${s.name}</div>
+                ${s.scheduled_date ? `<div class="text-xs text-slate-500">📅 ${s.scheduled_date}</div>` : ''}
+            </div>
+            <span class="badge ${statusBadge[s.status]} text-xs">${s.status}</span>
+        </div>
+        ${s.notes ? `<div class="text-xs text-slate-400 bg-[var(--surface2)] rounded p-2 mb-2">${s.notes}</div>` : ''}
+        ${s.status !== '完成' ? `<button onclick="openReportModal(${s.id}, '${s.name}', ${s.project_id})" class="btn btn-primary btn-sm mt-1">📤 回報進度</button>` : ''}
+        ${reports.length ? `<div class="text-xs text-slate-500 mt-2">已回報 ${reports.length} 次</div>` : ''}
+    </div>`;
+}
+
+// ============ 業主頁面 ============
+function renderClient() {
+    const myProjects = allProjects.filter(p => p.client_id === currentUser.id);
+    const el = document.getElementById('client-projects-list');
+    if (myProjects.length === 0) {
+        el.innerHTML = `<div class="text-center py-14 text-slate-500"><div class="text-4xl mb-3">🏠</div><div class="font-bold">目前沒有案場資料</div></div>`;
+        return;
+    }
+    el.innerHTML = myProjects.map(p => {
+        const stages = allStages.filter(s => s.project_id === p.id);
+        const done = stages.filter(s => s.status === '完成').length;
+        const pct = stages.length ? Math.round(done / stages.length * 100) : 0;
+        return `<div class="card card-accent mb-4">
+            <div class="flex justify-between items-start mb-3">
+                <div><h3 class="font-black text-white">${p.name}</h3><div class="text-xs text-slate-500">${p.address || ''}</div></div>
+                <span class="badge badge-green">${p.status}</span>
+            </div>
+            <div class="mb-4"><div class="flex justify-between text-xs text-slate-500 mb-1.5"><span>施工進度</span><span>${pct}%</span></div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div></div>
+            <div class="space-y-2">${stages.map(s => {
+                const reports = allReports.filter(r => r.stage_id === s.id);
+                const allImgs = reports.flatMap(r => Array.isArray(r.image_urls) ? r.image_urls : []);
+                const statusDot = { '待開始': '#475569', '進行中': '#6366f1', '待確認': '#f59e0b', '完成': '#10b981' };
+                return `<div class="timeline-item">
+                    <div class="timeline-dot" style="background:${statusDot[s.status] || '#475569'}"></div>
+                    <div class="font-bold text-sm text-white">${s.name} <span class="text-xs font-normal text-slate-500">${s.status}</span></div>
+                    ${s.scheduled_date ? `<div class="text-xs text-slate-500">${s.scheduled_date}</div>` : ''}
+                    ${allImgs.length ? `<div class="img-grid mt-1">${allImgs.slice(0,3).map((u,i)=>`<img src="${u}" onclick="openLb(${JSON.stringify(allImgs).replace(/"/g,'&quot;')},${i})" loading="lazy">`).join('')}</div>` : ''}
+                </div>`;
+            }).join('')}</div>
+        </div>`;
+    }).join('');
+}
+
+// ============ 管理後台 ============
+function renderAdmin() {
+    // 帳號列表
+    const roles = { admin: '管理員', manager: '專案負責人', worker: '工班', client: '業主' };
+    document.getElementById('users-list').innerHTML = allUsers.map(u => `
+        <div class="flex justify-between items-center p-3 bg-[var(--surface2)] rounded-xl border border-[var(--border)]">
+            <div>
+                <div class="font-bold text-white text-sm">${u.name} <span class="badge badge-gray ml-1 text-xs">${roles[u.role]}</span></div>
+                ${u.company_name ? `<div class="text-xs text-slate-500">${u.company_name} · ${u.worker_type || ''}</div>` : ''}
+                ${u.phone ? `<div class="text-xs text-slate-500">${u.phone}</div>` : ''}
+            </div>
+            <button onclick="delUser(${u.id})" class="btn btn-danger btn-icon text-xs flex-shrink-0">✕</button>
+        </div>`).join('');
+
+    // 財務總覽
+    const rows = allProjects.map(p => {
+        const fin = calcFinancials(p.id);
+        return `<div class="flex justify-between items-center py-2 border-b border-[var(--border)] last:border-0">
+            <div><div class="font-bold text-white text-sm">${p.name}</div><div class="text-xs text-slate-500">${p.status}</div></div>
+            <div class="text-right"><div class="mono text-xs text-slate-400">報價 $${fmtNum(fin.quote)}</div><div class="mono text-sm font-bold ${fin.profit >= 0 ? 'profit-positive' : 'profit-negative'}">利潤 $${fmtNum(fin.profit)}</div></div>
+        </div>`;
+    }).join('');
+    const totalProfit = allProjects.reduce((s, p) => s + calcFinancials(p.id).profit, 0);
+    document.getElementById('admin-financials').innerHTML = rows + `<div class="mt-3 pt-3 border-t border-indigo-500/30 flex justify-between items-center"><span class="font-bold text-slate-300">總毛利</span><span class="mono font-black text-xl ${totalProfit >= 0 ? 'profit-positive' : 'profit-negative'}">$${totalProfit.toLocaleString()}</span></div>`;
+}
+
+function toggleWorkerFields() {
+    const role = document.getElementById('new-role').value;
+    document.getElementById('worker-fields').classList.toggle('hidden', role !== 'worker');
+}
+
+async function addUser() {
+    const name = document.getElementById('new-name').value.trim();
+    const pwd = document.getElementById('new-pwd').value.trim();
+    const role = document.getElementById('new-role').value;
+    if (!name || !pwd) return alert('請填寫姓名與密碼');
+    const data = { name, password: pwd, role,
+        phone: document.getElementById('new-phone').value.trim() || null,
+        company_name: document.getElementById('new-company').value.trim() || null,
+        worker_type: role === 'worker' ? document.getElementById('new-worker-type').value : null
+    };
+    const r = await insert('users', data);
+    if (r) { alert('新增成功'); ['new-name','new-loginid','new-pwd','new-phone','new-company'].forEach(id => document.getElementById(id).value = ''); await loadAll(); renderAdmin(); }
+    else alert('新增失敗');
+}
+
+async function delUser(id) {
+    if (!confirm('確定刪除此帳號？')) return;
+    await del('users', id);
+    await loadAll();
+    renderAdmin();
+}
+
+// ============ Modal 系列 ============
+function openModal(html) {
+    document.getElementById('modal-content').innerHTML = html;
+    document.getElementById('modal').classList.remove('hidden');
+}
+function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+document.addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+
+// 新增案場
+function openNewProject() {
+    const managerOpts = allUsers.filter(u => u.role === 'manager' || u.role === 'admin')
+        .map(u => `<option value="${u.id}">${u.name}</option>`).join('');
+    const clientOpts = '<option value="">（不指定）</option>' + allUsers.filter(u => u.role === 'client')
+        .map(u => `<option value="${u.id}">${u.name}</option>`).join('');
+    openModal(`
+        <h3 class="text-lg font-black text-white mb-4">＋ 新增案場</h3>
+        <div class="space-y-3">
+            <div><label class="label">案場名稱</label><input id="m-pname" class="inp" placeholder="例：台南民權路案"></div>
+            <div><label class="label">施工地址</label><input id="m-addr" class="inp" placeholder="地址"></div>
+            <div><label class="label">負責人</label><select id="m-manager" class="inp">${managerOpts}</select></div>
+            <div><label class="label">業主帳號</label><select id="m-client" class="inp">${clientOpts}</select></div>
+            <div><label class="label">保固到期日（選填）</label><input id="m-warranty" type="date" class="inp" style="color-scheme:dark"></div>
+        </div>
+        <div class="flex gap-3 mt-5">
+            <button onclick="closeModal()" class="btn btn-secondary">取消</button>
+            <button onclick="saveNewProject()" class="btn btn-primary">建立案場</button>
+        </div>`);
+}
+
+async function saveNewProject() {
+    const name = document.getElementById('m-pname').value.trim();
+    if (!name) return alert('請填寫案場名稱');
+    const data = {
+        name,
+        address: document.getElementById('m-addr').value.trim() || null,
+        manager_id: parseInt(document.getElementById('m-manager').value) || null,
+        client_id: parseInt(document.getElementById('m-client').value) || null,
+        warranty_end_date: document.getElementById('m-warranty').value || null,
+        status: '報價階段'
+    };
+    showLoading(true);
+    const r = await insert('projects', data);
+    showLoading(false);
+    if (r) { closeModal(); await loadAll(); renderProjects(); }
+    else alert('建立失敗');
+}
+
+// 新增階段
+function openStageModal(projectId) {
+    const workerOpts = '<option value="">（不指定）</option>' + allUsers.filter(u => u.role === 'worker')
+        .map(u => `<option value="${u.id}">${u.company_name || u.name} · ${u.worker_type || ''}</option>`).join('');
+    openModal(`
+        <h3 class="text-lg font-black text-white mb-4">＋ 新增施工階段</h3>
+        <div class="space-y-3">
+            <div><label class="label">階段名稱</label>
+                <select id="m-sname-sel" class="inp mb-2" onchange="if(this.value==='自訂')document.getElementById('m-sname-custom').classList.remove('hidden');else{document.getElementById('m-sname-custom').classList.add('hidden');document.getElementById('m-sname-custom').value='';}">
+                    <option>拆除</option><option>泥作</option><option>水電</option><option>木工</option><option>油漆</option><option>鐵工</option><option>空調</option><option>清潔</option><option>自訂</option>
+                </select>
+                <input id="m-sname-custom" class="inp hidden" placeholder="輸入自訂名稱">
+            </div>
+            <div><label class="label">指派工班</label><select id="m-worker" class="inp">${workerOpts}</select></div>
+            <div><label class="label">預計進場日</label><input id="m-sdate" type="date" class="inp" style="color-scheme:dark"></div>
+            <div><label class="label">備註</label><textarea id="m-snote" class="inp" rows="2" placeholder="施工說明..."></textarea></div>
+            <hr class="divider"><p class="text-xs text-slate-500 font-bold">💰 財務（選填）</p>
+            <div class="grid grid-cols-2 gap-3">
+                <div><label class="label">對業主報價</label><input id="m-quote" type="number" class="inp" placeholder="0"></div>
+                <div><label class="label">工班工資</label><input id="m-wcost" type="number" class="inp" placeholder="0"></div>
+                <div><label class="label">材料費</label><input id="m-mcost" type="number" class="inp" placeholder="0"></div>
+                <div><label class="label">設備租借</label><input id="m-ecost" type="number" class="inp" placeholder="0"></div>
+            </div>
+        </div>
+        <div class="flex gap-3 mt-5">
+            <button onclick="closeModal()" class="btn btn-secondary">取消</button>
+            <button onclick="saveStage(${projectId})" class="btn btn-primary">新增階段</button>
+        </div>`);
+}
+
+async function saveStage(projectId) {
+    const sel = document.getElementById('m-sname-sel').value;
+    const custom = document.getElementById('m-sname-custom').value.trim();
+    const name = sel === '自訂' ? custom : sel;
+    if (!name) return alert('請填寫階段名稱');
+    const existingCount = allStages.filter(s => s.project_id === projectId).length;
+    const data = {
+        project_id: projectId,
+        name,
+        assigned_worker_id: parseInt(document.getElementById('m-worker').value) || null,
+        scheduled_date: document.getElementById('m-sdate').value || null,
+        notes: document.getElementById('m-snote').value.trim() || null,
+        client_quote: parseInt(document.getElementById('m-quote').value) || 0,
+        worker_cost: parseInt(document.getElementById('m-wcost').value) || 0,
+        material_cost: parseInt(document.getElementById('m-mcost').value) || 0,
+        equipment_cost: parseInt(document.getElementById('m-ecost').value) || 0,
+        sort_order: existingCount,
+        status: '待開始'
+    };
+    showLoading(true);
+    const r = await insert('project_stages', data);
+    showLoading(false);
+    if (r) { closeModal(); await loadAll(); const p = allProjects.find(x => x.id === projectId); if (p) renderProjectDetail(p); }
+    else alert('新增失敗');
+}
+
+// 編輯階段
+function openEditStage(stageId) {
+    const s = allStages.find(x => x.id === stageId);
+    if (!s) return;
+    const workerOpts = '<option value="">（不指定）</option>' + allUsers.filter(u => u.role === 'worker')
+        .map(u => `<option value="${u.id}" ${u.id === s.assigned_worker_id ? 'selected' : ''}>${u.company_name || u.name} · ${u.worker_type || ''}</option>`).join('');
+    const statusOpts = ['待開始','進行中','待確認','完成'].map(st => `<option ${s.status === st ? 'selected' : ''}>${st}</option>`).join('');
+    openModal(`
+        <h3 class="text-lg font-black text-white mb-4">✏️ 編輯階段</h3>
+        <div class="space-y-3">
+            <div><label class="label">階段名稱</label><input id="e-sname" class="inp" value="${s.name}"></div>
+            <div><label class="label">狀態</label><select id="e-status" class="inp">${statusOpts}</select></div>
+            <div><label class="label">指派工班</label><select id="e-worker" class="inp">${workerOpts}</select></div>
+            <div><label class="label">預計進場日</label><input id="e-sdate" type="date" class="inp" style="color-scheme:dark" value="${s.scheduled_date || ''}"></div>
+            <div><label class="label">備註</label><textarea id="e-snote" class="inp" rows="2">${s.notes || ''}</textarea></div>
+            <hr class="divider"><p class="text-xs text-slate-500 font-bold">💰 財務</p>
+            <div class="grid grid-cols-2 gap-3">
+                <div><label class="label">報價</label><input id="e-quote" type="number" class="inp" value="${s.client_quote || 0}"></div>
+                <div><label class="label">工班工資</label><input id="e-wcost" type="number" class="inp" value="${s.worker_cost || 0}"></div>
+                <div><label class="label">材料費</label><input id="e-mcost" type="number" class="inp" value="${s.material_cost || 0}"></div>
+                <div><label class="label">設備租借</label><input id="e-ecost" type="number" class="inp" value="${s.equipment_cost || 0}"></div>
+            </div>
+        </div>
+        <div class="flex gap-3 mt-5">
+            <button onclick="delStage(${s.id}, ${s.project_id})" class="btn btn-danger btn-sm">刪除</button>
+            <button onclick="closeModal()" class="btn btn-secondary">取消</button>
+            <button onclick="saveEditStage(${s.id}, ${s.project_id})" class="btn btn-primary">儲存</button>
+        </div>`);
+}
+
+async function saveEditStage(id, projectId) {
+    const data = {
+        name: document.getElementById('e-sname').value.trim(),
+        status: document.getElementById('e-status').value,
+        assigned_worker_id: parseInt(document.getElementById('e-worker').value) || null,
+        scheduled_date: document.getElementById('e-sdate').value || null,
+        notes: document.getElementById('e-snote').value.trim() || null,
+        client_quote: parseInt(document.getElementById('e-quote').value) || 0,
+        worker_cost: parseInt(document.getElementById('e-wcost').value) || 0,
+        material_cost: parseInt(document.getElementById('e-mcost').value) || 0,
+        equipment_cost: parseInt(document.getElementById('e-ecost').value) || 0,
+    };
+    showLoading(true);
+    await update('project_stages', id, data);
+    await loadAll();
+    showLoading(false);
+    closeModal();
+    const p = allProjects.find(x => x.id === projectId);
+    if (p) renderProjectDetail(p);
+}
+
+async function delStage(id, projectId) {
+    if (!confirm('確定刪除此階段？')) return;
+    await del('project_stages', id);
+    await loadAll();
+    closeModal();
+    const p = allProjects.find(x => x.id === projectId);
+    if (p) renderProjectDetail(p);
+}
+
+// 進場通報
+function openNotifyModal(projectId) {
+    const workerOpts = allUsers.filter(u => u.role === 'worker')
+        .map(u => `<option value="${u.id}">${u.company_name || u.name} · ${u.worker_type || ''}</option>`).join('');
+    const stageOpts = '<option value="">（不綁定階段）</option>' + allStages.filter(s => s.project_id === projectId)
+        .map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    openModal(`
+        <h3 class="text-lg font-black text-white mb-4">📅 發出進場通報</h3>
+        <div class="space-y-3">
+            <div><label class="label">工班</label><select id="n-worker" class="inp">${workerOpts}</select></div>
+            <div><label class="label">進場日期</label><input id="n-date" type="date" class="inp" style="color-scheme:dark" value="${todayStr()}"></div>
+            <div><label class="label">對應階段（選填）</label><select id="n-stage" class="inp">${stageOpts}</select></div>
+            <div><label class="label">備註</label><input id="n-msg" class="inp" placeholder="說明事項..."></div>
+        </div>
+        <div class="flex gap-3 mt-5">
+            <button onclick="closeModal()" class="btn btn-secondary">取消</button>
+            <button onclick="saveNotify(${projectId})" class="btn btn-warn">發出通報</button>
+        </div>`);
+}
+
+async function saveNotify(projectId) {
+    const workerId = parseInt(document.getElementById('n-worker').value);
+    const worker = allUsers.find(u => u.id === workerId);
+    if (!worker) return alert('請選擇工班');
+    const data = {
+        project_id: projectId,
+        worker_id: workerId,
+        worker_name: worker.company_name || worker.name,
+        notify_date: document.getElementById('n-date').value,
+        stage_id: parseInt(document.getElementById('n-stage').value) || null,
+        message: document.getElementById('n-msg').value.trim() || null,
+        created_by: currentUser.id
+    };
+    showLoading(true);
+    await insert('site_notifications', data);
+    await loadAll();
+    showLoading(false);
+    closeModal();
+    const p = allProjects.find(x => x.id === projectId);
+    if (p) renderProjectDetail(p);
+}
+
+async function delNotif(id) {
+    await del('site_notifications', id);
+    await loadAll();
+    // 重新渲染目前開著的案場
+    const detailPage = document.getElementById('page-project-detail');
+    if (!detailPage.classList.contains('hidden')) {
+        const backBtn = detailPage.querySelector('button');
+        // 找出目前案場重新渲染
+        const projectId = allNotifications.find(n => n.id === id)?.project_id;
+        const p = allProjects.find(x => x.id === projectId);
+        if (p) renderProjectDetail(p);
+    }
+}
+
+// 雜支
+function openExpenseModal(projectId) {
+    openModal(`
+        <h3 class="text-lg font-black text-white mb-4">＋ 新增雜支</h3>
+        <div class="space-y-3">
+            <div><label class="label">費用說明</label><input id="ex-desc" class="inp" placeholder="例：工地廢料清運"></div>
+            <div><label class="label">金額</label><input id="ex-amt" type="number" class="inp" placeholder="0"></div>
+            <div><label class="label">日期</label><input id="ex-date" type="date" class="inp" style="color-scheme:dark" value="${todayStr()}"></div>
+        </div>
+        <div class="flex gap-3 mt-5">
+            <button onclick="closeModal()" class="btn btn-secondary">取消</button>
+            <button onclick="saveExpense(${projectId})" class="btn btn-primary">新增</button>
+        </div>`);
+}
+
+async function saveExpense(projectId) {
+    const desc = document.getElementById('ex-desc').value.trim();
+    const amt = parseInt(document.getElementById('ex-amt').value);
+    if (!desc || !amt) return alert('請填寫說明與金額');
+    await insert('project_expenses', { project_id: projectId, description: desc, amount: amt, expense_date: document.getElementById('ex-date').value, created_by: currentUser.id });
+    await loadAll();
+    closeModal();
+    const p = allProjects.find(x => x.id === projectId);
+    if (p) renderProjectDetail(p);
+}
+
+// 工班回報
+function openReportModal(stageId, stageName, projectId) {
+    openModal(`
+        <h3 class="text-lg font-black text-white mb-1">📤 回報進度</h3>
+        <p class="text-sm text-slate-400 mb-4">${stageName}</p>
+        <div class="space-y-3">
+            <div><label class="label">說明</label><textarea id="r-note" class="inp" rows="3" placeholder="今日施工內容..."></textarea></div>
+            <div onclick="document.getElementById('r-files').click()" class="border-2 border-dashed border-[var(--border)] rounded-xl p-5 text-center cursor-pointer hover:border-indigo-500 transition-colors">
+                <input type="file" id="r-files" accept="image/*" multiple class="hidden" onchange="previewReport(this)">
+                <div id="r-placeholder"><div class="text-3xl mb-1">📷</div><div class="text-sm text-slate-500">點擊上傳照片（可多張）</div></div>
+                <div id="r-preview" class="hidden img-grid"></div>
+            </div>
+        </div>
+        <div class="flex gap-3 mt-5">
+            <button onclick="closeModal()" class="btn btn-secondary">取消</button>
+            <button onclick="submitReport(${stageId}, ${projectId})" class="btn btn-primary">提交回報</button>
+        </div>`);
+}
+
+function previewReport(input) {
+    const prev = document.getElementById('r-preview');
+    prev.innerHTML = '';
+    if (input.files.length) {
+        document.getElementById('r-placeholder').classList.add('hidden');
+        prev.classList.remove('hidden');
+        Array.from(input.files).forEach(f => {
+            const reader = new FileReader();
+            reader.onload = e => { const img = document.createElement('img'); img.src = e.target.result; img.className = 'w-full h-24 object-cover rounded-lg'; prev.appendChild(img); };
+            reader.readAsDataURL(f);
+        });
+    }
+}
+
+async function submitReport(stageId, projectId) {
+    const note = document.getElementById('r-note').value.trim();
+    const files = document.getElementById('r-files').files;
+    showLoading(true, '上傳照片中...');
+    let urls = [];
+    for (let i = 0; i < files.length; i++) { const u = await uploadImg(files[i]); if (u) urls.push(u); }
+    const data = { stage_id: stageId, project_id: projectId, worker_id: currentUser.id, worker_name: currentUser.name, notes: note, image_urls: urls, timestamp: new Date().toISOString() };
+    await insert('progress_reports', data);
+    // 自動更新階段狀態為進行中
+    const stage = allStages.find(s => s.id === stageId);
+    if (stage && stage.status === '待開始') await update('project_stages', stageId, { status: '進行中' });
+    await loadAll();
+    showLoading(false);
+    closeModal();
+    renderWorker();
+}
+
+// ============ 燈箱 ============
+function openLb(urlsOrStr, idx = 0) {
+    lbImgs = typeof urlsOrStr === 'string' ? JSON.parse(urlsOrStr.replace(/&quot;/g, '"')) : urlsOrStr;
+    lbIdx = idx;
+    updateLb();
+    document.getElementById('lightbox').classList.remove('hidden');
+}
+function closeLightbox() { document.getElementById('lightbox').classList.add('hidden'); }
+function updateLb() {
+    document.getElementById('lb-img').src = lbImgs[lbIdx];
+    document.getElementById('lb-prev').classList.toggle('hidden', lbImgs.length <= 1);
+    document.getElementById('lb-next').classList.toggle('hidden', lbImgs.length <= 1);
+}
+function changeLb(d) { lbIdx = (lbIdx + d + lbImgs.length) % lbImgs.length; updateLb(); }
+async function dlCurrentLb() {
+    try { const r = await fetch(lbImgs[lbIdx]); const b = await r.blob(); saveAs(b, `照片_${lbIdx + 1}.jpg`); }
+    catch { window.open(lbImgs[lbIdx], '_blank'); }
+}
+
+// ============ 工具 ============
+function showLoading(show, text = '處理中...') {
+    document.getElementById('loading-overlay').classList.toggle('hidden', !show);
+    document.getElementById('loading-text').innerText = text;
+}
+
+async function manualRefresh() { showLoading(true); await loadAll(); showLoading(false); }
+</script>
+</body>
+</html>
