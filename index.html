@@ -317,177 +317,238 @@ function renderDetail(pid){
     const inspList=D.ins.filter(i=>i.project_id===pid);
     const fin=calcFin(pid);
     const mgr=D.u.find(u=>u.id===p.manager_id);
+    const mgrInsp=inspList.filter(i=>i.inspector_role==='manager'||!i.inspector_role);
+    const clientInsp=inspList.filter(i=>i.inspector_role==='client');
+    const mgrPassed=mgrInsp.some(i=>i.status==='驗收通過');
 
-    const STEPS=['會勘','設計','報價','進行中','驗收','完工','保固'];
-    const STEP_MAP={'會勘':0,'設計':1,'報價階段':2,'進行中':3,'驗收':4,'已完工':5,'保固期':6,'暫停':3};
-    const curIdx=STEP_MAP[p.status]??0;
-    const stepsHtml=`<div class="flow-steps">${STEPS.map((s,i)=>{
-        const cls=i<curIdx?'done':i===curIdx?'active':'';
-        return `<div class="flow-step ${i<curIdx?'done':''}"><div class="sdot ${cls}">${i<curIdx?'✓':i+1}</div><div class="slabel ${cls}">${s}</div></div>`;
-    }).join('')}</div>`;
+    // 流程定義
+    const FLOW=[
+        {key:'會勘',    label:'會勘',    icon:'📷', next:'設計'},
+        {key:'設計',    label:'設計',    icon:'🎨', next:'報價階段'},
+        {key:'報價階段',label:'報價',    icon:'📋', next:'進行中'},
+        {key:'進行中',  label:'進行中',  icon:'🔨', next:'追加工程'},
+        {key:'追加工程',label:'追加工程',icon:'➕', next:'驗收'},
+        {key:'驗收',    label:'驗收',    icon:'✅', next:'已完工'},
+        {key:'已完工',  label:'完工',    icon:'🏁', next:'保固期'},
+        {key:'保固期',  label:'保固',    icon:'🔧', next:null},
+        {key:'暫停',    label:'暫停',    icon:'⏸', next:null},
+    ];
+    const curStep=FLOW.find(f=>f.key===p.status)||FLOW[0];
+    const curIdx=FLOW.findIndex(f=>f.key===p.status);
+    const mainFlow=FLOW.filter(f=>f.key!=='暫停');
 
-    const stOpts=SO.map(s=>`<option ${p.status===s?'selected':''}>${s}</option>`).join('');
-
+    // Header
     let html=`<div class="card mb-3">
-        <div class="flex justify-between items-start mb-1">
+        <div class="flex justify-between items-start mb-3">
             <div><h2 class="text-lg font-black text-black">${p.name}</h2><div class="text-xs text-gray-400">${p.address||'未填地址'}${mgr?` · 負責：${mgr.name}`:''}</div></div>
-            ${canEdit?`<select onchange="updSt(${p.id},this.value)" class="inp" style="width:auto;height:32px;padding:0 28px 0 8px;font-size:12px;">${stOpts}</select>`:`<span class="badge ${SB[p.status]||'bg'}">${p.status}</span>`}
+            <span class="badge ${SB[p.status]||'bg'} text-sm px-3 py-1">${curStep.icon} ${p.status}</span>
         </div>
-        ${stepsHtml}
-        ${p.warranty_end_date?`<div class="text-xs text-gray-400 mt-1">🔧 保固到期：${p.warranty_end_date}</div>`:''}
+        <div class="flex items-center gap-1 overflow-x-auto pb-1" style="-ms-overflow-style:none;scrollbar-width:none;">
+            ${mainFlow.map((f,i)=>{
+                const fi=FLOW.findIndex(x=>x.key===f.key);
+                const isDone=fi<curIdx;
+                const isActive=f.key===p.status;
+                return `<div class="flex items-center gap-1 flex-shrink-0">
+                    <div class="text-xs font-bold px-2 py-1 rounded-full ${isDone?'bg-black text-white':isActive?'bg-gray-100 text-black border border-black':'text-gray-300'}">${isDone?'✓':f.label}</div>
+                    ${i<mainFlow.length-1?`<div class="w-3 h-px ${isDone?'bg-black':'bg-gray-200'} flex-shrink-0"></div>`:''}
+                </div>`;
+            }).join('')}
+        </div>
     </div>`;
 
+    // ── 當前階段內容 ──
+    html+=`<div class="mb-3">`;
+
     // 會勘
-    html+=`<details class="card mb-3"${surveys.length?' open':''}>
-        <summary class="flex justify-between items-center">
-            <span class="font-black text-sm">📷 會勘記錄 <span class="text-gray-400 font-normal text-xs">(${surveys.length})</span></span>
-            ${canEdit?`<button onclick="event.preventDefault();openSurvey(${pid})" class="btn btn-p btn-sm">＋ 新增</button>`:''}
-        </summary>
-        <div class="mt-3 space-y-3">${surveys.map(s=>`<div class="csm">
-            <div class="flex justify-between items-start mb-1">
-                <div><div class="font-bold text-sm">${s.survey_date}</div>${s.participants?`<div class="text-xs text-gray-400">👥 ${s.participants}</div>`:''}</div>
-                ${canEdit?`<button onclick="delR('site_surveys',${s.id},${pid})" class="text-gray-300 hover:text-red-400 text-xl leading-none">×</button>`:''}
+    if(p.status==='會勘'){
+        html+=`<div class="card mb-3">
+            <div class="flex justify-between items-center mb-3">
+                <span class="font-black text-sm">📷 會勘記錄</span>
+                ${canEdit?`<button onclick="openSurvey(${pid})" class="btn btn-p btn-sm">＋ 新增</button>`:''}
             </div>
-            ${s.house_condition?`<div class="text-xs text-gray-600 bg-gray-50 rounded p-2 mb-1">${s.house_condition}</div>`:''}
-            ${s.notes?`<div class="text-xs text-gray-400">${s.notes}</div>`:''}
-            ${ig(s.image_urls)}
-        </div>`).join('')}${!surveys.length?`<div class="text-xs text-gray-400 text-center py-2">尚無會勘記錄</div>`:''}
-        </div></details>`;
+            <div class="space-y-3">${surveys.map(s=>`<div class="csm">
+                <div class="flex justify-between items-start mb-1">
+                    <div><div class="font-bold text-sm">${s.survey_date}</div>${s.participants?`<div class="text-xs text-gray-400">👥 ${s.participants}</div>`:''}</div>
+                    ${canEdit?`<button onclick="delR('site_surveys',${s.id},${pid})" class="text-gray-300 hover:text-red-400 text-xl">×</button>`:''}
+                </div>
+                ${s.house_condition?`<div class="text-xs text-gray-600 bg-gray-50 rounded p-2 mb-1">${s.house_condition}</div>`:''}
+                ${s.notes?`<div class="text-xs text-gray-400">${s.notes}</div>`:''}
+                ${ig(s.image_urls)}
+            </div>`).join('')}
+            ${!surveys.length?`<div class="text-xs text-gray-400 text-center py-4">尚無會勘記錄，請新增</div>`:''}
+            </div>
+        </div>`;
+    }
 
     // 設計
-    html+=`<details class="card mb-3"${designs.length?' open':''}>
-        <summary class="flex justify-between items-center">
-            <span class="font-black text-sm">🎨 設計版本 <span class="text-gray-400 font-normal text-xs">(${designs.length})</span></span>
-            ${canEdit?`<button onclick="event.preventDefault();openDesign(${pid})" class="btn btn-p btn-sm">＋ 新增</button>`:''}
-        </summary>
-        <div class="mt-3 space-y-3">${designs.map(d=>{
-            const dsb={'待確認':'by','已確認':'bgn','退回修改':'br'}[d.client_status]||'bg';
-            return `<div class="csm">
-                <div class="flex justify-between items-start mb-1">
-                    <div><span class="font-black text-sm">${d.version}</span><span class="badge ${dsb} ml-1">${d.client_status}</span><div class="text-xs text-gray-400">${d.design_date}</div></div>
-                    <div class="flex items-center gap-1">
-                        ${canEdit?`<button onclick="delR('design_records',${d.id},${pid})" class="text-gray-300 hover:text-red-400 text-xl leading-none">×</button>`:''}
+    if(p.status==='設計'){
+        html+=`<div class="card mb-3">
+            <div class="flex justify-between items-center mb-3">
+                <span class="font-black text-sm">🎨 設計版本</span>
+                ${canEdit?`<button onclick="openDesign(${pid})" class="btn btn-p btn-sm">＋ 新增</button>`:''}
+            </div>
+            <div class="space-y-3">${designs.map(d=>{
+                const dsb={'待確認':'by','已確認':'bgn','退回修改':'br'}[d.client_status]||'bg';
+                return `<div class="csm">
+                    <div class="flex justify-between items-start mb-1">
+                        <div><span class="font-black text-sm">${d.version}</span><span class="badge ${dsb} ml-1">${d.client_status}</span><div class="text-xs text-gray-400">${d.design_date}</div></div>
+                        ${canEdit?`<button onclick="delR('design_records',${d.id},${pid})" class="text-gray-300 hover:text-red-400 text-xl">×</button>`:''}
                     </div>
-                </div>
-                ${d.designer_notes?`<div class="text-xs text-gray-500 bg-gray-50 rounded p-2 mb-1">${d.designer_notes}</div>`:''}
-                ${ig(d.image_urls)}
-            </div>`;
-        }).join('')}${!designs.length?`<div class="text-xs text-gray-400 text-center py-2">尚無設計版本</div>`:''}
-        </div></details>`;
+                    ${d.designer_notes?`<div class="text-xs text-gray-500 bg-gray-50 rounded p-2 mb-1">${d.designer_notes}</div>`:''}
+                    ${ig(d.image_urls)}
+                </div>`;
+            }).join('')}
+            ${!designs.length?`<div class="text-xs text-gray-400 text-center py-4">尚無設計版本，請新增</div>`:''}
+            </div>
+        </div>`;
+    }
 
-    // 財務
-    if(!isClient){
+    // 報價
+    if(p.status==='報價階段'&&!isClient){
+        html+=`<div class="card mb-3">
+            <div class="flex justify-between items-center mb-3">
+                <span class="font-black text-sm">📋 報價單</span>
+                <span class="mono font-black">$${fin.quote.toLocaleString()}</span>
+            </div>
+            ${stages.length?stages.map(s=>`<div class="fin-row">
+                <span class="text-sm">${s.name}</span>
+                <div class="text-right">
+                    <div class="mono text-sm font-bold">$${(s.quote_amount||0).toLocaleString()}</div>
+                    ${s.contract_amount?`<div class="mono text-xs text-gray-400">發包 $${s.contract_amount.toLocaleString()}</div>`:''}
+                </div>
+            </div>`).join(''):`<div class="text-xs text-gray-400 text-center py-3">請先在施工階段設定報價</div>`}
+            <div class="fin-total"><span class="font-bold text-sm">合計</span><span class="mono font-black">$${fin.quote.toLocaleString()}</span></div>
+            ${canEdit?`<button onclick="openStage(${pid})" class="btn btn-s btn-sm mt-3">＋ 新增工種報價</button>`:''}
+        </div>`;
+    }
+
+    // 進行中
+    if(p.status==='進行中'){
+        html+=`<div class="card mb-3">
+            <div class="flex justify-between items-center mb-3">
+                <span class="font-black text-sm">🔨 施工階段</span>
+                ${canEdit?`<button onclick="openStage(${pid})" class="btn btn-p btn-sm">＋ 新增</button>`:''}
+            </div>
+            ${stages.length?stages.map(s=>stageCard(s,canEdit,isClient)).join(''):`<div class="text-xs text-gray-400 text-center py-4">尚未新增施工階段</div>`}
+        </div>`;
+        if(!isClient&&canEdit){
+            html+=`<div class="card mb-3">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="font-black text-sm">📅 進場通報</span>
+                    <button onclick="openNotify(${pid})" class="btn btn-sm" style="background:#fef9c3;color:#854d0e;border:1px solid #fde68a;">＋ 發通報</button>
+                </div>
+                ${notifs.length?notifs.map(n=>`<div class="flex items-center gap-2 py-2 border-b border-gray-100 last:border-0">
+                    <div class="text-xs font-bold w-20 flex-shrink-0 ${n.notify_date===toStr()?'text-amber-600':n.notify_date<toStr()?'text-gray-300':'text-gray-500'}">${n.notify_date}</div>
+                    <div class="flex-1 text-sm font-bold">${n.worker_name}${n.message?`<span class="text-xs text-gray-400 font-normal ml-1">${n.message}</span>`:''}</div>
+                    <button onclick="delR('site_notifications',${n.id},${pid})" class="text-gray-300 hover:text-red-400 text-xl">×</button>
+                </div>`).join(''):`<div class="text-xs text-gray-400 text-center py-2">尚無通報</div>`}
+            </div>`;
+        }
+    }
+
+    // 追加工程
+    if(p.status==='追加工程'&&!isClient){
+        html+=`<div class="card mb-3">
+            <div class="flex justify-between items-center mb-3">
+                <span class="font-black text-sm">➕ 追加項目</span>
+                ${canEdit?`<button onclick="openExtra(${pid})" class="btn btn-p btn-sm">＋ 新增追加</button>`:''}
+            </div>
+            <p class="text-xs text-blue-600 bg-blue-50 rounded p-2 mb-3">追加項目代表向業主額外收費，將增加業主實收金額。</p>
+            ${extras.length?extras.map(e=>`<div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+                <div><div class="text-sm font-bold">${e.description}</div><div class="text-xs text-gray-400">${e.extra_date}</div></div>
+                <span class="mono font-bold text-blue-600">+$${e.amount.toLocaleString()}</span>
+            </div>`).join(''):`<div class="text-xs text-gray-400 text-center py-4">尚無追加項目</div>`}
+            ${extras.length?`<div class="fin-total"><span class="font-bold text-sm">追加合計</span><span class="mono font-black text-blue-600">+$${fin.extra.toLocaleString()}</span></div>`:''}
+        </div>`;
+    }
+
+    // 驗收
+    if(p.status==='驗收'){
+        html+=`<div class="card mb-3">
+            <div class="flex justify-between items-center mb-1">
+                <span class="font-black text-sm">✅ 第一階段：設計師／統包驗收</span>
+                ${canEdit?`<button onclick="openInsp(${pid})" class="btn btn-p btn-sm">＋ 新增</button>`:''}
+            </div>
+            <div class="space-y-2 mb-4">${mgrInsp.map(i=>{
+                const isb={'待驗收':'by','驗收中':'bb','驗收通過':'bgn','驗收退件':'br'}[i.status]||'bg';
+                return `<div class="csm"><div class="flex justify-between items-start">
+                    <div><span class="badge ${isb}">${i.status}</span><div class="text-xs text-gray-400 mt-0.5">${i.inspected_by||''} · ${new Date(i.inspected_at).toLocaleDateString('zh-TW')}</div></div>
+                    ${canEdit?`<button onclick="delR('inspections',${i.id},${pid})" class="text-gray-300 hover:text-red-400 text-xl">×</button>`:''}
+                </div>${i.notes?`<div class="text-xs text-gray-500 mt-1">${i.notes}</div>`:''}${ig(i.image_urls)}</div>`;
+            }).join('')}${!mgrInsp.length?`<div class="text-xs text-gray-400 text-center py-2">尚無驗收記錄</div>`:''}
+            </div>
+            <div class="pt-3 border-t border-gray-100">
+                <div class="font-black text-sm mb-2">第二階段：業主驗收 ${!mgrPassed?`<span class="badge bg ml-1 text-xs font-normal">等待第一階段通過</span>`:''}</div>
+                <div class="space-y-2">${clientInsp.map(i=>{
+                    const isb={'待驗收':'by','驗收中':'bb','驗收通過':'bgn','驗收退件':'br'}[i.status]||'bg';
+                    return `<div class="csm"><div class="flex justify-between items-start">
+                        <div><span class="badge ${isb}">${i.status}</span><div class="text-xs text-gray-400 mt-0.5">${i.inspected_by||''} · ${new Date(i.inspected_at).toLocaleDateString('zh-TW')}</div></div>
+                        ${canEdit?`<button onclick="delR('inspections',${i.id},${pid})" class="text-gray-300 hover:text-red-400 text-xl">×</button>`:''}
+                    </div>${i.notes?`<div class="text-xs text-gray-500 mt-1">${i.notes}</div>`:''}${ig(i.image_urls)}</div>`;
+                }).join('')}${!clientInsp.length?`<div class="text-xs text-gray-400 text-center py-2">${mgrPassed?'業主尚未驗收':'等待第一階段通過後開放'}</div>`:''}
+                </div>
+            </div>
+        </div>`;
+    }
+
+    // 財務摘要（進行中/追加/驗收/完工階段顯示，非業主）
+    if(!isClient&&['進行中','追加工程','驗收','已完工','保固期'].includes(p.status)){
         const pr=fin.revenue>0?Math.round(fin.profit/fin.revenue*100):0;
         html+=`<details class="card mb-3">
             <summary class="flex justify-between items-center">
                 <span class="font-black text-sm">💰 財務摘要</span>
-                <span class="mono font-black text-base ${fin.profit>=0?'text-black':'text-gray-400'}">$${fin.profit.toLocaleString()}</span>
+                <span class="mono font-black ${fin.profit>=0?'text-black':'text-gray-400'}">$${fin.profit.toLocaleString()}</span>
             </summary>
             <div class="mt-3">
                 <div class="fin-row"><span class="text-sm text-gray-500">報價總額</span><span class="mono font-bold">$${fin.quote.toLocaleString()}</span></div>
                 <div class="fin-row"><span class="text-sm text-gray-500">追加金額</span><span class="mono font-bold text-blue-600">+$${fin.extra.toLocaleString()}</span></div>
                 <div class="fin-row"><span class="text-sm font-bold">業主實收</span><span class="mono font-black">$${fin.revenue.toLocaleString()}</span></div>
                 <div class="fin-row"><span class="text-sm text-gray-500">發包總額</span><span class="mono text-red-500">-$${fin.contract.toLocaleString()}</span></div>
-                <div class="fin-row"><span class="text-sm text-gray-500">材料費</span><span class="mono text-red-500">-$${fin.material.toLocaleString()}</span></div>
-                <div class="fin-row"><span class="text-sm text-gray-500">設備租借</span><span class="mono text-red-500">-$${fin.equipment.toLocaleString()}</span></div>
-                <div class="fin-row"><span class="text-sm text-gray-500">雜支</span><span class="mono text-red-500">-$${(fin.misc+fin.expCost).toLocaleString()}</span></div>
+                <div class="fin-row"><span class="text-sm text-gray-500">其他成本</span><span class="mono text-red-500">-$${(fin.material+fin.equipment+fin.misc+fin.expCost).toLocaleString()}</span></div>
                 <div class="fin-total"><span class="font-black">毛利 (${pr}%)</span><span class="mono font-black text-lg ${fin.profit>=0?'':'text-gray-400'}">$${fin.profit.toLocaleString()}</span></div>
-                ${canEdit?`<div class="flex gap-2 mt-3"><button onclick="openExp(${pid})" class="btn btn-s btn-sm flex-1">＋ 雜支</button><button onclick="openExtra(${pid})" class="btn btn-s btn-sm flex-1">＋ 追加</button></div>`:''}
-                ${extras.length?`<div class="mt-2 space-y-1">${extras.map(e=>`<div class="flex justify-between text-xs bg-blue-50 rounded px-2 py-1"><span class="text-gray-500">${e.extra_date} ${e.description}</span><span class="mono text-blue-600">+$${e.amount.toLocaleString()}</span></div>`).join('')}</div>`:''}
-                ${expenses.length?`<div class="mt-1 space-y-1">${expenses.map(e=>`<div class="flex justify-between text-xs bg-red-50 rounded px-2 py-1"><span class="text-gray-500">${e.expense_date} ${e.description}</span><span class="mono text-red-500">-$${e.amount.toLocaleString()}</span></div>`).join('')}</div>`:''}
-            </div>
-        </details>`;
-
-        // 報價單
-        html+=`<details class="card mb-3">
-            <summary class="flex justify-between items-center">
-                <span class="font-black text-sm">📋 報價單</span>
-                <span class="mono text-sm font-bold">$${fin.quote.toLocaleString()}</span>
-            </summary>
-            <div class="mt-3">
-                ${stages.length?stages.map(s=>`<div class="fin-row"><span class="text-sm">${s.name}</span><div class="text-right"><div class="mono text-sm font-bold">$${(s.quote_amount||0).toLocaleString()}</div>${s.contract_amount?`<div class="mono text-xs text-gray-400">發包 $${s.contract_amount.toLocaleString()}</div>`:''}</div></div>`).join(''):`<div class="text-xs text-gray-400 text-center py-2">請先新增施工階段</div>`}
-                <div class="fin-total"><span class="text-sm font-bold">合計</span><span class="mono font-black">$${fin.quote.toLocaleString()}</span></div>
+                ${canEdit?`<div class="flex gap-2 mt-3"><button onclick="openExp(${pid})" class="btn btn-s btn-sm flex-1">＋ 雜支</button></div>`:''}
             </div>
         </details>`;
     }
 
-    // 進場通報
-    if(!isClient&&canEdit){
-        html+=`<details class="card mb-3">
-            <summary class="flex justify-between items-center">
-                <span class="font-black text-sm">📅 進場通報</span>
-                <button onclick="event.preventDefault();openNotify(${pid})" class="btn btn-sm" style="background:#fef9c3;color:#854d0e;border:1px solid #fde68a;">＋ 發通報</button>
-            </summary>
-            <div class="mt-2">${notifs.length?notifs.map(n=>`<div class="flex items-center gap-2 py-2 border-b border-gray-100 last:border-0">
-                <div class="text-xs font-bold w-20 flex-shrink-0 ${n.notify_date===toStr()?'text-amber-600':n.notify_date<toStr()?'text-gray-300':'text-gray-500'}">${n.notify_date}</div>
-                <div class="flex-1 text-sm font-bold">${n.worker_name}${n.message?`<span class="text-xs text-gray-400 font-normal ml-1">${n.message}</span>`:''}</div>
-                ${canEdit?`<button onclick="delR('site_notifications',${n.id},${pid})" class="text-gray-300 hover:text-red-400 text-xl">×</button>`:''}
-            </div>`).join(''):`<div class="text-xs text-gray-400 text-center py-2">尚無通報</div>`}
-            </div>
-        </details>`;
+    html+=`</div>`;
+
+    // ── 歷史記錄（折疊，所有階段都可看） ──
+    const hasHistory = surveys.length||designs.length||stages.length||inspList.length;
+    if(hasHistory&&!isClient){
+        html+=`<details class="mb-3">
+            <summary class="text-xs font-black text-gray-400 uppercase cursor-pointer px-1 mb-2">📁 完整記錄</summary>
+            <div class="mt-2">`;
+        if(surveys.length) html+=`<div class="text-xs font-bold text-gray-500 mb-1 mt-2">會勘 (${surveys.length})</div>`+surveys.map(s=>`<div class="csm mb-2"><div class="font-bold text-xs">${s.survey_date}${s.participants?` · ${s.participants}`:''}</div>${s.house_condition?`<div class="text-xs text-gray-400 mt-0.5">${s.house_condition}</div>`:''}${ig(s.image_urls)}</div>`).join('');
+        if(designs.length) html+=`<div class="text-xs font-bold text-gray-500 mb-1 mt-2">設計版本 (${designs.length})</div>`+designs.map(d=>{const dsb={'待確認':'by','已確認':'bgn','退回修改':'br'}[d.client_status]||'bg';return `<div class="csm mb-2"><div class="flex gap-2 items-center"><span class="font-bold text-xs">${d.version}</span><span class="badge ${dsb}">${d.client_status}</span></div>${ig(d.image_urls)}</div>`}).join('');
+        if(stages.length) html+=`<div class="text-xs font-bold text-gray-500 mb-1 mt-2">施工階段</div>`+stages.map(s=>stageCard(s,canEdit,isClient)).join('');
+        html+=`</div></details>`;
     }
 
-    // 施工階段
-    html+=`<div class="mb-3">
-        <div class="flex justify-between items-center mb-2">
-            <span class="font-black text-sm">🔨 施工階段</span>
-            ${canEdit?`<button onclick="openStage(${pid})" class="btn btn-p btn-sm">＋ 新增</button>`:''}
-        </div>
-        ${stages.length?stages.map(s=>stageCard(s,canEdit,isClient)).join(''):`<div class="text-xs text-gray-400 text-center py-6">尚未新增施工階段</div>`}
-    </div>`;
-
-    // 驗收區塊已整合到上方兩階段驗收
-
-    // 驗收（兩階段）
-    const mgrInsp=inspList.filter(i=>i.inspector_role==='manager'||!i.inspector_role);
-    const clientInsp=inspList.filter(i=>i.inspector_role==='client');
-    const mgrPassed=mgrInsp.some(i=>i.status==='驗收通過');
-
-    html+=`<details class="card mb-3"${inspList.length?' open':''}>
-        <summary class="flex justify-between items-center">
-            <span class="font-black text-sm">✅ 驗收記錄</span>
-            ${canEdit?`<button onclick="event.preventDefault();openInsp(${pid})" class="btn btn-p btn-sm">＋ 新增</button>`:''}
-        </summary>
-        <div class="mt-3">
-            <div class="text-xs font-black text-gray-400 uppercase mb-2">第一階段：設計師／統包驗收</div>
-            <div class="space-y-2 mb-3">${mgrInsp.map(i=>{
-                const isb={'待驗收':'by','驗收中':'bb','驗收通過':'bgn','驗收退件':'br'}[i.status]||'bg';
-                return `<div class="csm"><div class="flex justify-between items-start">
-                    <div><span class="badge ${isb}">${i.status}</span><div class="text-xs text-gray-400 mt-0.5">${i.inspected_by||''} · ${new Date(i.inspected_at).toLocaleDateString('zh-TW')}</div></div>
-                    ${canEdit?`<button onclick="delR('inspections',${i.id},${pid})" class="text-gray-300 hover:text-red-400 text-xl">×</button>`:''}
-                </div>${i.notes?`<div class="text-xs text-gray-500 mt-1">${i.notes}</div>`:''}${ig(i.image_urls)}</div>`;
-            }).join('')}${!mgrInsp.length?`<div class="text-xs text-gray-400 text-center py-1">尚無記錄</div>`:''}
-            </div>
-            <div class="text-xs font-black text-gray-400 uppercase mb-2 mt-3 pt-3 border-t border-gray-100">
-                第二階段：業主驗收
-                ${!mgrPassed?`<span class="badge bg ml-1 normal-case font-normal">等待第一階段通過</span>`:''}
-            </div>
-            <div class="space-y-2">${clientInsp.map(i=>{
-                const isb={'待驗收':'by','驗收中':'bb','驗收通過':'bgn','驗收退件':'br'}[i.status]||'bg';
-                return `<div class="csm"><div class="flex justify-between items-start">
-                    <div><span class="badge ${isb}">${i.status}</span><div class="text-xs text-gray-400 mt-0.5">${i.inspected_by||''} · ${new Date(i.inspected_at).toLocaleDateString('zh-TW')}</div></div>
-                    ${canEdit?`<button onclick="delR('inspections',${i.id},${pid})" class="text-gray-300 hover:text-red-400 text-xl">×</button>`:''}
-                </div>${i.notes?`<div class="text-xs text-gray-500 mt-1">${i.notes}</div>`:''}${ig(i.image_urls)}</div>`;
-            }).join('')}${!clientInsp.length?`<div class="text-xs text-gray-400 text-center py-1">${mgrPassed?'業主尚未驗收':'等待第一階段通過後開放'}</div>`:''}
-            </div>
-        </div>
-    </details>`;
-
-    // 刪除案場（管理員限定）
-    if(CU.role==='admin'){
-        html+=`<div class="mt-4 pt-4 border-t border-gray-200">
-            <button onclick="delProject(${pid})" class="btn btn-d btn-sm w-full">🗑 刪除此案場</button>
+    // ── 進入下一階段按鈕 ──
+    if(canEdit&&curStep.next){
+        html+=`<div class="mt-2 mb-4">
+            <button onclick="nextStep(${pid},'${curStep.next}')" class="btn btn-p w-full text-base">
+                完成「${p.status}」→ 進入「${curStep.next==='報價階段'?'報價':curStep.next==='已完工'?'完工':curStep.next}」
+            </button>
         </div>`;
+    }
+
+    // 刪除（管理員）
+    if(CU.role==='admin'){
+        html+=`<div class="mt-2 mb-6"><button onclick="delProject(${pid})" class="btn btn-d btn-sm w-full">🗑 刪除此案場</button></div>`;
     }
 
     document.getElementById('dcontent').innerHTML=html;
 }
 
-async function delProject(pid){
-    if(!confirm('確定刪除此案場？\n所有相關記錄（階段、回報、照片記錄）將一併刪除，此操作無法復原。'))return;
-    load(true,'刪除中...');
-    await DEL('projects',pid);
-    await loadAll();load(false);backToList();
+async function nextStep(pid,nextStatus){
+    const p=D.p.find(x=>x.id===pid);
+    const label=nextStatus==='報價階段'?'報價':nextStatus==='已完工'?'完工':nextStatus;
+    if(!confirm(`確定完成「${p.status}」階段，進入「${label}」？`))return;
+    load(true);
+    await PATCH('projects',pid,{status:nextStatus});
+    await loadAll();load(false);renderDetail(pid);
 }
 
 function stageCard(s,canEdit,isClient){
