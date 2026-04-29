@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-TW" class="h-full">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -10,1073 +10,824 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #0a0a0f;
-            --surface: #13131a;
-            --surface2: #1c1c26;
-            --border: #2a2a3a;
-            --accent: #6366f1;
-            --accent2: #818cf8;
-            --warn: #f59e0b;
-            --danger: #ef4444;
-            --success: #10b981;
-            --text: #e2e8f0;
-            --text2: #94a3b8;
-            --text3: #475569;
-        }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; min-height: 100vh; }
-        .hidden { display: none !important; }
-
-        /* 登入畫面 */
-        #login-screen { background: radial-gradient(ellipse at 30% 20%, #1e1b4b 0%, #0a0a0f 60%); }
-        .login-card { background: rgba(19,19,26,0.9); backdrop-filter: blur(20px); border: 1px solid rgba(99,102,241,0.3); border-radius: 24px; }
-
-        /* 輸入框 */
-        .inp { width: 100%; height: 48px; padding: 0 14px; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px; font-size: 15px; font-family: 'Noto Sans TC', sans-serif; color: var(--text); outline: none; transition: border-color 0.2s; -webkit-appearance: none; }
-        .inp:focus { border-color: var(--accent); }
-        .inp::placeholder { color: var(--text3); }
-        textarea.inp { height: auto; padding: 12px 14px; resize: none; }
-        select.inp { background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 12px center; background-size: 18px; padding-right: 36px; }
-
-        /* 按鈕 */
-        .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 13px 20px; border-radius: 10px; font-weight: 700; font-size: 15px; font-family: 'Noto Sans TC', sans-serif; border: none; cursor: pointer; transition: all 0.2s; }
-        .btn:active { transform: scale(0.98); }
-        .btn-primary { background: var(--accent); color: #fff; }
-        .btn-primary:hover { background: var(--accent2); }
-        .btn-secondary { background: var(--surface2); color: var(--text); border: 1.5px solid var(--border); }
-        .btn-success { background: var(--success); color: #fff; }
-        .btn-warn { background: var(--warn); color: #000; }
-        .btn-danger { background: var(--danger); color: #fff; }
-        .btn-sm { padding: 7px 14px; font-size: 13px; width: auto; border-radius: 8px; }
-        .btn-icon { width: 36px; height: 36px; padding: 0; border-radius: 8px; flex-shrink: 0; }
-
-        /* 卡片 */
-        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 14px; }
-        .card-accent { border-color: rgba(99,102,241,0.4); background: linear-gradient(135deg, rgba(99,102,241,0.05) 0%, var(--surface) 100%); }
-
-        /* 標籤 */
-        .label { display: block; font-size: 12px; font-weight: 700; color: var(--text2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
-        .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
-        .badge-indigo { background: rgba(99,102,241,0.15); color: var(--accent2); border: 1px solid rgba(99,102,241,0.3); }
-        .badge-green { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
-        .badge-warn { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
-        .badge-red { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
-        .badge-gray { background: rgba(71,85,105,0.3); color: var(--text2); border: 1px solid var(--border); }
-        .badge-blue { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
-
-        /* 底部導航 */
-        .nav-bar { background: rgba(13,13,20,0.95); backdrop-filter: blur(12px); border-top: 1px solid var(--border); }
-        .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 10px 4px 12px; color: var(--text3); font-size: 11px; font-weight: 700; font-family: 'Noto Sans TC', sans-serif; background: none; border: none; cursor: pointer; gap: 4px; transition: color 0.2s; }
-        .nav-btn.active { color: var(--accent2); }
-        .nav-btn svg { width: 22px; height: 22px; fill: currentColor; }
-
-        /* 進度條 */
-        .progress-bar { height: 6px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
-        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 99px; transition: width 0.4s ease; }
-
-        /* 狀態顏色 */
-        .status-報價階段 { color: #a78bfa; } .status-進行中 { color: #34d399; } .status-暫停 { color: #fbbf24; } .status-已完工 { color: #60a5fa; } .status-保固期 { color: #f9a8d4; }
-        .dot-報價階段 { background: #a78bfa; } .dot-進行中 { background: #34d399; } .dot-暫停 { background: #fbbf24; } .dot-已完工 { background: #60a5fa; } .dot-保固期 { background: #f9a8d4; }
-
-        /* 財務數字 */
-        .mono { font-family: 'DM Mono', monospace; }
-        .profit-positive { color: #34d399; }
-        .profit-negative { color: #f87171; }
-
-        /* Modal */
-        .modal-overlay { background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); }
-        .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; max-height: 90vh; overflow-y: auto; }
-
-        /* 分隔線 */
-        .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
-
-        /* Checkbox */
-        .check-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; margin-bottom: 6px; }
-        .check-item input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--accent); flex-shrink: 0; }
-
-        /* 載入動畫 */
-        .spinner { border: 3px solid var(--surface2); border-top: 3px solid var(--accent); border-radius: 50%; width: 36px; height: 36px; animation: spin 0.8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* 燈箱 */
-        #lightbox { background: rgba(0,0,0,0.96); }
-
-        /* 照片格 */
-        .img-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
-        .img-grid img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; transition: opacity 0.2s; }
-        .img-grid img:hover { opacity: 0.85; }
-
-        /* 階段卡片 */
-        .stage-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px; }
-        .stage-card.status-完成 { border-color: rgba(16,185,129,0.3); }
-        .stage-card.status-進行中 { border-color: rgba(99,102,241,0.4); }
-        .stage-card.status-待確認 { border-color: rgba(245,158,11,0.4); }
-
-        /* 時間軸（業主用） */
-        .timeline-item { position: relative; padding-left: 28px; padding-bottom: 20px; }
-        .timeline-item::before { content: ''; position: absolute; left: 8px; top: 20px; bottom: 0; width: 2px; background: var(--border); }
-        .timeline-item:last-child::before { display: none; }
-        .timeline-dot { position: absolute; left: 0; top: 4px; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--bg); }
-
-        details > summary { list-style: none; }
-        details > summary::-webkit-details-marker { display: none; }
-
-        /* 滾動條 */
-        ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+        :root { --bg:#fff; --sf:#f8f8f8; --sf2:#f0f0f0; --bd:#e8e8e8; --bd2:#d0d0d0; --tx:#111; --tx2:#555; --tx3:#aaa; }
+        * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+        body { font-family:'Noto Sans TC',sans-serif; background:#f5f5f5; color:var(--tx); font-size:15px; min-height:100vh; }
+        .hidden { display:none !important; }
+        .mono { font-family:'DM Mono',monospace; }
+        .inp { width:100%; height:48px; padding:0 14px; background:#f8f8f8; border:1.5px solid #e0e0e0; border-radius:10px; font-size:15px; font-family:'Noto Sans TC',sans-serif; color:#111; outline:none; transition:border-color 0.2s; -webkit-appearance:none; }
+        .inp:focus { border-color:#111; background:#fff; }
+        .inp::placeholder { color:#bbb; }
+        textarea.inp { height:auto; padding:12px 14px; resize:none; }
+        select.inp { background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23111' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat:no-repeat; background-position:right 12px center; background-size:18px; padding-right:36px; background-color:#f8f8f8; }
+        .label { display:block; font-size:11px; font-weight:700; color:#888; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.06em; }
+        .btn { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:13px 20px; border-radius:10px; font-weight:700; font-size:15px; font-family:'Noto Sans TC',sans-serif; border:none; cursor:pointer; transition:all 0.15s; }
+        .btn:active { transform:scale(0.98); opacity:0.85; }
+        .btn-p { background:#111; color:#fff; }
+        .btn-s { background:#fff; color:#111; border:1.5px solid #d8d8d8; }
+        .btn-d { background:#fee2e2; color:#dc2626; border:1.5px solid #fca5a5; }
+        .btn-sm { padding:7px 14px; font-size:13px; width:auto; border-radius:8px; }
+        .btn-ic { width:34px; height:34px; padding:0; border-radius:8px; flex-shrink:0; font-size:14px; }
+        .card { background:#fff; border:1.5px solid var(--bd); border-radius:16px; padding:18px; margin-bottom:12px; }
+        .csm { background:#fff; border:1.5px solid var(--bd); border-radius:12px; padding:14px; margin-bottom:8px; }
+        .badge { display:inline-flex; align-items:center; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
+        .bk { background:#111; color:#fff; }
+        .bg { background:#f0f0f0; color:#555; border:1px solid #e0e0e0; }
+        .bgn { background:#dcfce7; color:#166534; border:1px solid #bbf7d0; }
+        .by { background:#fef9c3; color:#854d0e; border:1px solid #fde68a; }
+        .br { background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; }
+        .bb { background:#dbeafe; color:#1d4ed8; border:1px solid #bfdbfe; }
+        .bpu { background:#f3e8ff; color:#7e22ce; border:1px solid #e9d5ff; }
+        .prog-bar { height:5px; background:#eee; border-radius:99px; overflow:hidden; }
+        .prog-fill { height:100%; background:#111; border-radius:99px; transition:width 0.4s; }
+        .nav-bar { background:rgba(255,255,255,0.97); backdrop-filter:blur(12px); border-top:1.5px solid #e8e8e8; }
+        .nav-btn { flex:1; display:flex; flex-direction:column; align-items:center; padding:9px 4px 11px; color:#ccc; font-size:10px; font-weight:700; font-family:'Noto Sans TC',sans-serif; background:none; border:none; cursor:pointer; gap:3px; transition:color 0.2s; }
+        .nav-btn.active { color:#111; }
+        .nav-btn svg { width:20px; height:20px; }
+        .modal-bg { background:rgba(0,0,0,0.35); backdrop-filter:blur(4px); }
+        .modal-box { background:#fff; border:1.5px solid #e0e0e0; border-radius:20px; max-height:88vh; overflow-y:auto; box-shadow:0 8px 40px rgba(0,0,0,0.12); }
+        .img-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:5px; margin-top:8px; }
+        .img-grid img { width:100%; height:90px; object-fit:cover; border-radius:7px; border:1px solid #e8e8e8; cursor:pointer; }
+        .flow-steps { display:flex; overflow-x:auto; gap:0; padding-bottom:4px; margin-bottom:16px; -ms-overflow-style:none; scrollbar-width:none; }
+        .flow-steps::-webkit-scrollbar { display:none; }
+        .flow-step { display:flex; flex-direction:column; align-items:center; flex-shrink:0; position:relative; min-width:52px; }
+        .flow-step:not(:last-child)::after { content:''; position:absolute; top:13px; left:calc(50% + 14px); width:calc(100% - 28px); height:2px; background:#e0e0e0; z-index:0; }
+        .flow-step.done:not(:last-child)::after { background:#111; }
+        .sdot { width:26px; height:26px; border-radius:50%; border:2px solid #ddd; background:#fff; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:900; color:#ccc; z-index:1; position:relative; }
+        .sdot.done { background:#111; border-color:#111; color:#fff; }
+        .sdot.active { background:#fff; border-color:#111; color:#111; }
+        .slabel { font-size:9px; font-weight:700; color:#aaa; margin-top:3px; text-align:center; width:52px; line-height:1.2; }
+        .slabel.done,.slabel.active { color:#111; }
+        .tl-item { position:relative; padding-left:26px; padding-bottom:18px; }
+        .tl-item::before { content:''; position:absolute; left:8px; top:18px; bottom:0; width:2px; background:#e8e8e8; }
+        .tl-item:last-child::before { display:none; }
+        .tl-dot { position:absolute; left:0; top:3px; width:17px; height:17px; border-radius:50%; border:3px solid #f5f5f5; box-shadow:0 0 0 1.5px #ccc; }
+        .spinner { border:3px solid #eee; border-top:3px solid #111; border-radius:50%; width:32px; height:32px; animation:spin 0.8s linear infinite; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        #lightbox { background:rgba(0,0,0,0.93); }
+        .fin-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f0f0f0; }
+        .fin-row:last-child { border-bottom:none; }
+        .fin-total { display:flex; justify-content:space-between; align-items:center; padding:10px 0 4px; border-top:2px solid #111; margin-top:4px; }
+        details > summary { list-style:none; cursor:pointer; }
+        details > summary::-webkit-details-marker { display:none; }
+        ::-webkit-scrollbar { width:4px; } ::-webkit-scrollbar-thumb { background:#ddd; border-radius:99px; }
     </style>
 </head>
 <body>
 
-<!-- ===== 登入畫面 ===== -->
-<div id="login-screen" class="fixed inset-0 z-[100] flex items-center justify-center p-5">
-    <div class="login-card w-full max-w-sm p-8">
+<div id="login-screen" class="fixed inset-0 z-[100] flex items-center justify-center p-5 bg-gray-100">
+    <div class="bg-white w-full max-w-sm p-8 rounded-3xl shadow-lg border border-gray-200">
         <div class="text-center mb-8">
-            <div class="w-14 h-14 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center mx-auto mb-4">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <div class="w-12 h-12 bg-black rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
             </div>
-            <h1 class="text-2xl font-black text-white">案場追蹤系統</h1>
-            <p class="text-sm text-slate-500 mt-1">工程進度管理平台</p>
+            <h1 class="text-2xl font-black text-black">案場追蹤系統</h1>
+            <p class="text-sm text-gray-400 mt-1">工程進度管理平台</p>
         </div>
         <div class="space-y-3">
-            <div><label class="label">帳號</label><input id="login-id" class="inp" placeholder="輸入帳號"></div>
-            <div><label class="label">密碼</label><input id="login-pwd" type="password" class="inp" placeholder="輸入密碼" onkeydown="if(event.key==='Enter')doLogin()"></div>
+            <div><label class="label">帳號</label><input id="li" class="inp" placeholder="輸入帳號"></div>
+            <div><label class="label">密碼</label><input id="lp" type="password" class="inp" placeholder="輸入密碼" onkeydown="if(event.key==='Enter')doLogin()"></div>
         </div>
-        <button onclick="doLogin()" class="btn btn-primary mt-5">登入</button>
-        <p id="login-msg" class="text-center text-red-400 text-sm mt-3 min-h-[20px]"></p>
+        <button onclick="doLogin()" class="btn btn-p mt-5">登入</button>
+        <p id="lmsg" class="text-center text-red-400 text-sm mt-3 min-h-[20px]"></p>
     </div>
 </div>
 
-<!-- ===== 載入遮罩 ===== -->
-<div id="loading-overlay" class="fixed inset-0 bg-black/80 z-[200] hidden flex items-center justify-center flex-col gap-4">
-    <div class="spinner"></div>
-    <div id="loading-text" class="text-slate-400 font-bold text-sm">處理中...</div>
+<div id="lov" class="fixed inset-0 bg-black/60 z-[200] hidden flex items-center justify-center flex-col gap-3">
+    <div class="spinner" style="border-top-color:#fff"></div>
+    <div id="ltxt" class="text-white font-bold text-sm">處理中...</div>
 </div>
 
-<!-- ===== 燈箱 ===== -->
 <div id="lightbox" class="fixed inset-0 z-[300] hidden flex items-center justify-center">
-    <button onclick="closeLightbox()" class="absolute top-4 right-4 text-white w-10 h-10 flex items-center justify-center bg-white/10 rounded-full text-2xl">×</button>
+    <button onclick="closeLb()" class="absolute top-4 right-4 text-white w-10 h-10 flex items-center justify-center bg-white/10 rounded-full text-2xl">×</button>
     <button id="lb-prev" onclick="changeLb(-1)" class="absolute left-2 text-white text-4xl w-12 h-20 flex items-center justify-center bg-white/10 rounded-xl hidden">‹</button>
     <button id="lb-next" onclick="changeLb(1)" class="absolute right-2 text-white text-4xl w-12 h-20 flex items-center justify-center bg-white/10 rounded-xl hidden">›</button>
-    <button onclick="dlCurrentLb()" class="absolute bottom-5 right-5 text-white w-12 h-12 flex items-center justify-center bg-white/10 rounded-full text-xl border border-white/20">⬇</button>
+    <button onclick="dlLb()" class="absolute bottom-5 right-5 text-white w-12 h-12 flex items-center justify-center bg-white/10 rounded-full text-xl border border-white/20">⬇</button>
     <img id="lb-img" class="max-h-[90vh] max-w-[92vw] object-contain select-none rounded-lg" src="">
 </div>
 
-<!-- ===== 通用 Modal ===== -->
-<div id="modal" class="fixed inset-0 modal-overlay z-[80] hidden flex items-end sm:items-center justify-center p-4">
-    <div id="modal-box" class="modal-box w-full max-w-md p-6">
-        <div id="modal-content"></div>
-    </div>
+<div id="modal" class="fixed inset-0 modal-bg z-[80] hidden flex items-end sm:items-center justify-center p-4">
+    <div id="mbox" class="modal-box w-full max-w-md p-6"><div id="mcontent"></div></div>
 </div>
 
-<!-- ===== Header ===== -->
-<header class="sticky top-0 z-40 bg-[#0a0a0f]/90 backdrop-blur-md border-b border-[var(--border)] px-4 py-3 flex justify-between items-center">
+<header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 px-4 py-3 flex justify-between items-center">
     <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+        <div class="w-8 h-8 bg-black rounded-lg flex items-center justify-center flex-shrink-0">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
         </div>
         <div>
-            <div class="font-black text-sm text-white leading-tight">案場追蹤系統</div>
-            <div id="user-role-display" class="text-xs text-slate-500">未登入</div>
+            <div class="font-black text-sm text-black leading-tight">案場追蹤系統</div>
+            <div id="urd" class="text-xs text-gray-400">未登入</div>
         </div>
     </div>
-    <button onclick="logout()" class="text-xs font-bold text-slate-400 bg-[var(--surface2)] px-3 py-1.5 rounded-lg border border-[var(--border)] hover:border-red-500/50 hover:text-red-400 transition-colors">登出</button>
+    <button onclick="logout()" class="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200">登出</button>
 </header>
 
-<!-- ===== 主內容 ===== -->
-<main class="pb-28 min-h-screen">
-
-    <!-- 案場總覽（負責人/管理員） -->
+<main class="pb-28">
     <div id="page-projects" class="hidden p-4">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-lg font-black text-white">案場總覽</h2>
-            <button id="btn-new-project" onclick="openNewProject()" class="btn btn-primary btn-sm hidden">＋ 新增案場</button>
+        <div class="flex justify-between items-center mb-3">
+            <h2 class="text-base font-black">案場總覽</h2>
+            <button id="btn-np" onclick="openNewProject()" class="btn btn-p btn-sm hidden">＋ 新增</button>
         </div>
-        <!-- 狀態篩選 -->
-        <div class="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide">
-            <button onclick="filterProjects('all')" class="badge badge-indigo flex-shrink-0 cursor-pointer" id="filter-all">全部</button>
-            <button onclick="filterProjects('報價階段')" class="badge badge-gray flex-shrink-0 cursor-pointer" id="filter-報價階段">報價階段</button>
-            <button onclick="filterProjects('進行中')" class="badge badge-green flex-shrink-0 cursor-pointer" id="filter-進行中">進行中</button>
-            <button onclick="filterProjects('暫停')" class="badge badge-warn flex-shrink-0 cursor-pointer" id="filter-暫停">暫停</button>
-            <button onclick="filterProjects('已完工')" class="badge badge-blue flex-shrink-0 cursor-pointer" id="filter-已完工">已完工</button>
-            <button onclick="filterProjects('保固期')" class="badge badge-gray flex-shrink-0 cursor-pointer" id="filter-保固期">保固期</button>
+        <div class="flex gap-2 overflow-x-auto pb-2 mb-3" style="-ms-overflow-style:none;scrollbar-width:none;">
+            <button onclick="setF('all')" id="f-all" class="badge bk flex-shrink-0 cursor-pointer py-1.5 px-3">全部</button>
+            <button onclick="setF('會勘')" id="f-會勘" class="badge bg flex-shrink-0 cursor-pointer py-1.5 px-3">會勘</button>
+            <button onclick="setF('設計')" id="f-設計" class="badge bg flex-shrink-0 cursor-pointer py-1.5 px-3">設計</button>
+            <button onclick="setF('報價階段')" id="f-報價階段" class="badge bg flex-shrink-0 cursor-pointer py-1.5 px-3">報價</button>
+            <button onclick="setF('進行中')" id="f-進行中" class="badge bg flex-shrink-0 cursor-pointer py-1.5 px-3">進行中</button>
+            <button onclick="setF('暫停')" id="f-暫停" class="badge bg flex-shrink-0 cursor-pointer py-1.5 px-3">暫停</button>
+            <button onclick="setF('驗收')" id="f-驗收" class="badge bg flex-shrink-0 cursor-pointer py-1.5 px-3">驗收</button>
+            <button onclick="setF('已完工')" id="f-已完工" class="badge bg flex-shrink-0 cursor-pointer py-1.5 px-3">完工</button>
+            <button onclick="setF('保固期')" id="f-保固期" class="badge bg flex-shrink-0 cursor-pointer py-1.5 px-3">保固</button>
         </div>
-        <div id="projects-list"><div class="flex justify-center py-10"><div class="spinner"></div></div></div>
+        <div id="plist"><div class="flex justify-center py-10"><div class="spinner"></div></div></div>
     </div>
 
-    <!-- 案場詳細 -->
-    <div id="page-project-detail" class="hidden p-4">
-        <button onclick="backToProjects()" class="flex items-center gap-2 text-slate-400 text-sm font-bold mb-4 hover:text-white transition-colors">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-            返回案場列表
+    <div id="page-detail" class="hidden p-4">
+        <button onclick="backToList()" class="flex items-center gap-1.5 text-gray-400 text-sm font-bold mb-4">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg> 返回
         </button>
-        <div id="project-detail-content"></div>
+        <div id="dcontent"></div>
     </div>
 
-    <!-- 工班任務 -->
     <div id="page-worker" class="hidden p-4">
-        <h2 class="text-lg font-black text-white mb-4">我的任務</h2>
-        <div id="worker-tasks-list"><div class="flex justify-center py-10"><div class="spinner"></div></div></div>
+        <h2 class="text-base font-black mb-4">我的任務</h2>
+        <div id="wlist"><div class="flex justify-center py-10"><div class="spinner"></div></div></div>
     </div>
 
-    <!-- 業主檢視 -->
     <div id="page-client" class="hidden p-4">
-        <h2 class="text-lg font-black text-white mb-4">我的案場</h2>
-        <div id="client-projects-list"><div class="flex justify-center py-10"><div class="spinner"></div></div></div>
+        <h2 class="text-base font-black mb-4">我的案場</h2>
+        <div id="clist"><div class="flex justify-center py-10"><div class="spinner"></div></div></div>
     </div>
 
-    <!-- 後台管理 -->
     <div id="page-admin" class="hidden p-4">
-        <h2 class="text-lg font-black text-white mb-4">系統管理</h2>
-
-        <!-- 帳號管理 -->
-        <div class="card card-accent mb-4">
-            <h3 class="font-black text-white mb-4">👤 帳號管理</h3>
+        <h2 class="text-base font-black mb-4">系統管理</h2>
+        <div class="card mb-4">
+            <h3 class="font-black text-sm mb-4">＋ 新增帳號</h3>
             <div class="grid grid-cols-2 gap-3 mb-3">
-                <div><label class="label">姓名</label><input id="new-name" class="inp" placeholder="姓名"></div>
-                <div><label class="label">帳號</label><input id="new-loginid" class="inp" placeholder="登入帳號"></div>
+                <div><label class="label">姓名</label><input id="nu-n" class="inp" placeholder="姓名"></div>
+                <div><label class="label">密碼</label><input id="nu-p" class="inp" placeholder="密碼"></div>
             </div>
-            <div class="grid grid-cols-2 gap-3 mb-3">
-                <div><label class="label">密碼</label><input id="new-pwd" class="inp" placeholder="密碼"></div>
-                <div><label class="label">角色</label>
-                    <select id="new-role" class="inp" onchange="toggleWorkerFields()">
-                        <option value="manager">專案負責人</option>
-                        <option value="worker">工班</option>
-                        <option value="client">業主</option>
-                        <option value="admin">管理員</option>
-                    </select>
-                </div>
+            <div class="mb-3"><label class="label">角色</label>
+                <select id="nu-r" class="inp" onchange="toggleWF()">
+                    <option value="manager">專案負責人</option><option value="worker">工班</option><option value="client">業主</option><option value="admin">管理員</option>
+                </select>
             </div>
-            <div id="worker-fields" class="hidden">
-                <div class="grid grid-cols-2 gap-3 mb-3">
-                    <div><label class="label">公司名稱</label><input id="new-company" class="inp" placeholder="公司名稱"></div>
-                    <div><label class="label">聯絡電話</label><input id="new-phone" class="inp" placeholder="電話"></div>
+            <div id="wf" class="hidden space-y-3 mb-3">
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="label">公司名稱</label><input id="nu-c" class="inp" placeholder="公司名稱"></div>
+                    <div><label class="label">聯絡電話</label><input id="nu-ph" class="inp" placeholder="電話"></div>
                 </div>
                 <div><label class="label">工班類型</label>
-                    <select id="new-worker-type" class="inp">
-                        <option>泥作</option><option>木工</option><option>水電</option><option>油漆</option><option>鐵工</option><option>拆除</option><option>空調</option><option>其他</option>
-                    </select>
+                    <select id="nu-wt" class="inp"><option>泥作</option><option>木工</option><option>水電</option><option>油漆</option><option>鐵工</option><option>拆除</option><option>空調</option><option>其他</option></select>
                 </div>
             </div>
-            <button onclick="addUser()" class="btn btn-primary mt-3">＋ 新增帳號</button>
+            <button onclick="addUser()" class="btn btn-p">新增帳號</button>
         </div>
-
-        <h3 class="font-bold text-slate-300 mb-3">現有帳號</h3>
-        <div id="users-list" class="space-y-2 mb-6"></div>
-
-        <!-- 所有案場財務總覽 -->
-        <div class="card mt-4">
-            <h3 class="font-black text-white mb-4">💰 所有案場財務總覽</h3>
-            <div id="admin-financials"></div>
-        </div>
+        <div class="text-xs font-black text-gray-400 uppercase mb-2 tracking-wide">帳號列表</div>
+        <div id="ulist" class="space-y-2 mb-6"></div>
+        <div class="card mt-4"><h3 class="font-black text-sm mb-3">💰 財務總覽</h3><div id="afin"></div></div>
     </div>
-
 </main>
 
-<!-- ===== 底部導航 ===== -->
-<nav id="bottom-nav" class="nav-bar fixed bottom-0 w-full flex z-50"></nav>
+<nav id="bnav" class="nav-bar fixed bottom-0 w-full flex z-50"></nav>
 
 <script>
-// ============ 設定 ============
-const PROJECT_URL = 'https://jikwrufwagfjdfzhomle.supabase.co';
-const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imppa3dydWZ3YWdmamRmemhvbWxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0Nzg5MzYsImV4cCI6MjA5MzA1NDkzNn0.bDXPFk0nB80JLKfZ9yWiCHLV6JhCC8lJhEpfPyjT0ag';
-const H = { 'apikey': ANON_KEY, 'Authorization': `Bearer ${ANON_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
-const API = (t) => `${PROJECT_URL}/rest/v1/${t}`;
-const STORAGE = `${PROJECT_URL}/storage/v1/object/site_photos`;
+const PU='https://jikwrufwagfjdfzhomle.supabase.co';
+const AK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imppa3dydWZ3YWdmamRmemhvbWxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0Nzg5MzYsImV4cCI6MjA5MzA1NDkzNn0.bDXPFk0nB80JLKfZ9yWiCHLV6JhCC8lJhEpfPyjT0ag';
+const H={'apikey':AK,'Authorization':`Bearer ${AK}`,'Content-Type':'application/json','Prefer':'return=representation'};
+const api=t=>`${PU}/rest/v1/${t}`;
+const ST=`${PU}/storage/v1/object/site_photos`;
+let CU=null,filt='all',lbI=[],lbX=0;
+let D={p:[],u:[],s:[],r:[],n:[],ex:[],xt:[],sv:[],de:[],ins:[]};
 
-let currentUser = null, allProjects = [], allUsers = [], allStages = [], allReports = [], allNotifications = [], allExpenses = [];
-let currentFilter = 'all';
-let lbImgs = [], lbIdx = 0;
+const GET=async(t,q='')=>{try{const r=await fetch(`${api(t)}?${q}&limit=500`,{headers:H});return r.ok?await r.json():[];}catch{return[];}};
+const POST=async(t,d)=>{try{const r=await fetch(api(t),{method:'POST',headers:H,body:JSON.stringify(d)});if(!r.ok)return null;const x=await r.json();return Array.isArray(x)?x[0]:x;}catch{return null;}};
+const PATCH=async(t,id,d)=>{try{const r=await fetch(`${api(t)}?id=eq.${id}`,{method:'PATCH',headers:H,body:JSON.stringify(d)});return r.ok;}catch{return false;}};
+const DEL=async(t,id)=>{try{await fetch(`${api(t)}?id=eq.${id}`,{method:'DELETE',headers:H});return true;}catch{return false;}};
+const UP=async f=>{const n=`img_${Date.now()}_${Math.random().toString(36).substr(2,5)}.jpg`;try{const r=await fetch(`${ST}/${n}`,{method:'POST',headers:{'apikey':AK,'Authorization':`Bearer ${AK}`,'Content-Type':f.type,'x-upsert':'true'},body:f});return r.ok?`${PU}/storage/v1/object/public/site_photos/${n}`:null;}catch{return null;}};
 
-// ============ 初始化 ============
-window.onload = async () => {
-    const saved = localStorage.getItem('user_id');
-    if (saved) {
-        const u = await fetchOne('users', `id=eq.${saved}`);
-        if (u) { currentUser = u; await loadAll(); performLogin(); return; }
-    }
+async function loadAll(){
+    const[p,u,s,r,n,ex,xt,sv,de,ins]=await Promise.all([
+        GET('projects','order=created_at.desc'),GET('users','order=name.asc'),
+        GET('project_stages','order=sort_order.asc'),GET('progress_reports','order=timestamp.desc'),
+        GET('site_notifications','order=notify_date.asc'),GET('project_expenses','order=expense_date.desc'),
+        GET('project_extras','order=created_at.desc'),GET('site_surveys','order=survey_date.desc'),
+        GET('design_records','order=created_at.desc'),GET('inspections','order=inspected_at.desc'),
+    ]);
+    D={p,u,s,r,n,ex,xt,sv,de,ins};
+}
+
+window.onload=async()=>{
+    const sid=localStorage.getItem('uid');
+    if(sid){await loadAll();const u=D.u.find(x=>x.id==sid);if(u){CU=u;login();return;}}
 };
-
-async function fetchAll(table, query = '') {
-    const r = await fetch(`${API(table)}?${query}&limit=500`, { headers: H });
-    if (!r.ok) return [];
-    return await r.json();
+async function doLogin(){
+    const id=document.getElementById('li').value.trim(),pw=document.getElementById('lp').value.trim();
+    if(!id||!pw)return setMsg('請輸入帳號密碼');
+    setMsg('驗證中...');await loadAll();
+    const u=D.u.find(x=>x.name===id&&x.password===pw);
+    if(!u)return setMsg('帳號或密碼錯誤');
+    CU=u;localStorage.setItem('uid',u.id);login();
 }
-async function fetchOne(table, query) {
-    const r = await fetch(`${API(table)}?${query}&limit=1`, { headers: H });
-    if (!r.ok) return null;
-    const d = await r.json();
-    return d[0] || null;
-}
-async function insert(table, data) {
-    const r = await fetch(API(table), { method: 'POST', headers: H, body: JSON.stringify(data) });
-    if (!r.ok) return null;
-    const d = await r.json();
-    return Array.isArray(d) ? d[0] : d;
-}
-async function update(table, id, data) {
-    const r = await fetch(`${API(table)}?id=eq.${id}`, { method: 'PATCH', headers: H, body: JSON.stringify(data) });
-    return r.ok;
-}
-async function del(table, id) {
-    const r = await fetch(`${API(table)}?id=eq.${id}`, { method: 'DELETE', headers: H });
-    return r.ok;
-}
-async function uploadImg(file) {
-    const n = `img_${Date.now()}_${Math.random().toString(36).substr(2,5)}.jpg`;
-    const r = await fetch(`${STORAGE}/${n}`, { method: 'POST', headers: { 'apikey': ANON_KEY, 'Authorization': `Bearer ${ANON_KEY}`, 'Content-Type': file.type, 'x-upsert': 'true' }, body: file });
-    if (!r.ok) return null;
-    return `${PROJECT_URL}/storage/v1/object/public/site_photos/${n}`;
-}
-
-async function loadAll() {
-    allProjects = await fetchAll('projects', 'order=created_at.desc');
-    allUsers = await fetchAll('users', 'order=name.asc');
-    allStages = await fetchAll('project_stages', 'order=sort_order.asc');
-    allReports = await fetchAll('progress_reports', 'order=timestamp.desc');
-    allNotifications = await fetchAll('site_notifications', 'order=notify_date.asc');
-    allExpenses = await fetchAll('project_expenses', 'order=expense_date.desc');
-}
-
-// ============ 登入 ============
-async function doLogin() {
-    const id = document.getElementById('login-id').value.trim();
-    const pwd = document.getElementById('login-pwd').value.trim();
-    if (!id || !pwd) return showMsg('請輸入帳號密碼');
-    showMsg('驗證中...');
-    const u = await fetchOne('users', `name=eq.${encodeURIComponent(id)}&password=eq.${encodeURIComponent(pwd)}`);
-    if (!u) {
-        // 也試試用 id 欄位找（未來擴充）
-        return showMsg('帳號或密碼錯誤');
-    }
-    currentUser = u;
-    localStorage.setItem('user_id', u.id);
-    await loadAll();
-    performLogin();
-}
-function showMsg(m) { document.getElementById('login-msg').innerText = m; }
-
-function performLogin() {
+function setMsg(m){document.getElementById('lmsg').innerText=m;}
+function login(){
     document.getElementById('login-screen').classList.add('hidden');
-    document.getElementById('user-role-display').innerText = currentUser.name + ' · ' + roleLabel(currentUser.role);
-    setupNav();
-    navTo(defaultPage());
+    document.getElementById('urd').innerText=CU.name+' · '+({admin:'管理員',manager:'專案負責人',worker:'工班',client:'業主'}[CU.role]||CU.role);
+    buildNav();navTo(CU.role==='worker'?'worker':CU.role==='client'?'client':'projects');
+}
+function logout(){localStorage.removeItem('uid');location.reload();}
+
+function buildNav(){
+    const pages=CU.role==='worker'?[{id:'worker',label:'任務',d:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'}]:
+    CU.role==='client'?[{id:'client',label:'我的案場',d:'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z'}]:
+    [{id:'projects',label:'案場',d:'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10'},
+    {id:'admin',label:'管理',d:'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z'}];
+    document.getElementById('bnav').innerHTML=pages.map(p=>`<button onclick="navTo('${p.id}')" class="nav-btn" id="nb-${p.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${p.d}"/></svg>${p.label}</button>`).join('');
 }
 
-function roleLabel(r) { return { admin: '管理員', manager: '專案負責人', worker: '工班', client: '業主' }[r] || r; }
-function defaultPage() {
-    if (currentUser.role === 'worker') return 'worker';
-    if (currentUser.role === 'client') return 'client';
-    return 'projects';
-}
-function logout() { localStorage.removeItem('user_id'); currentUser = null; location.reload(); }
-
-// ============ 導航 ============
-function setupNav() {
-    const nav = document.getElementById('bottom-nav');
-    let btns = [];
-    if (currentUser.role === 'worker') {
-        btns = [{ id: 'worker', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', txt: '我的任務' }];
-    } else if (currentUser.role === 'client') {
-        btns = [{ id: 'client', icon: 'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z', txt: '我的案場' }];
-    } else {
-        btns = [
-            { id: 'projects', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10', txt: '案場' },
-            { id: 'admin', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z', txt: '管理' }
-        ];
-    }
-    nav.innerHTML = btns.map(b => `<button onclick="navTo('${b.id}')" class="nav-btn" id="nb-${b.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${b.icon}"/></svg>${b.txt}</button>`).join('');
+function navTo(p){
+    ['projects','detail','worker','client','admin'].forEach(v=>{document.getElementById('page-'+v)?.classList.add('hidden');document.getElementById('nb-'+v)?.classList.remove('active');});
+    document.getElementById('page-'+p)?.classList.remove('hidden');document.getElementById('nb-'+p)?.classList.add('active');
+    if(p==='projects')renderProjects();if(p==='worker')renderWorker();if(p==='client')renderClient();if(p==='admin')renderAdmin();
 }
 
-function navTo(p) {
-    ['projects', 'project-detail', 'worker', 'client', 'admin'].forEach(v => {
-        document.getElementById('page-' + v).classList.add('hidden');
-        const b = document.getElementById('nb-' + v);
-        if (b) b.classList.remove('active');
-    });
-    document.getElementById('page-' + p).classList.remove('hidden');
-    const b = document.getElementById('nb-' + p);
-    if (b) b.classList.add('active');
-    // 渲染對應頁面
-    if (p === 'projects') renderProjects();
-    if (p === 'worker') renderWorker();
-    if (p === 'client') renderClient();
-    if (p === 'admin') renderAdmin();
-}
+const SB={'會勘':'bpu','設計':'bb','報價階段':'by','進行中':'bk','暫停':'bg','驗收':'by','已完工':'bgn','保固期':'bg'};
+const SO=['會勘','設計','報價階段','進行中','暫停','驗收','已完工','保固期'];
 
-// ============ 案場總覽 ============
-function filterProjects(f) {
-    currentFilter = f;
-    document.querySelectorAll('[id^=filter-]').forEach(b => b.classList.replace('badge-indigo', 'badge-gray') || b.classList.replace('badge-green', 'badge-gray') || b.classList.replace('badge-warn', 'badge-gray') || b.classList.replace('badge-blue', 'badge-gray'));
-    document.getElementById('filter-' + f)?.classList.replace('badge-gray', 'badge-indigo');
+function setF(f){
+    filt=f;
+    document.querySelectorAll('[id^=f-]').forEach(b=>b.className='badge bg flex-shrink-0 cursor-pointer py-1.5 px-3');
+    const el=document.getElementById('f-'+f);if(el)el.className='badge bk flex-shrink-0 cursor-pointer py-1.5 px-3';
     renderProjects();
 }
 
-function renderProjects() {
-    // 只有 admin 顯示新增按鈕
-    if (currentUser.role === 'admin' || currentUser.role === 'manager') {
-        document.getElementById('btn-new-project').classList.remove('hidden');
-    }
-    let projects = currentUser.role === 'admin'
-        ? allProjects
-        : allProjects.filter(p => p.manager_id === currentUser.id);
-
-    if (currentFilter !== 'all') projects = projects.filter(p => p.status === currentFilter);
-
-    const el = document.getElementById('projects-list');
-    if (projects.length === 0) {
-        el.innerHTML = `<div class="text-center py-14 text-slate-500"><div class="text-4xl mb-3">📭</div><div class="font-bold">目前沒有案場</div></div>`;
-        return;
-    }
-
-    el.innerHTML = projects.map(p => {
-        const stages = allStages.filter(s => s.project_id === p.id);
-        const done = stages.filter(s => s.status === '完成').length;
-        const pct = stages.length ? Math.round(done / stages.length * 100) : 0;
-        const fin = calcFinancials(p.id);
-        const manager = allUsers.find(u => u.id === p.manager_id);
-        const todayNotifs = allNotifications.filter(n => n.project_id === p.id && n.notify_date === todayStr());
-        const statusColors = { '報價階段': 'badge-gray', '進行中': 'badge-green', '暫停': 'badge-warn', '已完工': 'badge-blue', '保固期': 'badge-gray' };
-
-        return `<div class="card card-accent cursor-pointer hover:border-indigo-500/50 transition-colors" onclick="openProject(${p.id})">
-            <div class="flex justify-between items-start mb-3">
-                <div class="flex-1 mr-3">
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="w-2 h-2 rounded-full dot-${p.status} flex-shrink-0"></span>
-                        <span class="font-black text-white text-base">${p.name}</span>
-                    </div>
-                    <div class="text-xs text-slate-500">${p.address || '未填地址'}</div>
-                    ${manager ? `<div class="text-xs text-slate-500 mt-0.5">負責：${manager.name}</div>` : ''}
-                </div>
-                <span class="badge ${statusColors[p.status] || 'badge-gray'} flex-shrink-0">${p.status}</span>
+function renderProjects(){
+    if(CU.role==='admin'||CU.role==='manager')document.getElementById('btn-np').classList.remove('hidden');
+    let list=CU.role==='admin'?D.p:D.p.filter(p=>p.manager_id===CU.id);
+    if(filt!=='all')list=list.filter(p=>p.status===filt);
+    const el=document.getElementById('plist');
+    if(!list.length){el.innerHTML=`<div class="text-center py-14 text-gray-400 text-sm">目前沒有案場</div>`;return;}
+    el.innerHTML=list.map(p=>{
+        const stages=D.s.filter(s=>s.project_id===p.id);
+        const done=stages.filter(s=>s.status==='完成').length;
+        const pct=stages.length?Math.round(done/stages.length*100):0;
+        const fin=calcFin(p.id);
+        const mgr=D.u.find(u=>u.id===p.manager_id);
+        const tn=D.n.filter(n=>n.project_id===p.id&&n.notify_date===toStr());
+        return `<div class="card cursor-pointer" onclick="openProject(${p.id})">
+            <div class="flex justify-between items-start mb-2">
+                <div class="flex-1 mr-2"><div class="font-black text-black mb-0.5">${p.name}</div><div class="text-xs text-gray-400">${p.address||'未填地址'}${mgr?` · ${mgr.name}`:''}</div></div>
+                <span class="badge ${SB[p.status]||'bg'}">${p.status}</span>
             </div>
-            ${todayNotifs.length ? `<div class="bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2 mb-3 text-xs text-amber-400 font-bold">📅 今日進場：${todayNotifs.map(n => n.worker_name).join('、')}</div>` : ''}
-            <div class="mb-3">
-                <div class="flex justify-between text-xs text-slate-500 mb-1.5">
-                    <span>施工進度</span><span>${done}/${stages.length} 階段完成</span>
-                </div>
-                <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
-            </div>
-            ${currentUser.role !== 'client' ? `<div class="grid grid-cols-3 gap-2 pt-3 border-t border-[var(--border)]">
-                <div class="text-center"><div class="text-xs text-slate-500 mb-0.5">報價</div><div class="mono text-xs font-bold text-white">$${fmtNum(fin.quote)}</div></div>
-                <div class="text-center"><div class="text-xs text-slate-500 mb-0.5">成本</div><div class="mono text-xs font-bold text-white">$${fmtNum(fin.cost)}</div></div>
-                <div class="text-center"><div class="text-xs text-slate-500 mb-0.5">毛利</div><div class="mono text-xs font-bold ${fin.profit >= 0 ? 'profit-positive' : 'profit-negative'}">$${fmtNum(fin.profit)}</div></div>
-            </div>` : ''}
+            ${tn.length?`<div class="bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5 mb-2 text-xs text-amber-700 font-bold">📅 今日進場：${tn.map(n=>n.worker_name).join('、')}</div>`:''}
+            <div class="mb-2"><div class="flex justify-between text-xs text-gray-400 mb-1"><span>進度</span><span>${done}/${stages.length}</span></div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div></div>
+            ${CU.role!=='client'?`<div class="grid grid-cols-3 gap-1 pt-2 border-t border-gray-100 text-center">
+                <div><div class="text-xs text-gray-400">報價</div><div class="mono text-xs font-bold">$${fmt(fin.quote)}</div></div>
+                <div><div class="text-xs text-gray-400">成本</div><div class="mono text-xs font-bold">$${fmt(fin.cost)}</div></div>
+                <div><div class="text-xs text-gray-400">毛利</div><div class="mono text-xs font-bold ${fin.profit>=0?'text-black':'text-gray-400'}">$${fmt(fin.profit)}</div></div>
+            </div>`:''}
         </div>`;
     }).join('');
 }
 
-function calcFinancials(projectId) {
-    const stages = allStages.filter(s => s.project_id === projectId);
-    const expenses = allExpenses.filter(e => e.project_id === projectId);
-    const quote = stages.reduce((s, x) => s + (x.client_quote || 0), 0);
-    const stageCost = stages.reduce((s, x) => s + (x.worker_cost || 0) + (x.material_cost || 0) + (x.equipment_cost || 0) + (x.misc_cost || 0), 0);
-    const expCost = expenses.reduce((s, x) => s + (x.amount || 0), 0);
-    const cost = stageCost + expCost;
-    return { quote, cost, profit: quote - cost };
-}
-
-function fmtNum(n) {
-    if (!n && n !== 0) return '0';
-    return Math.abs(n) >= 10000 ? (n / 10000).toFixed(1) + '萬' : n.toLocaleString();
-}
-function todayStr() { return new Date().toISOString().split('T')[0]; }
-
-// ============ 案場詳細 ============
-function openProject(id) {
-    const p = allProjects.find(x => x.id === id);
-    if (!p) return;
+function openProject(id){
     document.getElementById('page-projects').classList.add('hidden');
-    document.getElementById('page-project-detail').classList.remove('hidden');
+    document.getElementById('page-detail').classList.remove('hidden');
     document.getElementById('nb-projects')?.classList.remove('active');
-    renderProjectDetail(p);
+    renderDetail(id);
 }
-
-function backToProjects() {
-    document.getElementById('page-project-detail').classList.add('hidden');
+function backToList(){
+    document.getElementById('page-detail').classList.add('hidden');
     document.getElementById('page-projects').classList.remove('hidden');
     document.getElementById('nb-projects')?.classList.add('active');
     renderProjects();
 }
 
-function renderProjectDetail(p) {
-    const stages = allStages.filter(s => s.project_id === p.id).sort((a, b) => a.sort_order - b.sort_order);
-    const fin = calcFinancials(p.id);
-    const expenses = allExpenses.filter(e => e.project_id === p.id);
-    const notifs = allNotifications.filter(n => n.project_id === p.id).sort((a, b) => a.notify_date.localeCompare(b.notify_date));
-    const manager = allUsers.find(u => u.id === p.manager_id);
-    const canEdit = currentUser.role === 'admin' || currentUser.id === p.manager_id;
-    const isClient = currentUser.role === 'client';
+function renderDetail(pid){
+    const p=D.p.find(x=>x.id===pid);if(!p)return;
+    const canEdit=CU.role==='admin'||CU.id===p.manager_id;
+    const isClient=CU.role==='client';
+    const stages=D.s.filter(s=>s.project_id===pid).sort((a,b)=>a.sort_order-b.sort_order);
+    const surveys=D.sv.filter(s=>s.project_id===pid);
+    const designs=D.de.filter(d=>d.project_id===pid);
+    const extras=D.xt.filter(e=>e.project_id===pid);
+    const expenses=D.ex.filter(e=>e.project_id===pid);
+    const notifs=D.n.filter(n=>n.project_id===pid).sort((a,b)=>a.notify_date.localeCompare(b.notify_date));
+    const inspList=D.ins.filter(i=>i.project_id===pid);
+    const fin=calcFin(pid);
+    const mgr=D.u.find(u=>u.id===p.manager_id);
 
-    const statusOpts = ['報價階段', '進行中', '暫停', '已完工', '保固期'].map(s =>
-        `<option ${p.status === s ? 'selected' : ''}>${s}</option>`).join('');
+    const STEPS=['會勘','設計','報價','進行中','驗收','完工','保固'];
+    const STEP_MAP={'會勘':0,'設計':1,'報價階段':2,'進行中':3,'驗收':4,'已完工':5,'保固期':6,'暫停':3};
+    const curIdx=STEP_MAP[p.status]??0;
+    const stepsHtml=`<div class="flow-steps">${STEPS.map((s,i)=>{
+        const cls=i<curIdx?'done':i===curIdx?'active':'';
+        return `<div class="flow-step ${i<curIdx?'done':''}"><div class="sdot ${cls}">${i<curIdx?'✓':i+1}</div><div class="slabel ${cls}">${s}</div></div>`;
+    }).join('')}</div>`;
 
-    let html = `
-    <div class="card card-accent mb-4">
-        <div class="flex justify-between items-start mb-2">
-            <div>
-                <h2 class="text-xl font-black text-white">${p.name}</h2>
-                <div class="text-sm text-slate-400 mt-0.5">${p.address || '未填地址'}</div>
-                ${manager ? `<div class="text-xs text-slate-500 mt-1">負責人：${manager.name}</div>` : ''}
-            </div>
-            ${canEdit ? `<select onchange="updateProjectStatus(${p.id}, this.value)" class="inp text-sm" style="width:auto;height:36px;padding:0 32px 0 10px;">${statusOpts}</select>` : `<span class="badge badge-green">${p.status}</span>`}
+    const stOpts=SO.map(s=>`<option ${p.status===s?'selected':''}>${s}</option>`).join('');
+
+    let html=`<div class="card mb-3">
+        <div class="flex justify-between items-start mb-1">
+            <div><h2 class="text-lg font-black text-black">${p.name}</h2><div class="text-xs text-gray-400">${p.address||'未填地址'}${mgr?` · 負責：${mgr.name}`:''}</div></div>
+            ${canEdit?`<select onchange="updSt(${p.id},this.value)" class="inp" style="width:auto;height:32px;padding:0 28px 0 8px;font-size:12px;">${stOpts}</select>`:`<span class="badge ${SB[p.status]||'bg'}">${p.status}</span>`}
         </div>
-        ${p.warranty_end_date ? `<div class="text-xs text-pink-400 mt-1">🔧 保固到期：${p.warranty_end_date}</div>` : ''}
+        ${stepsHtml}
+        ${p.warranty_end_date?`<div class="text-xs text-gray-400 mt-1">🔧 保固到期：${p.warranty_end_date}</div>`:''}
     </div>`;
 
-    // 財務摘要（非業主）
-    if (!isClient) {
-        const profitRate = fin.quote > 0 ? Math.round(fin.profit / fin.quote * 100) : 0;
-        html += `<div class="card mb-4">
-            <h3 class="font-bold text-slate-300 text-sm mb-3">💰 財務摘要</h3>
-            <div class="grid grid-cols-2 gap-3 mb-3">
-                <div class="bg-[var(--surface2)] rounded-xl p-3 text-center">
-                    <div class="text-xs text-slate-500 mb-1">對業主報價</div>
-                    <div class="mono font-black text-white text-lg">$${fin.quote.toLocaleString()}</div>
-                </div>
-                <div class="bg-[var(--surface2)] rounded-xl p-3 text-center">
-                    <div class="text-xs text-slate-500 mb-1">實際總成本</div>
-                    <div class="mono font-black text-white text-lg">$${fin.cost.toLocaleString()}</div>
-                </div>
+    // 會勘
+    html+=`<details class="card mb-3"${surveys.length?' open':''}>
+        <summary class="flex justify-between items-center">
+            <span class="font-black text-sm">📷 會勘記錄 <span class="text-gray-400 font-normal text-xs">(${surveys.length})</span></span>
+            ${canEdit?`<button onclick="event.preventDefault();openSurvey(${pid})" class="btn btn-p btn-sm">＋ 新增</button>`:''}
+        </summary>
+        <div class="mt-3 space-y-3">${surveys.map(s=>`<div class="csm">
+            <div class="flex justify-between items-start mb-1">
+                <div><div class="font-bold text-sm">${s.survey_date}</div>${s.participants?`<div class="text-xs text-gray-400">👥 ${s.participants}</div>`:''}</div>
+                ${canEdit?`<button onclick="delR('site_surveys',${s.id},${pid})" class="text-gray-300 hover:text-red-400 text-xl leading-none">×</button>`:''}
             </div>
-            <div class="bg-[var(--surface2)] rounded-xl p-3 flex justify-between items-center">
-                <div>
-                    <div class="text-xs text-slate-500 mb-0.5">毛利</div>
-                    <div class="mono font-black text-xl ${fin.profit >= 0 ? 'profit-positive' : 'profit-negative'}">$${fin.profit.toLocaleString()}</div>
+            ${s.house_condition?`<div class="text-xs text-gray-600 bg-gray-50 rounded p-2 mb-1">${s.house_condition}</div>`:''}
+            ${s.notes?`<div class="text-xs text-gray-400">${s.notes}</div>`:''}
+            ${ig(s.image_urls)}
+        </div>`).join('')}${!surveys.length?`<div class="text-xs text-gray-400 text-center py-2">尚無會勘記錄</div>`:''}
+        </div></details>`;
+
+    // 設計
+    html+=`<details class="card mb-3"${designs.length?' open':''}>
+        <summary class="flex justify-between items-center">
+            <span class="font-black text-sm">🎨 設計版本 <span class="text-gray-400 font-normal text-xs">(${designs.length})</span></span>
+            ${canEdit?`<button onclick="event.preventDefault();openDesign(${pid})" class="btn btn-p btn-sm">＋ 新增</button>`:''}
+        </summary>
+        <div class="mt-3 space-y-3">${designs.map(d=>{
+            const dsb={'待確認':'by','已確認':'bgn','退回修改':'br'}[d.client_status]||'bg';
+            return `<div class="csm">
+                <div class="flex justify-between items-start mb-1">
+                    <div><span class="font-black text-sm">${d.version}</span><span class="badge ${dsb} ml-1">${d.client_status}</span><div class="text-xs text-gray-400">${d.design_date}</div></div>
+                    <div class="flex items-center gap-1">
+                        ${canEdit?`<select onchange="updDS(${d.id},this.value,${pid})" class="inp" style="width:auto;height:26px;padding:0 22px 0 6px;font-size:11px;"><option ${d.client_status==='待確認'?'selected':''}>待確認</option><option ${d.client_status==='已確認'?'selected':''}>已確認</option><option ${d.client_status==='退回修改'?'selected':''}>退回修改</option></select>`:''}
+                        ${canEdit?`<button onclick="delR('design_records',${d.id},${pid})" class="text-gray-300 hover:text-red-400 text-xl leading-none ml-1">×</button>`:''}
+                    </div>
                 </div>
-                <div class="text-right">
-                    <div class="text-xs text-slate-500 mb-0.5">利潤率</div>
-                    <div class="font-black text-lg ${fin.profit >= 0 ? 'profit-positive' : 'profit-negative'}">${profitRate}%</div>
-                </div>
+                ${d.designer_notes?`<div class="text-xs text-gray-500 bg-gray-50 rounded p-2 mb-1">${d.designer_notes}</div>`:''}
+                ${ig(d.image_urls)}
+            </div>`;
+        }).join('')}${!designs.length?`<div class="text-xs text-gray-400 text-center py-2">尚無設計版本</div>`:''}
+        </div></details>`;
+
+    // 財務
+    if(!isClient){
+        const pr=fin.revenue>0?Math.round(fin.profit/fin.revenue*100):0;
+        html+=`<details class="card mb-3">
+            <summary class="flex justify-between items-center">
+                <span class="font-black text-sm">💰 財務摘要</span>
+                <span class="mono font-black text-base ${fin.profit>=0?'text-black':'text-gray-400'}">$${fin.profit.toLocaleString()}</span>
+            </summary>
+            <div class="mt-3">
+                <div class="fin-row"><span class="text-sm text-gray-500">報價總額</span><span class="mono font-bold">$${fin.quote.toLocaleString()}</span></div>
+                <div class="fin-row"><span class="text-sm text-gray-500">追加金額</span><span class="mono font-bold text-blue-600">+$${fin.extra.toLocaleString()}</span></div>
+                <div class="fin-row"><span class="text-sm font-bold">業主實收</span><span class="mono font-black">$${fin.revenue.toLocaleString()}</span></div>
+                <div class="fin-row"><span class="text-sm text-gray-500">發包總額</span><span class="mono text-red-500">-$${fin.contract.toLocaleString()}</span></div>
+                <div class="fin-row"><span class="text-sm text-gray-500">材料費</span><span class="mono text-red-500">-$${fin.material.toLocaleString()}</span></div>
+                <div class="fin-row"><span class="text-sm text-gray-500">設備租借</span><span class="mono text-red-500">-$${fin.equipment.toLocaleString()}</span></div>
+                <div class="fin-row"><span class="text-sm text-gray-500">雜支</span><span class="mono text-red-500">-$${(fin.misc+fin.expCost).toLocaleString()}</span></div>
+                <div class="fin-total"><span class="font-black">毛利 (${pr}%)</span><span class="mono font-black text-lg ${fin.profit>=0?'':'text-gray-400'}">$${fin.profit.toLocaleString()}</span></div>
+                ${canEdit?`<div class="flex gap-2 mt-3"><button onclick="openExp(${pid})" class="btn btn-s btn-sm flex-1">＋ 雜支</button><button onclick="openExtra(${pid})" class="btn btn-s btn-sm flex-1">＋ 追加</button></div>`:''}
+                ${extras.length?`<div class="mt-2 space-y-1">${extras.map(e=>`<div class="flex justify-between text-xs bg-blue-50 rounded px-2 py-1"><span class="text-gray-500">${e.extra_date} ${e.description}</span><span class="mono text-blue-600">+$${e.amount.toLocaleString()}</span></div>`).join('')}</div>`:''}
+                ${expenses.length?`<div class="mt-1 space-y-1">${expenses.map(e=>`<div class="flex justify-between text-xs bg-red-50 rounded px-2 py-1"><span class="text-gray-500">${e.expense_date} ${e.description}</span><span class="mono text-red-500">-$${e.amount.toLocaleString()}</span></div>`).join('')}</div>`:''}
             </div>
-            ${canEdit ? `<button onclick="openExpenseModal(${p.id})" class="btn btn-secondary mt-3 btn-sm">＋ 新增雜支</button>` : ''}
-            ${expenses.length ? `<div class="mt-3 space-y-1">${expenses.map(e => `<div class="flex justify-between text-xs text-slate-400 bg-[var(--surface2)] px-3 py-2 rounded"><span>${e.expense_date} ${e.description}</span><span class="mono text-red-400">-$${e.amount.toLocaleString()}</span></div>`).join('')}</div>` : ''}
-        </div>`;
+        </details>`;
+
+        // 報價單
+        html+=`<details class="card mb-3">
+            <summary class="flex justify-between items-center">
+                <span class="font-black text-sm">📋 報價單</span>
+                <span class="mono text-sm font-bold">$${fin.quote.toLocaleString()}</span>
+            </summary>
+            <div class="mt-3">
+                ${stages.length?stages.map(s=>`<div class="fin-row"><span class="text-sm">${s.name}</span><div class="text-right"><div class="mono text-sm font-bold">$${(s.quote_amount||0).toLocaleString()}</div>${s.contract_amount?`<div class="mono text-xs text-gray-400">發包 $${s.contract_amount.toLocaleString()}</div>`:''}</div></div>`).join(''):`<div class="text-xs text-gray-400 text-center py-2">請先新增施工階段</div>`}
+                <div class="fin-total"><span class="text-sm font-bold">合計</span><span class="mono font-black">$${fin.quote.toLocaleString()}</span></div>
+            </div>
+        </details>`;
     }
 
     // 進場通報
-    if (!isClient && canEdit) {
-        html += `<div class="card mb-4">
-            <div class="flex justify-between items-center mb-3">
-                <h3 class="font-bold text-slate-300 text-sm">📅 進場通報</h3>
-                <button onclick="openNotifyModal(${p.id})" class="btn btn-warn btn-sm">＋ 發通報</button>
+    if(!isClient&&canEdit){
+        html+=`<details class="card mb-3">
+            <summary class="flex justify-between items-center">
+                <span class="font-black text-sm">📅 進場通報</span>
+                <button onclick="event.preventDefault();openNotify(${pid})" class="btn btn-sm" style="background:#fef9c3;color:#854d0e;border:1px solid #fde68a;">＋ 發通報</button>
+            </summary>
+            <div class="mt-2">${notifs.length?notifs.map(n=>`<div class="flex items-center gap-2 py-2 border-b border-gray-100 last:border-0">
+                <div class="text-xs font-bold w-20 flex-shrink-0 ${n.notify_date===toStr()?'text-amber-600':n.notify_date<toStr()?'text-gray-300':'text-gray-500'}">${n.notify_date}</div>
+                <div class="flex-1 text-sm font-bold">${n.worker_name}${n.message?`<span class="text-xs text-gray-400 font-normal ml-1">${n.message}</span>`:''}</div>
+                ${canEdit?`<button onclick="delR('site_notifications',${n.id},${pid})" class="text-gray-300 hover:text-red-400 text-xl">×</button>`:''}
+            </div>`).join(''):`<div class="text-xs text-gray-400 text-center py-2">尚無通報</div>`}
             </div>
-            ${notifs.length ? notifs.map(n => {
-                const isPast = n.notify_date < todayStr();
-                return `<div class="flex items-center gap-3 py-2 border-b border-[var(--border)] last:border-0">
-                    <div class="text-xs font-bold ${n.notify_date === todayStr() ? 'text-amber-400' : isPast ? 'text-slate-600' : 'text-slate-400'} w-20 flex-shrink-0">${n.notify_date}</div>
-                    <div class="flex-1"><span class="font-bold text-white text-sm">${n.worker_name}</span>${n.message ? `<div class="text-xs text-slate-500">${n.message}</div>` : ''}</div>
-                    ${canEdit ? `<button onclick="delNotif(${n.id})" class="text-slate-600 hover:text-red-400 text-lg leading-none">×</button>` : ''}
-                </div>`;
-            }).join('') : '<div class="text-xs text-slate-600 text-center py-2">尚無通報記錄</div>'}
-        </div>`;
+        </details>`;
     }
 
     // 施工階段
-    html += `<div class="mb-4">
-        <div class="flex justify-between items-center mb-3">
-            <h3 class="font-bold text-slate-300 text-sm">🔨 施工階段</h3>
-            ${canEdit ? `<button onclick="openStageModal(${p.id})" class="btn btn-primary btn-sm">＋ 新增階段</button>` : ''}
+    html+=`<div class="mb-3">
+        <div class="flex justify-between items-center mb-2">
+            <span class="font-black text-sm">🔨 施工階段</span>
+            ${canEdit?`<button onclick="openStage(${pid})" class="btn btn-p btn-sm">＋ 新增</button>`:''}
         </div>
-        ${stages.length ? stages.map(s => renderStageCard(s, canEdit, isClient)).join('') : `<div class="text-center py-8 text-slate-600 text-sm">尚未新增施工階段</div>`}
+        ${stages.length?stages.map(s=>stageCard(s,canEdit,isClient)).join(''):`<div class="text-xs text-gray-400 text-center py-6">尚未新增施工階段</div>`}
     </div>`;
 
-    document.getElementById('project-detail-content').innerHTML = html;
+    // 驗收
+    html+=`<details class="card mb-3"${inspList.length?' open':''}>
+        <summary class="flex justify-between items-center">
+            <span class="font-black text-sm">✅ 驗收記錄 <span class="text-gray-400 font-normal text-xs">(${inspList.length})</span></span>
+            ${canEdit?`<button onclick="event.preventDefault();openInsp(${pid})" class="btn btn-p btn-sm">＋ 新增</button>`:''}
+        </summary>
+        <div class="mt-3 space-y-2">${inspList.map(i=>{
+            const isb={'待驗收':'by','驗收中':'bb','驗收通過':'bgn','驗收退件':'br'}[i.status]||'bg';
+            return `<div class="csm"><div class="flex justify-between items-start">
+                <div><span class="badge ${isb}">${i.status}</span><div class="text-xs text-gray-400 mt-0.5">${i.inspected_by||''} · ${new Date(i.inspected_at).toLocaleDateString('zh-TW')}</div></div>
+                ${canEdit?`<button onclick="delR('inspections',${i.id},${pid})" class="text-gray-300 hover:text-red-400 text-xl">×</button>`:''}
+            </div>${i.notes?`<div class="text-xs text-gray-500 mt-1">${i.notes}</div>`:''}${ig(i.image_urls)}</div>`;
+        }).join('')}${!inspList.length?`<div class="text-xs text-gray-400 text-center py-2">尚無驗收記錄</div>`:''}
+        </div>
+    </details>`;
+
+    document.getElementById('dcontent').innerHTML=html;
 }
 
-function renderStageCard(s, canEdit, isClient) {
-    const worker = allUsers.find(u => u.id === s.assigned_worker_id);
-    const reports = allReports.filter(r => r.stage_id === s.id);
-    const statusBadge = { '待開始': 'badge-gray', '進行中': 'badge-indigo', '待確認': 'badge-warn', '完成': 'badge-green' };
-
-    const finHtml = !isClient ? `
-        <div class="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-[var(--border)]">
-            <div><div class="text-xs text-slate-500">報價</div><div class="mono text-sm font-bold text-white">$${(s.client_quote || 0).toLocaleString()}</div></div>
-            <div><div class="text-xs text-slate-500">工資</div><div class="mono text-sm font-bold text-white">$${(s.worker_cost || 0).toLocaleString()}</div></div>
-            <div><div class="text-xs text-slate-500">材料</div><div class="mono text-sm font-bold text-white">$${(s.material_cost || 0).toLocaleString()}</div></div>
-            <div><div class="text-xs text-slate-500">設備</div><div class="mono text-sm font-bold text-white">$${(s.equipment_cost || 0).toLocaleString()}</div></div>
-        </div>` : '';
-
-    const reportImgs = reports.flatMap(r => Array.isArray(r.image_urls) ? r.image_urls : []);
-    const imgHtml = reportImgs.length ? `<div class="img-grid mt-2">${reportImgs.slice(0, 6).map((u, i) => `<img src="${u}" onclick="openLb(${JSON.stringify(reportImgs).replace(/"/g, '&quot;')},${i})" loading="lazy">`).join('')}</div>` : '';
-
-    const reportsHtml = reports.length ? `<details class="mt-3"><summary class="text-xs text-slate-400 font-bold cursor-pointer hover:text-white">📋 回報記錄 (${reports.length})</summary><div class="mt-2 space-y-2">${reports.map(r => `<div class="bg-[var(--bg)] rounded-lg p-3"><div class="flex justify-between text-xs text-slate-500 mb-1"><span class="font-bold text-slate-300">${r.worker_name}</span><span>${new Date(r.timestamp).toLocaleString('zh-TW', {month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</span></div>${r.notes ? `<div class="text-sm text-slate-300">${r.notes}</div>` : ''}${Array.isArray(r.image_urls) && r.image_urls.length ? `<div class="img-grid">${r.image_urls.map((u,i)=>`<img src="${u}" onclick="openLb(${JSON.stringify(r.image_urls).replace(/"/g,'&quot;')},${i})" loading="lazy">`).join('')}</div>` : ''}</div>`).join('')}</div></details>` : '';
-
-    return `<div class="stage-card status-${s.status}">
-        <div class="flex justify-between items-start mb-2">
+function stageCard(s,canEdit,isClient){
+    const w=D.u.find(u=>u.id===s.assigned_worker_id);
+    const rpts=D.r.filter(r=>r.stage_id===s.id);
+    const ssb={'待開始':'bg','進行中':'bk','待確認':'by','完成':'bgn'}[s.status]||'bg';
+    return `<div class="csm mb-2 ${s.status==='進行中'?'border-black':''}">
+        <div class="flex justify-between items-start mb-1">
             <div class="flex-1 mr-2">
-                <div class="font-bold text-white">${s.name}</div>
-                ${worker ? `<div class="text-xs text-slate-500 mt-0.5">👷 ${worker.company_name || worker.name} · ${worker.worker_type || ''}</div>` : ''}
-                ${s.scheduled_date ? `<div class="text-xs text-slate-500">📅 ${s.scheduled_date}</div>` : ''}
+                <div class="font-bold text-sm">${s.name}</div>
+                ${w?`<div class="text-xs text-gray-400">${w.company_name||w.name}${w.worker_type?` · ${w.worker_type}`:''}</div>`:''}
+                ${s.scheduled_date?`<div class="text-xs text-gray-400">📅 ${s.scheduled_date}</div>`:''}
             </div>
-            <div class="flex items-center gap-2 flex-shrink-0">
-                <span class="badge ${statusBadge[s.status] || 'badge-gray'} text-xs">${s.status}</span>
-                ${canEdit ? `<button onclick="openEditStage(${s.id})" class="btn btn-secondary btn-icon text-xs">✏️</button>` : ''}
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+                <span class="badge ${ssb}">${s.status}</span>
+                ${canEdit?`<button onclick="openEditStage(${s.id})" class="btn btn-s btn-ic">✏️</button>`:''}
             </div>
         </div>
-        ${s.notes ? `<div class="text-xs text-slate-400 bg-[var(--bg)] rounded p-2 mt-1">${s.notes}</div>` : ''}
-        ${finHtml}
-        ${reportsHtml}
-        ${imgHtml}
+        ${s.notes?`<div class="text-xs text-gray-500 bg-gray-50 rounded p-2 mb-1">${s.notes}</div>`:''}
+        ${!isClient?`<div class="grid grid-cols-2 gap-x-3 mt-1 pt-1 border-t border-gray-100">
+            <div class="text-xs text-gray-400">報價 <span class="mono font-bold text-black">$${(s.quote_amount||0).toLocaleString()}</span></div>
+            <div class="text-xs text-gray-400">發包 <span class="mono font-bold text-black">$${(s.contract_amount||0).toLocaleString()}</span></div>
+        </div>`:''}
+        ${rpts.length?`<details class="mt-2"><summary class="text-xs text-gray-400 font-bold cursor-pointer">回報記錄 (${rpts.length})</summary>
+            <div class="mt-1 space-y-1">${rpts.map(r=>`<div class="bg-gray-50 rounded p-2">
+                <div class="flex justify-between text-xs text-gray-400 mb-0.5"><span class="font-bold text-gray-600">${r.worker_name}</span><span>${new Date(r.timestamp).toLocaleString('zh-TW',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</span></div>
+                ${r.notes?`<div class="text-xs">${r.notes}</div>`:''}${ig(r.image_urls)}
+            </div>`).join('')}
+            </div></details>`:''}
     </div>`;
 }
 
-async function updateProjectStatus(id, status) {
-    await update('projects', id, { status });
-    const p = allProjects.find(x => x.id === id);
-    if (p) p.status = status;
+function renderWorker(){
+    const ms=D.s.filter(s=>s.assigned_worker_id===CU.id);
+    const el=document.getElementById('wlist');
+    if(!ms.length){el.innerHTML=`<div class="text-center py-14 text-gray-400 text-sm">目前沒有指派任務</div>`;return;}
+    const active=ms.filter(s=>s.status!=='完成'),done=ms.filter(s=>s.status==='完成');
+    el.innerHTML=(active.length?`<div class="text-xs font-black text-gray-400 uppercase mb-2">進行中</div>`+active.map(s=>wTask(s)).join(''):'')+
+        (done.length?`<div class="text-xs font-black text-gray-400 uppercase mt-4 mb-2">已完成</div>`+done.map(s=>wTask(s)).join(''):'' );
 }
-
-// ============ 工班頁面 ============
-function renderWorker() {
-    const myStages = allStages.filter(s => s.assigned_worker_id === currentUser.id);
-    const today = todayStr();
-    const todayNotifs = allNotifications.filter(n => n.worker_id === currentUser.id && n.notify_date === today);
-    const el = document.getElementById('worker-tasks-list');
-
-    if (todayNotifs.length) {
-        // 今日通報橫幅
-    }
-
-    if (myStages.length === 0) {
-        el.innerHTML = `<div class="text-center py-14 text-slate-500"><div class="text-4xl mb-3">✅</div><div class="font-bold">目前沒有指派任務</div></div>`;
-        return;
-    }
-
-    const active = myStages.filter(s => s.status !== '完成');
-    const done = myStages.filter(s => s.status === '完成');
-
-    el.innerHTML = (active.length ? `<h3 class="text-xs font-bold text-slate-500 uppercase mb-2">進行中任務</h3>` + active.map(s => renderWorkerTask(s)).join('') : '') +
-        (done.length ? `<h3 class="text-xs font-bold text-slate-500 uppercase mt-4 mb-2">已完成</h3>` + done.map(s => renderWorkerTask(s)).join('') : '');
-}
-
-function renderWorkerTask(s) {
-    const p = allProjects.find(x => x.id === s.project_id);
-    const reports = allReports.filter(r => r.stage_id === s.id);
-    const statusBadge = { '待開始': 'badge-gray', '進行中': 'badge-indigo', '待確認': 'badge-warn', '完成': 'badge-green' };
-
-    return `<div class="card mb-3">
-        <div class="flex justify-between items-start mb-2">
-            <div>
-                <div class="text-xs text-indigo-400 font-bold mb-0.5">${p ? p.name : '未知案場'}</div>
-                <div class="font-black text-white">${s.name}</div>
-                ${s.scheduled_date ? `<div class="text-xs text-slate-500">📅 ${s.scheduled_date}</div>` : ''}
-            </div>
-            <span class="badge ${statusBadge[s.status]} text-xs">${s.status}</span>
-        </div>
-        ${s.notes ? `<div class="text-xs text-slate-400 bg-[var(--surface2)] rounded p-2 mb-2">${s.notes}</div>` : ''}
-        ${s.status !== '完成' ? `<button onclick="openReportModal(${s.id}, '${s.name}', ${s.project_id})" class="btn btn-primary btn-sm mt-1">📤 回報進度</button>` : ''}
-        ${reports.length ? `<div class="text-xs text-slate-500 mt-2">已回報 ${reports.length} 次</div>` : ''}
+function wTask(s){
+    const p=D.p.find(x=>x.id===s.project_id);
+    const rpts=D.r.filter(r=>r.stage_id===s.id);
+    const ssb={'待開始':'bg','進行中':'bk','待確認':'by','完成':'bgn'}[s.status]||'bg';
+    return `<div class="card mb-2">
+        <div class="text-xs text-gray-400 font-bold mb-0.5">${p?p.name:'未知案場'}</div>
+        <div class="flex justify-between items-start"><div><div class="font-black">${s.name}</div>${s.scheduled_date?`<div class="text-xs text-gray-400">📅 ${s.scheduled_date}</div>`:''}</div><span class="badge ${ssb}">${s.status}</span></div>
+        ${s.notes?`<div class="text-xs text-gray-500 bg-gray-50 rounded p-2 mt-1">${s.notes}</div>`:''}
+        ${s.status!=='完成'?`<button onclick="openReport(${s.id},'${s.name.replace(/'/g,"\\'")}',${s.project_id})" class="btn btn-p btn-sm mt-2">📤 回報進度</button>`:''}
+        ${rpts.length?`<div class="text-xs text-gray-400 mt-1">已回報 ${rpts.length} 次</div>`:''}
     </div>`;
 }
 
-// ============ 業主頁面 ============
-function renderClient() {
-    const myProjects = allProjects.filter(p => p.client_id === currentUser.id);
-    const el = document.getElementById('client-projects-list');
-    if (myProjects.length === 0) {
-        el.innerHTML = `<div class="text-center py-14 text-slate-500"><div class="text-4xl mb-3">🏠</div><div class="font-bold">目前沒有案場資料</div></div>`;
-        return;
-    }
-    el.innerHTML = myProjects.map(p => {
-        const stages = allStages.filter(s => s.project_id === p.id);
-        const done = stages.filter(s => s.status === '完成').length;
-        const pct = stages.length ? Math.round(done / stages.length * 100) : 0;
-        return `<div class="card card-accent mb-4">
-            <div class="flex justify-between items-start mb-3">
-                <div><h3 class="font-black text-white">${p.name}</h3><div class="text-xs text-slate-500">${p.address || ''}</div></div>
-                <span class="badge badge-green">${p.status}</span>
-            </div>
-            <div class="mb-4"><div class="flex justify-between text-xs text-slate-500 mb-1.5"><span>施工進度</span><span>${pct}%</span></div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div></div>
-            <div class="space-y-2">${stages.map(s => {
-                const reports = allReports.filter(r => r.stage_id === s.id);
-                const allImgs = reports.flatMap(r => Array.isArray(r.image_urls) ? r.image_urls : []);
-                const statusDot = { '待開始': '#475569', '進行中': '#6366f1', '待確認': '#f59e0b', '完成': '#10b981' };
-                return `<div class="timeline-item">
-                    <div class="timeline-dot" style="background:${statusDot[s.status] || '#475569'}"></div>
-                    <div class="font-bold text-sm text-white">${s.name} <span class="text-xs font-normal text-slate-500">${s.status}</span></div>
-                    ${s.scheduled_date ? `<div class="text-xs text-slate-500">${s.scheduled_date}</div>` : ''}
-                    ${allImgs.length ? `<div class="img-grid mt-1">${allImgs.slice(0,3).map((u,i)=>`<img src="${u}" onclick="openLb(${JSON.stringify(allImgs).replace(/"/g,'&quot;')},${i})" loading="lazy">`).join('')}</div>` : ''}
+function renderClient(){
+    const mp=D.p.filter(p=>p.client_id===CU.id);
+    const el=document.getElementById('clist');
+    if(!mp.length){el.innerHTML=`<div class="text-center py-14 text-gray-400 text-sm">目前沒有案場</div>`;return;}
+    const dc={'待開始':'#ccc','進行中':'#111','待確認':'#f59e0b','完成':'#22c55e'};
+    el.innerHTML=mp.map(p=>{
+        const stages=D.s.filter(s=>s.project_id===p.id);
+        const done=stages.filter(s=>s.status==='完成').length;
+        const pct=stages.length?Math.round(done/stages.length*100):0;
+        return `<div class="card mb-4">
+            <div class="flex justify-between items-start mb-3"><div><h3 class="font-black">${p.name}</h3><div class="text-xs text-gray-400">${p.address||''}</div></div><span class="badge ${SB[p.status]||'bg'}">${p.status}</span></div>
+            <div class="mb-4"><div class="flex justify-between text-xs text-gray-400 mb-1"><span>施工進度</span><span>${pct}%</span></div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div></div>
+            <div>${stages.map(s=>{
+                const imgs=D.r.filter(r=>r.stage_id===s.id).flatMap(r=>Array.isArray(r.image_urls)?r.image_urls:[]);
+                return `<div class="tl-item"><div class="tl-dot" style="background:${dc[s.status]||'#ccc'}"></div>
+                    <div class="font-bold text-sm">${s.name} <span class="text-xs font-normal text-gray-400">${s.status}</span></div>
+                    ${s.scheduled_date?`<div class="text-xs text-gray-400">${s.scheduled_date}</div>`:''}
+                    ${imgs.length?ig(imgs.slice(0,3)):''}
                 </div>`;
             }).join('')}</div>
         </div>`;
     }).join('');
 }
 
-// ============ 管理後台 ============
-function renderAdmin() {
-    // 帳號列表
-    const roles = { admin: '管理員', manager: '專案負責人', worker: '工班', client: '業主' };
-    document.getElementById('users-list').innerHTML = allUsers.map(u => `
-        <div class="flex justify-between items-center p-3 bg-[var(--surface2)] rounded-xl border border-[var(--border)]">
-            <div>
-                <div class="font-bold text-white text-sm">${u.name} <span class="badge badge-gray ml-1 text-xs">${roles[u.role]}</span></div>
-                ${u.company_name ? `<div class="text-xs text-slate-500">${u.company_name} · ${u.worker_type || ''}</div>` : ''}
-                ${u.phone ? `<div class="text-xs text-slate-500">${u.phone}</div>` : ''}
-            </div>
-            <button onclick="delUser(${u.id})" class="btn btn-danger btn-icon text-xs flex-shrink-0">✕</button>
+function renderAdmin(){
+    const roles={admin:'管理員',manager:'專案負責人',worker:'工班',client:'業主'};
+    document.getElementById('ulist').innerHTML=D.u.map(u=>`
+        <div class="flex justify-between items-center p-3 bg-white rounded-xl border border-gray-200">
+            <div><div class="font-bold text-sm">${u.name} <span class="badge bg ml-1">${roles[u.role]||u.role}</span></div>
+            ${u.company_name?`<div class="text-xs text-gray-400">${u.company_name}${u.worker_type?` · ${u.worker_type}`:''}</div>`:''}
+            ${u.phone?`<div class="text-xs text-gray-400">${u.phone}</div>`:''}</div>
+            <button onclick="delUser(${u.id})" class="btn btn-d btn-ic">✕</button>
         </div>`).join('');
-
-    // 財務總覽
-    const rows = allProjects.map(p => {
-        const fin = calcFinancials(p.id);
-        return `<div class="flex justify-between items-center py-2 border-b border-[var(--border)] last:border-0">
-            <div><div class="font-bold text-white text-sm">${p.name}</div><div class="text-xs text-slate-500">${p.status}</div></div>
-            <div class="text-right"><div class="mono text-xs text-slate-400">報價 $${fmtNum(fin.quote)}</div><div class="mono text-sm font-bold ${fin.profit >= 0 ? 'profit-positive' : 'profit-negative'}">利潤 $${fmtNum(fin.profit)}</div></div>
-        </div>`;
-    }).join('');
-    const totalProfit = allProjects.reduce((s, p) => s + calcFinancials(p.id).profit, 0);
-    document.getElementById('admin-financials').innerHTML = rows + `<div class="mt-3 pt-3 border-t border-indigo-500/30 flex justify-between items-center"><span class="font-bold text-slate-300">總毛利</span><span class="mono font-black text-xl ${totalProfit >= 0 ? 'profit-positive' : 'profit-negative'}">$${totalProfit.toLocaleString()}</span></div>`;
+    const rows=D.p.map(p=>{const f=calcFin(p.id);return `<div class="fin-row"><div><div class="font-bold text-sm">${p.name}</div><div class="text-xs text-gray-400">${p.status}</div></div><div class="text-right"><div class="mono text-xs text-gray-400">報價 $${fmt(f.quote)}</div><div class="mono font-bold ${f.profit>=0?'text-black':'text-gray-400'}">利潤 $${fmt(f.profit)}</div></div></div>`;}).join('');
+    const tp=D.p.reduce((s,p)=>s+calcFin(p.id).profit,0);
+    document.getElementById('afin').innerHTML=rows+`<div class="fin-total"><span class="font-black">總毛利</span><span class="mono font-black text-lg ${tp>=0?'':'text-gray-400'}">$${tp.toLocaleString()}</span></div>`;
 }
-
-function toggleWorkerFields() {
-    const role = document.getElementById('new-role').value;
-    document.getElementById('worker-fields').classList.toggle('hidden', role !== 'worker');
-}
-
-async function addUser() {
-    const name = document.getElementById('new-name').value.trim();
-    const pwd = document.getElementById('new-pwd').value.trim();
-    const role = document.getElementById('new-role').value;
-    if (!name || !pwd) return alert('請填寫姓名與密碼');
-    const data = { name, password: pwd, role,
-        phone: document.getElementById('new-phone').value.trim() || null,
-        company_name: document.getElementById('new-company').value.trim() || null,
-        worker_type: role === 'worker' ? document.getElementById('new-worker-type').value : null
-    };
-    const r = await insert('users', data);
-    if (r) { alert('新增成功'); ['new-name','new-loginid','new-pwd','new-phone','new-company'].forEach(id => document.getElementById(id).value = ''); await loadAll(); renderAdmin(); }
+function toggleWF(){document.getElementById('wf').classList.toggle('hidden',document.getElementById('nu-r').value!=='worker');}
+async function addUser(){
+    const n=document.getElementById('nu-n').value.trim(),pw=document.getElementById('nu-p').value.trim(),role=document.getElementById('nu-r').value;
+    if(!n||!pw)return alert('請填姓名與密碼');
+    const d={name:n,password:pw,role,phone:document.getElementById('nu-ph').value.trim()||null,company_name:document.getElementById('nu-c').value.trim()||null,worker_type:role==='worker'?document.getElementById('nu-wt').value:null};
+    if(await POST('users',d)){alert('新增成功');['nu-n','nu-p','nu-ph','nu-c'].forEach(id=>document.getElementById(id).value='');await loadAll();renderAdmin();}
     else alert('新增失敗');
 }
+async function delUser(id){if(!confirm('確定刪除？'))return;await DEL('users',id);await loadAll();renderAdmin();}
 
-async function delUser(id) {
-    if (!confirm('確定刪除此帳號？')) return;
-    await del('users', id);
-    await loadAll();
-    renderAdmin();
+function calcFin(pid){
+    const s=D.s.filter(x=>x.project_id===pid);
+    const xt=D.xt.filter(x=>x.project_id===pid);
+    const ep=D.ex.filter(x=>x.project_id===pid);
+    const quote=s.reduce((a,x)=>a+(x.quote_amount||0),0);
+    const extra=xt.reduce((a,x)=>a+x.amount,0);
+    const revenue=quote+extra;
+    const contract=s.reduce((a,x)=>a+(x.contract_amount||0),0);
+    const material=s.reduce((a,x)=>a+(x.material_cost||0),0);
+    const equipment=s.reduce((a,x)=>a+(x.equipment_cost||0),0);
+    const misc=s.reduce((a,x)=>a+(x.misc_cost||0),0);
+    const expCost=ep.reduce((a,x)=>a+x.amount,0);
+    const cost=contract+material+equipment+misc+expCost;
+    return{quote,extra,revenue,contract,material,equipment,misc,expCost,cost,profit:revenue-cost};
 }
 
-// ============ Modal 系列 ============
-function openModal(html) {
-    document.getElementById('modal-content').innerHTML = html;
-    document.getElementById('modal').classList.remove('hidden');
-}
-function closeModal() { document.getElementById('modal').classList.add('hidden'); }
-document.addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+function openM(html){document.getElementById('mcontent').innerHTML=html;document.getElementById('modal').classList.remove('hidden');}
+function closeM(){document.getElementById('modal').classList.add('hidden');}
+document.addEventListener('click',e=>{if(e.target.id==='modal')closeM();});
 
-// 新增案場
-function openNewProject() {
-    const managerOpts = allUsers.filter(u => u.role === 'manager' || u.role === 'admin')
-        .map(u => `<option value="${u.id}">${u.name}</option>`).join('');
-    const clientOpts = '<option value="">（不指定）</option>' + allUsers.filter(u => u.role === 'client')
-        .map(u => `<option value="${u.id}">${u.name}</option>`).join('');
-    openModal(`
-        <h3 class="text-lg font-black text-white mb-4">＋ 新增案場</h3>
+function openNewProject(){
+    const mO=D.u.filter(u=>u.role==='manager'||u.role==='admin').map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
+    const cO='<option value="">（不指定）</option>'+D.u.filter(u=>u.role==='client').map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
+    openM(`<h3 class="text-base font-black mb-4">＋ 新增案場</h3>
         <div class="space-y-3">
-            <div><label class="label">案場名稱</label><input id="m-pname" class="inp" placeholder="例：台南民權路案"></div>
-            <div><label class="label">施工地址</label><input id="m-addr" class="inp" placeholder="地址"></div>
-            <div><label class="label">負責人</label><select id="m-manager" class="inp">${managerOpts}</select></div>
-            <div><label class="label">業主帳號</label><select id="m-client" class="inp">${clientOpts}</select></div>
-            <div><label class="label">保固到期日（選填）</label><input id="m-warranty" type="date" class="inp" style="color-scheme:dark"></div>
+            <div><label class="label">案場名稱</label><input id="m-pn" class="inp" placeholder="例：台南民權路案"></div>
+            <div><label class="label">施工地址</label><input id="m-pa" class="inp" placeholder="地址"></div>
+            <div><label class="label">負責人</label><select id="m-pm" class="inp">${mO}</select></div>
+            <div><label class="label">業主帳號</label><select id="m-pc" class="inp">${cO}</select></div>
+            <div><label class="label">保固到期日</label><input id="m-pw" type="date" class="inp" style="color-scheme:light"></div>
         </div>
-        <div class="flex gap-3 mt-5">
-            <button onclick="closeModal()" class="btn btn-secondary">取消</button>
-            <button onclick="saveNewProject()" class="btn btn-primary">建立案場</button>
-        </div>`);
+        <div class="flex gap-3 mt-5"><button onclick="closeM()" class="btn btn-s">取消</button><button onclick="saveNewP()" class="btn btn-p">建立</button></div>`);
+}
+async function saveNewP(){
+    const name=document.getElementById('m-pn').value.trim();if(!name)return alert('請填案場名稱');
+    load(true);
+    const r=await POST('projects',{name,address:document.getElementById('m-pa').value.trim()||null,manager_id:parseInt(document.getElementById('m-pm').value)||null,client_id:parseInt(document.getElementById('m-pc').value)||null,warranty_end_date:document.getElementById('m-pw').value||null,status:'會勘'});
+    load(false);if(r){closeM();await loadAll();renderProjects();}else alert('建立失敗');
 }
 
-async function saveNewProject() {
-    const name = document.getElementById('m-pname').value.trim();
-    if (!name) return alert('請填寫案場名稱');
-    const data = {
-        name,
-        address: document.getElementById('m-addr').value.trim() || null,
-        manager_id: parseInt(document.getElementById('m-manager').value) || null,
-        client_id: parseInt(document.getElementById('m-client').value) || null,
-        warranty_end_date: document.getElementById('m-warranty').value || null,
-        status: '報價階段'
-    };
-    showLoading(true);
-    const r = await insert('projects', data);
-    showLoading(false);
-    if (r) { closeModal(); await loadAll(); renderProjects(); }
-    else alert('建立失敗');
-}
-
-// 新增階段
-function openStageModal(projectId) {
-    const workerOpts = '<option value="">（不指定）</option>' + allUsers.filter(u => u.role === 'worker')
-        .map(u => `<option value="${u.id}">${u.company_name || u.name} · ${u.worker_type || ''}</option>`).join('');
-    openModal(`
-        <h3 class="text-lg font-black text-white mb-4">＋ 新增施工階段</h3>
+function openStage(pid){
+    const wO='<option value="">（不指定）</option>'+D.u.filter(u=>u.role==='worker').map(u=>`<option value="${u.id}">${u.company_name||u.name}${u.worker_type?` · ${u.worker_type}`:''}</option>`).join('');
+    openM(`<h3 class="text-base font-black mb-4">＋ 新增施工階段</h3>
         <div class="space-y-3">
             <div><label class="label">階段名稱</label>
-                <select id="m-sname-sel" class="inp mb-2" onchange="if(this.value==='自訂')document.getElementById('m-sname-custom').classList.remove('hidden');else{document.getElementById('m-sname-custom').classList.add('hidden');document.getElementById('m-sname-custom').value='';}">
+                <select id="m-sn" class="inp mb-2" onchange="document.getElementById('m-snc').classList.toggle('hidden',this.value!=='自訂')">
                     <option>拆除</option><option>泥作</option><option>水電</option><option>木工</option><option>油漆</option><option>鐵工</option><option>空調</option><option>清潔</option><option>自訂</option>
-                </select>
-                <input id="m-sname-custom" class="inp hidden" placeholder="輸入自訂名稱">
+                </select><input id="m-snc" class="inp hidden" placeholder="自訂名稱">
             </div>
-            <div><label class="label">指派工班</label><select id="m-worker" class="inp">${workerOpts}</select></div>
-            <div><label class="label">預計進場日</label><input id="m-sdate" type="date" class="inp" style="color-scheme:dark"></div>
-            <div><label class="label">備註</label><textarea id="m-snote" class="inp" rows="2" placeholder="施工說明..."></textarea></div>
-            <hr class="divider"><p class="text-xs text-slate-500 font-bold">💰 財務（選填）</p>
+            <div><label class="label">指派工班</label><select id="m-sw" class="inp">${wO}</select></div>
+            <div><label class="label">預計進場日</label><input id="m-sd" type="date" class="inp" style="color-scheme:light"></div>
+            <div><label class="label">備註</label><textarea id="m-snt" class="inp" rows="2" placeholder="施工說明..."></textarea></div>
+            <hr style="border-color:#eee;margin:4px 0"><p class="text-xs text-gray-400 font-bold">💰 財務（選填）</p>
             <div class="grid grid-cols-2 gap-3">
-                <div><label class="label">對業主報價</label><input id="m-quote" type="number" class="inp" placeholder="0"></div>
-                <div><label class="label">工班工資</label><input id="m-wcost" type="number" class="inp" placeholder="0"></div>
-                <div><label class="label">材料費</label><input id="m-mcost" type="number" class="inp" placeholder="0"></div>
-                <div><label class="label">設備租借</label><input id="m-ecost" type="number" class="inp" placeholder="0"></div>
+                <div><label class="label">對業主報價</label><input id="m-sq" type="number" class="inp" placeholder="0"></div>
+                <div><label class="label">發包金額</label><input id="m-sc" type="number" class="inp" placeholder="0"></div>
+                <div><label class="label">材料費</label><input id="m-sm" type="number" class="inp" placeholder="0"></div>
+                <div><label class="label">設備租借</label><input id="m-se" type="number" class="inp" placeholder="0"></div>
             </div>
         </div>
-        <div class="flex gap-3 mt-5">
-            <button onclick="closeModal()" class="btn btn-secondary">取消</button>
-            <button onclick="saveStage(${projectId})" class="btn btn-primary">新增階段</button>
-        </div>`);
+        <div class="flex gap-3 mt-5"><button onclick="closeM()" class="btn btn-s">取消</button><button onclick="saveStage(${pid})" class="btn btn-p">新增</button></div>`);
+}
+async function saveStage(pid){
+    const sel=document.getElementById('m-sn').value,custom=document.getElementById('m-snc').value.trim();
+    const name=sel==='自訂'?custom:sel;if(!name)return alert('請填階段名稱');
+    const cnt=D.s.filter(s=>s.project_id===pid).length;
+    load(true);
+    await POST('project_stages',{project_id:pid,name,assigned_worker_id:parseInt(document.getElementById('m-sw').value)||null,scheduled_date:document.getElementById('m-sd').value||null,notes:document.getElementById('m-snt').value.trim()||null,quote_amount:parseInt(document.getElementById('m-sq').value)||0,contract_amount:parseInt(document.getElementById('m-sc').value)||0,material_cost:parseInt(document.getElementById('m-sm').value)||0,equipment_cost:parseInt(document.getElementById('m-se').value)||0,sort_order:cnt,status:'待開始'});
+    await loadAll();load(false);closeM();renderDetail(pid);
 }
 
-async function saveStage(projectId) {
-    const sel = document.getElementById('m-sname-sel').value;
-    const custom = document.getElementById('m-sname-custom').value.trim();
-    const name = sel === '自訂' ? custom : sel;
-    if (!name) return alert('請填寫階段名稱');
-    const existingCount = allStages.filter(s => s.project_id === projectId).length;
-    const data = {
-        project_id: projectId,
-        name,
-        assigned_worker_id: parseInt(document.getElementById('m-worker').value) || null,
-        scheduled_date: document.getElementById('m-sdate').value || null,
-        notes: document.getElementById('m-snote').value.trim() || null,
-        client_quote: parseInt(document.getElementById('m-quote').value) || 0,
-        worker_cost: parseInt(document.getElementById('m-wcost').value) || 0,
-        material_cost: parseInt(document.getElementById('m-mcost').value) || 0,
-        equipment_cost: parseInt(document.getElementById('m-ecost').value) || 0,
-        sort_order: existingCount,
-        status: '待開始'
-    };
-    showLoading(true);
-    const r = await insert('project_stages', data);
-    showLoading(false);
-    if (r) { closeModal(); await loadAll(); const p = allProjects.find(x => x.id === projectId); if (p) renderProjectDetail(p); }
-    else alert('新增失敗');
-}
-
-// 編輯階段
-function openEditStage(stageId) {
-    const s = allStages.find(x => x.id === stageId);
-    if (!s) return;
-    const workerOpts = '<option value="">（不指定）</option>' + allUsers.filter(u => u.role === 'worker')
-        .map(u => `<option value="${u.id}" ${u.id === s.assigned_worker_id ? 'selected' : ''}>${u.company_name || u.name} · ${u.worker_type || ''}</option>`).join('');
-    const statusOpts = ['待開始','進行中','待確認','完成'].map(st => `<option ${s.status === st ? 'selected' : ''}>${st}</option>`).join('');
-    openModal(`
-        <h3 class="text-lg font-black text-white mb-4">✏️ 編輯階段</h3>
+function openEditStage(sid){
+    const s=D.s.find(x=>x.id===sid);if(!s)return;
+    const wO='<option value="">（不指定）</option>'+D.u.filter(u=>u.role==='worker').map(u=>`<option value="${u.id}" ${u.id===s.assigned_worker_id?'selected':''}>${u.company_name||u.name}${u.worker_type?` · ${u.worker_type}`:''}</option>`).join('');
+    const stO=['待開始','進行中','待確認','完成'].map(x=>`<option ${s.status===x?'selected':''}>${x}</option>`).join('');
+    openM(`<h3 class="text-base font-black mb-4">✏️ 編輯階段</h3>
         <div class="space-y-3">
-            <div><label class="label">階段名稱</label><input id="e-sname" class="inp" value="${s.name}"></div>
-            <div><label class="label">狀態</label><select id="e-status" class="inp">${statusOpts}</select></div>
-            <div><label class="label">指派工班</label><select id="e-worker" class="inp">${workerOpts}</select></div>
-            <div><label class="label">預計進場日</label><input id="e-sdate" type="date" class="inp" style="color-scheme:dark" value="${s.scheduled_date || ''}"></div>
-            <div><label class="label">備註</label><textarea id="e-snote" class="inp" rows="2">${s.notes || ''}</textarea></div>
-            <hr class="divider"><p class="text-xs text-slate-500 font-bold">💰 財務</p>
+            <div><label class="label">名稱</label><input id="e-sn" class="inp" value="${s.name}"></div>
+            <div><label class="label">狀態</label><select id="e-st" class="inp">${stO}</select></div>
+            <div><label class="label">指派工班</label><select id="e-sw" class="inp">${wO}</select></div>
+            <div><label class="label">預計進場日</label><input id="e-sd" type="date" class="inp" style="color-scheme:light" value="${s.scheduled_date||''}"></div>
+            <div><label class="label">備註</label><textarea id="e-snt" class="inp" rows="2">${s.notes||''}</textarea></div>
+            <hr style="border-color:#eee;margin:4px 0"><p class="text-xs text-gray-400 font-bold">💰 財務</p>
             <div class="grid grid-cols-2 gap-3">
-                <div><label class="label">報價</label><input id="e-quote" type="number" class="inp" value="${s.client_quote || 0}"></div>
-                <div><label class="label">工班工資</label><input id="e-wcost" type="number" class="inp" value="${s.worker_cost || 0}"></div>
-                <div><label class="label">材料費</label><input id="e-mcost" type="number" class="inp" value="${s.material_cost || 0}"></div>
-                <div><label class="label">設備租借</label><input id="e-ecost" type="number" class="inp" value="${s.equipment_cost || 0}"></div>
+                <div><label class="label">報價</label><input id="e-sq" type="number" class="inp" value="${s.quote_amount||0}"></div>
+                <div><label class="label">發包</label><input id="e-sc" type="number" class="inp" value="${s.contract_amount||0}"></div>
+                <div><label class="label">材料</label><input id="e-sm" type="number" class="inp" value="${s.material_cost||0}"></div>
+                <div><label class="label">設備</label><input id="e-se" type="number" class="inp" value="${s.equipment_cost||0}"></div>
             </div>
         </div>
-        <div class="flex gap-3 mt-5">
-            <button onclick="delStage(${s.id}, ${s.project_id})" class="btn btn-danger btn-sm">刪除</button>
-            <button onclick="closeModal()" class="btn btn-secondary">取消</button>
-            <button onclick="saveEditStage(${s.id}, ${s.project_id})" class="btn btn-primary">儲存</button>
+        <div class="flex gap-2 mt-5">
+            <button onclick="delStage(${s.id},${s.project_id})" class="btn btn-d btn-sm">刪除</button>
+            <button onclick="closeM()" class="btn btn-s flex-1">取消</button>
+            <button onclick="saveEditStage(${s.id},${s.project_id})" class="btn btn-p flex-1">儲存</button>
         </div>`);
 }
-
-async function saveEditStage(id, projectId) {
-    const data = {
-        name: document.getElementById('e-sname').value.trim(),
-        status: document.getElementById('e-status').value,
-        assigned_worker_id: parseInt(document.getElementById('e-worker').value) || null,
-        scheduled_date: document.getElementById('e-sdate').value || null,
-        notes: document.getElementById('e-snote').value.trim() || null,
-        client_quote: parseInt(document.getElementById('e-quote').value) || 0,
-        worker_cost: parseInt(document.getElementById('e-wcost').value) || 0,
-        material_cost: parseInt(document.getElementById('e-mcost').value) || 0,
-        equipment_cost: parseInt(document.getElementById('e-ecost').value) || 0,
-    };
-    showLoading(true);
-    await update('project_stages', id, data);
-    await loadAll();
-    showLoading(false);
-    closeModal();
-    const p = allProjects.find(x => x.id === projectId);
-    if (p) renderProjectDetail(p);
+async function saveEditStage(id,pid){
+    load(true);
+    await PATCH('project_stages',id,{name:document.getElementById('e-sn').value.trim(),status:document.getElementById('e-st').value,assigned_worker_id:parseInt(document.getElementById('e-sw').value)||null,scheduled_date:document.getElementById('e-sd').value||null,notes:document.getElementById('e-snt').value.trim()||null,quote_amount:parseInt(document.getElementById('e-sq').value)||0,contract_amount:parseInt(document.getElementById('e-sc').value)||0,material_cost:parseInt(document.getElementById('e-sm').value)||0,equipment_cost:parseInt(document.getElementById('e-se').value)||0});
+    await loadAll();load(false);closeM();renderDetail(pid);
 }
+async function delStage(id,pid){if(!confirm('確定刪除？'))return;await DEL('project_stages',id);await loadAll();closeM();renderDetail(pid);}
 
-async function delStage(id, projectId) {
-    if (!confirm('確定刪除此階段？')) return;
-    await del('project_stages', id);
-    await loadAll();
-    closeModal();
-    const p = allProjects.find(x => x.id === projectId);
-    if (p) renderProjectDetail(p);
-}
-
-// 進場通報
-function openNotifyModal(projectId) {
-    const workerOpts = allUsers.filter(u => u.role === 'worker')
-        .map(u => `<option value="${u.id}">${u.company_name || u.name} · ${u.worker_type || ''}</option>`).join('');
-    const stageOpts = '<option value="">（不綁定階段）</option>' + allStages.filter(s => s.project_id === projectId)
-        .map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-    openModal(`
-        <h3 class="text-lg font-black text-white mb-4">📅 發出進場通報</h3>
+function openSurvey(pid){
+    openM(`<h3 class="text-base font-black mb-4">📷 新增會勘記錄</h3>
         <div class="space-y-3">
-            <div><label class="label">工班</label><select id="n-worker" class="inp">${workerOpts}</select></div>
-            <div><label class="label">進場日期</label><input id="n-date" type="date" class="inp" style="color-scheme:dark" value="${todayStr()}"></div>
-            <div><label class="label">對應階段（選填）</label><select id="n-stage" class="inp">${stageOpts}</select></div>
-            <div><label class="label">備註</label><input id="n-msg" class="inp" placeholder="說明事項..."></div>
-        </div>
-        <div class="flex gap-3 mt-5">
-            <button onclick="closeModal()" class="btn btn-secondary">取消</button>
-            <button onclick="saveNotify(${projectId})" class="btn btn-warn">發出通報</button>
-        </div>`);
-}
-
-async function saveNotify(projectId) {
-    const workerId = parseInt(document.getElementById('n-worker').value);
-    const worker = allUsers.find(u => u.id === workerId);
-    if (!worker) return alert('請選擇工班');
-    const data = {
-        project_id: projectId,
-        worker_id: workerId,
-        worker_name: worker.company_name || worker.name,
-        notify_date: document.getElementById('n-date').value,
-        stage_id: parseInt(document.getElementById('n-stage').value) || null,
-        message: document.getElementById('n-msg').value.trim() || null,
-        created_by: currentUser.id
-    };
-    showLoading(true);
-    await insert('site_notifications', data);
-    await loadAll();
-    showLoading(false);
-    closeModal();
-    const p = allProjects.find(x => x.id === projectId);
-    if (p) renderProjectDetail(p);
-}
-
-async function delNotif(id) {
-    await del('site_notifications', id);
-    await loadAll();
-    // 重新渲染目前開著的案場
-    const detailPage = document.getElementById('page-project-detail');
-    if (!detailPage.classList.contains('hidden')) {
-        const backBtn = detailPage.querySelector('button');
-        // 找出目前案場重新渲染
-        const projectId = allNotifications.find(n => n.id === id)?.project_id;
-        const p = allProjects.find(x => x.id === projectId);
-        if (p) renderProjectDetail(p);
-    }
-}
-
-// 雜支
-function openExpenseModal(projectId) {
-    openModal(`
-        <h3 class="text-lg font-black text-white mb-4">＋ 新增雜支</h3>
-        <div class="space-y-3">
-            <div><label class="label">費用說明</label><input id="ex-desc" class="inp" placeholder="例：工地廢料清運"></div>
-            <div><label class="label">金額</label><input id="ex-amt" type="number" class="inp" placeholder="0"></div>
-            <div><label class="label">日期</label><input id="ex-date" type="date" class="inp" style="color-scheme:dark" value="${todayStr()}"></div>
-        </div>
-        <div class="flex gap-3 mt-5">
-            <button onclick="closeModal()" class="btn btn-secondary">取消</button>
-            <button onclick="saveExpense(${projectId})" class="btn btn-primary">新增</button>
-        </div>`);
-}
-
-async function saveExpense(projectId) {
-    const desc = document.getElementById('ex-desc').value.trim();
-    const amt = parseInt(document.getElementById('ex-amt').value);
-    if (!desc || !amt) return alert('請填寫說明與金額');
-    await insert('project_expenses', { project_id: projectId, description: desc, amount: amt, expense_date: document.getElementById('ex-date').value, created_by: currentUser.id });
-    await loadAll();
-    closeModal();
-    const p = allProjects.find(x => x.id === projectId);
-    if (p) renderProjectDetail(p);
-}
-
-// 工班回報
-function openReportModal(stageId, stageName, projectId) {
-    openModal(`
-        <h3 class="text-lg font-black text-white mb-1">📤 回報進度</h3>
-        <p class="text-sm text-slate-400 mb-4">${stageName}</p>
-        <div class="space-y-3">
-            <div><label class="label">說明</label><textarea id="r-note" class="inp" rows="3" placeholder="今日施工內容..."></textarea></div>
-            <div onclick="document.getElementById('r-files').click()" class="border-2 border-dashed border-[var(--border)] rounded-xl p-5 text-center cursor-pointer hover:border-indigo-500 transition-colors">
-                <input type="file" id="r-files" accept="image/*" multiple class="hidden" onchange="previewReport(this)">
-                <div id="r-placeholder"><div class="text-3xl mb-1">📷</div><div class="text-sm text-slate-500">點擊上傳照片（可多張）</div></div>
-                <div id="r-preview" class="hidden img-grid"></div>
+            <div><label class="label">會勘日期</label><input id="sv-d" type="date" class="inp" style="color-scheme:light" value="${toStr()}"></div>
+            <div><label class="label">參與人員</label><input id="sv-pt" class="inp" placeholder="例：設計師、業主、工班"></div>
+            <div><label class="label">屋況說明</label><textarea id="sv-c" class="inp" rows="3" placeholder="現場屋況描述..."></textarea></div>
+            <div><label class="label">備註</label><textarea id="sv-n" class="inp" rows="2" placeholder="其他備註..."></textarea></div>
+            <div onclick="document.getElementById('sv-f').click()" class="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center cursor-pointer hover:border-gray-400">
+                <input type="file" id="sv-f" accept="image/*" multiple class="hidden" onchange="prevF(this,'sv-pv','sv-ph')">
+                <div id="sv-ph"><div class="text-2xl mb-1">📷</div><div class="text-xs text-gray-400">點擊上傳現場照片</div></div>
+                <div id="sv-pv" class="hidden img-grid"></div>
             </div>
         </div>
-        <div class="flex gap-3 mt-5">
-            <button onclick="closeModal()" class="btn btn-secondary">取消</button>
-            <button onclick="submitReport(${stageId}, ${projectId})" class="btn btn-primary">提交回報</button>
-        </div>`);
+        <div class="flex gap-3 mt-5"><button onclick="closeM()" class="btn btn-s">取消</button><button onclick="saveSurvey(${pid})" class="btn btn-p">儲存</button></div>`);
+}
+async function saveSurvey(pid){
+    load(true,'上傳照片中...');
+    const urls=await upFiles('sv-f');
+    await POST('site_surveys',{project_id:pid,survey_date:document.getElementById('sv-d').value,participants:document.getElementById('sv-pt').value.trim()||null,house_condition:document.getElementById('sv-c').value.trim()||null,notes:document.getElementById('sv-n').value.trim()||null,image_urls:urls,created_by:CU.id});
+    await loadAll();load(false);closeM();renderDetail(pid);
 }
 
-function previewReport(input) {
-    const prev = document.getElementById('r-preview');
-    prev.innerHTML = '';
-    if (input.files.length) {
-        document.getElementById('r-placeholder').classList.add('hidden');
-        prev.classList.remove('hidden');
-        Array.from(input.files).forEach(f => {
-            const reader = new FileReader();
-            reader.onload = e => { const img = document.createElement('img'); img.src = e.target.result; img.className = 'w-full h-24 object-cover rounded-lg'; prev.appendChild(img); };
-            reader.readAsDataURL(f);
-        });
-    }
+function openDesign(pid){
+    const vn=D.de.filter(d=>d.project_id===pid).length+1;
+    openM(`<h3 class="text-base font-black mb-4">🎨 新增設計版本</h3>
+        <div class="space-y-3">
+            <div><label class="label">版本</label><input id="de-v" class="inp" value="V${vn}"></div>
+            <div><label class="label">設計日期</label><input id="de-d" type="date" class="inp" style="color-scheme:light" value="${toStr()}"></div>
+            <div><label class="label">設計師備註</label><textarea id="de-n" class="inp" rows="3" placeholder="設計說明..."></textarea></div>
+            <div><label class="label">業主確認狀態</label><select id="de-s" class="inp"><option>待確認</option><option>已確認</option><option>退回修改</option></select></div>
+            <div onclick="document.getElementById('de-f').click()" class="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center cursor-pointer hover:border-gray-400">
+                <input type="file" id="de-f" accept="image/*" multiple class="hidden" onchange="prevF(this,'de-pv','de-ph')">
+                <div id="de-ph"><div class="text-2xl mb-1">🖼</div><div class="text-xs text-gray-400">點擊上傳設計圖檔</div></div>
+                <div id="de-pv" class="hidden img-grid"></div>
+            </div>
+        </div>
+        <div class="flex gap-3 mt-5"><button onclick="closeM()" class="btn btn-s">取消</button><button onclick="saveDesign(${pid})" class="btn btn-p">儲存</button></div>`);
+}
+async function saveDesign(pid){
+    load(true,'上傳圖檔中...');
+    const urls=await upFiles('de-f');
+    await POST('design_records',{project_id:pid,version:document.getElementById('de-v').value.trim(),design_date:document.getElementById('de-d').value,designer_notes:document.getElementById('de-n').value.trim()||null,client_status:document.getElementById('de-s').value,image_urls:urls,created_by:CU.id});
+    await loadAll();load(false);closeM();renderDetail(pid);
+}
+async function updDS(id,status,pid){await PATCH('design_records',id,{client_status:status});await loadAll();renderDetail(pid);}
+
+function openNotify(pid){
+    const wO=D.u.filter(u=>u.role==='worker').map(u=>`<option value="${u.id}">${u.company_name||u.name}${u.worker_type?` · ${u.worker_type}`:''}</option>`).join('');
+    const sO='<option value="">（不綁定）</option>'+D.s.filter(s=>s.project_id===pid).map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+    openM(`<h3 class="text-base font-black mb-4">📅 發出進場通報</h3>
+        <div class="space-y-3">
+            <div><label class="label">工班</label><select id="n-w" class="inp">${wO}</select></div>
+            <div><label class="label">進場日期</label><input id="n-d" type="date" class="inp" style="color-scheme:light" value="${toStr()}"></div>
+            <div><label class="label">對應階段</label><select id="n-s" class="inp">${sO}</select></div>
+            <div><label class="label">備註</label><input id="n-m" class="inp" placeholder="說明事項..."></div>
+        </div>
+        <div class="flex gap-3 mt-5"><button onclick="closeM()" class="btn btn-s">取消</button><button onclick="saveNotify(${pid})" class="btn btn-p" style="background:#854d0e">發出通報</button></div>`);
+}
+async function saveNotify(pid){
+    const wid=parseInt(document.getElementById('n-w').value),w=D.u.find(u=>u.id===wid);if(!w)return alert('請選工班');
+    await POST('site_notifications',{project_id:pid,worker_id:wid,worker_name:w.company_name||w.name,notify_date:document.getElementById('n-d').value,stage_id:parseInt(document.getElementById('n-s').value)||null,message:document.getElementById('n-m').value.trim()||null,created_by:CU.id});
+    await loadAll();closeM();renderDetail(pid);
 }
 
-async function submitReport(stageId, projectId) {
-    const note = document.getElementById('r-note').value.trim();
-    const files = document.getElementById('r-files').files;
-    showLoading(true, '上傳照片中...');
-    let urls = [];
-    for (let i = 0; i < files.length; i++) { const u = await uploadImg(files[i]); if (u) urls.push(u); }
-    const data = { stage_id: stageId, project_id: projectId, worker_id: currentUser.id, worker_name: currentUser.name, notes: note, image_urls: urls, timestamp: new Date().toISOString() };
-    await insert('progress_reports', data);
-    // 自動更新階段狀態為進行中
-    const stage = allStages.find(s => s.id === stageId);
-    if (stage && stage.status === '待開始') await update('project_stages', stageId, { status: '進行中' });
-    await loadAll();
-    showLoading(false);
-    closeModal();
-    renderWorker();
+function openExp(pid){
+    openM(`<h3 class="text-base font-black mb-4">＋ 新增雜支</h3>
+        <div class="space-y-3">
+            <div><label class="label">費用說明</label><input id="ex-d" class="inp" placeholder="例：廢料清運"></div>
+            <div><label class="label">金額</label><input id="ex-a" type="number" class="inp" placeholder="0"></div>
+            <div><label class="label">日期</label><input id="ex-dt" type="date" class="inp" style="color-scheme:light" value="${toStr()}"></div>
+        </div>
+        <div class="flex gap-3 mt-5"><button onclick="closeM()" class="btn btn-s">取消</button><button onclick="saveExp(${pid})" class="btn btn-p">新增</button></div>`);
+}
+async function saveExp(pid){
+    const d=document.getElementById('ex-d').value.trim(),a=parseInt(document.getElementById('ex-a').value);
+    if(!d||!a)return alert('請填說明與金額');
+    await POST('project_expenses',{project_id:pid,description:d,amount:a,expense_date:document.getElementById('ex-dt').value,created_by:CU.id});
+    await loadAll();closeM();renderDetail(pid);
 }
 
-// ============ 燈箱 ============
-function openLb(urlsOrStr, idx = 0) {
-    lbImgs = typeof urlsOrStr === 'string' ? JSON.parse(urlsOrStr.replace(/&quot;/g, '"')) : urlsOrStr;
-    lbIdx = idx;
-    updateLb();
-    document.getElementById('lightbox').classList.remove('hidden');
+function openExtra(pid){
+    const sO='<option value="">（不綁定）</option>'+D.s.filter(s=>s.project_id===pid).map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+    openM(`<h3 class="text-base font-black mb-4">＋ 追加項目</h3>
+        <p class="text-xs text-blue-600 bg-blue-50 rounded p-2 mb-3">追加項目代表向業主額外收費，將增加業主實收金額。</p>
+        <div class="space-y-3">
+            <div><label class="label">追加說明</label><input id="xt-d" class="inp" placeholder="例：增加廚房隔間"></div>
+            <div><label class="label">追加金額</label><input id="xt-a" type="number" class="inp" placeholder="0"></div>
+            <div><label class="label">日期</label><input id="xt-dt" type="date" class="inp" style="color-scheme:light" value="${toStr()}"></div>
+            <div><label class="label">對應階段</label><select id="xt-s" class="inp">${sO}</select></div>
+        </div>
+        <div class="flex gap-3 mt-5"><button onclick="closeM()" class="btn btn-s">取消</button><button onclick="saveExtra(${pid})" class="btn btn-p">新增</button></div>`);
 }
-function closeLightbox() { document.getElementById('lightbox').classList.add('hidden'); }
-function updateLb() {
-    document.getElementById('lb-img').src = lbImgs[lbIdx];
-    document.getElementById('lb-prev').classList.toggle('hidden', lbImgs.length <= 1);
-    document.getElementById('lb-next').classList.toggle('hidden', lbImgs.length <= 1);
-}
-function changeLb(d) { lbIdx = (lbIdx + d + lbImgs.length) % lbImgs.length; updateLb(); }
-async function dlCurrentLb() {
-    try { const r = await fetch(lbImgs[lbIdx]); const b = await r.blob(); saveAs(b, `照片_${lbIdx + 1}.jpg`); }
-    catch { window.open(lbImgs[lbIdx], '_blank'); }
-}
-
-// ============ 工具 ============
-function showLoading(show, text = '處理中...') {
-    document.getElementById('loading-overlay').classList.toggle('hidden', !show);
-    document.getElementById('loading-text').innerText = text;
+async function saveExtra(pid){
+    const d=document.getElementById('xt-d').value.trim(),a=parseInt(document.getElementById('xt-a').value);
+    if(!d||!a)return alert('請填說明與金額');
+    await POST('project_extras',{project_id:pid,description:d,amount:a,extra_date:document.getElementById('xt-dt').value,stage_id:parseInt(document.getElementById('xt-s').value)||null,created_by:CU.id});
+    await loadAll();closeM();renderDetail(pid);
 }
 
-async function manualRefresh() { showLoading(true); await loadAll(); showLoading(false); }
+function openInsp(pid){
+    openM(`<h3 class="text-base font-black mb-4">✅ 新增驗收記錄</h3>
+        <div class="space-y-3">
+            <div><label class="label">驗收狀態</label><select id="ins-s" class="inp"><option>待驗收</option><option>驗收中</option><option>驗收通過</option><option>驗收退件</option></select></div>
+            <div><label class="label">驗收人</label><input id="ins-b" class="inp" placeholder="驗收人姓名"></div>
+            <div><label class="label">說明備註</label><textarea id="ins-n" class="inp" rows="2" placeholder="驗收說明..."></textarea></div>
+            <div onclick="document.getElementById('ins-f').click()" class="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center cursor-pointer hover:border-gray-400">
+                <input type="file" id="ins-f" accept="image/*" multiple class="hidden" onchange="prevF(this,'ins-pv','ins-ph')">
+                <div id="ins-ph"><div class="text-2xl mb-1">📷</div><div class="text-xs text-gray-400">上傳驗收照片</div></div>
+                <div id="ins-pv" class="hidden img-grid"></div>
+            </div>
+        </div>
+        <div class="flex gap-3 mt-5"><button onclick="closeM()" class="btn btn-s">取消</button><button onclick="saveInsp(${pid})" class="btn btn-p">儲存</button></div>`);
+}
+async function saveInsp(pid){
+    load(true,'上傳照片中...');
+    const urls=await upFiles('ins-f');
+    await POST('inspections',{project_id:pid,status:document.getElementById('ins-s').value,inspected_by:document.getElementById('ins-b').value.trim()||null,notes:document.getElementById('ins-n').value.trim()||null,image_urls:urls,inspected_at:new Date().toISOString(),created_by:CU.id});
+    await loadAll();load(false);closeM();renderDetail(pid);
+}
+
+function openReport(sid,sname,pid){
+    openM(`<h3 class="text-base font-black mb-1">📤 回報進度</h3>
+        <p class="text-sm text-gray-400 mb-4">${sname}</p>
+        <div class="space-y-3">
+            <div><label class="label">說明</label><textarea id="r-n" class="inp" rows="3" placeholder="今日施工內容..."></textarea></div>
+            <div onclick="document.getElementById('r-f').click()" class="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center cursor-pointer hover:border-gray-400">
+                <input type="file" id="r-f" accept="image/*" multiple class="hidden" onchange="prevF(this,'r-pv','r-ph')">
+                <div id="r-ph"><div class="text-2xl mb-1">📷</div><div class="text-xs text-gray-400">點擊上傳照片（可多張）</div></div>
+                <div id="r-pv" class="hidden img-grid"></div>
+            </div>
+        </div>
+        <div class="flex gap-3 mt-5"><button onclick="closeM()" class="btn btn-s">取消</button><button onclick="saveReport(${sid},${pid})" class="btn btn-p">提交回報</button></div>`);
+}
+async function saveReport(sid,pid){
+    load(true,'上傳照片中...');
+    const urls=await upFiles('r-f');
+    await POST('progress_reports',{stage_id:sid,project_id:pid,worker_id:CU.id,worker_name:CU.name,notes:document.getElementById('r-n').value.trim(),image_urls:urls,timestamp:new Date().toISOString()});
+    const stage=D.s.find(s=>s.id===sid);if(stage&&stage.status==='待開始')await PATCH('project_stages',sid,{status:'進行中'});
+    await loadAll();load(false);closeM();renderWorker();
+}
+
+async function updSt(pid,status){await PATCH('projects',pid,{status});const p=D.p.find(x=>x.id===pid);if(p)p.status=status;}
+async function delR(table,id,pid){if(!confirm('確定刪除？'))return;await DEL(table,id);await loadAll();renderDetail(pid);}
+
+function openLb(u,i=0){lbI=typeof u==='string'?JSON.parse(u.replace(/&quot;/g,'"')):u;lbX=i;updLb();document.getElementById('lightbox').classList.remove('hidden');}
+function closeLb(){document.getElementById('lightbox').classList.add('hidden');}
+function updLb(){document.getElementById('lb-img').src=lbI[lbX];document.getElementById('lb-prev').classList.toggle('hidden',lbI.length<=1);document.getElementById('lb-next').classList.toggle('hidden',lbI.length<=1);}
+function changeLb(d){lbX=(lbX+d+lbI.length)%lbI.length;updLb();}
+async function dlLb(){try{const r=await fetch(lbI[lbX]);saveAs(await r.blob(),`照片_${lbX+1}.jpg`);}catch{window.open(lbI[lbX],'_blank');}}
+
+function load(show,text='處理中...'){document.getElementById('lov').classList.toggle('hidden',!show);document.getElementById('ltxt').innerText=text;}
+function toStr(){return new Date().toISOString().split('T')[0];}
+function fmt(n){if(!n&&n!==0)return'0';return Math.abs(n)>=10000?(n/10000).toFixed(1)+'萬':Math.abs(n).toLocaleString();}
+
+function ig(urls){
+    if(!urls)return'';
+    const arr=Array.isArray(urls)?urls:(typeof urls==='string'&&urls.startsWith('['))?JSON.parse(urls):[];
+    if(!arr.length)return'';
+    const safe=JSON.stringify(arr).replace(/"/g,'&quot;');
+    return `<div class="img-grid">${arr.map((u,i)=>`<img src="${u}" onclick="openLb('${safe}',${i})" loading="lazy">`).join('')}</div>`;
+}
+function prevF(input,pvId,phId){
+    const pv=document.getElementById(pvId),ph=document.getElementById(phId);
+    pv.innerHTML='';
+    if(input.files.length){ph.classList.add('hidden');pv.classList.remove('hidden');
+        Array.from(input.files).forEach(f=>{const r=new FileReader();r.onload=e=>{const img=document.createElement('img');img.src=e.target.result;img.className='w-full h-20 object-cover rounded-lg';pv.appendChild(img);};r.readAsDataURL(f);});}
+}
+async function upFiles(inputId){
+    const files=document.getElementById(inputId)?.files||[];
+    const urls=[];for(const f of files){const u=await UP(f);if(u)urls.push(u);}return urls;
+}
 </script>
 </body>
 </html>
