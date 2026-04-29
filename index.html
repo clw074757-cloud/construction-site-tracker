@@ -366,8 +366,7 @@ function renderDetail(pid){
                 <div class="flex justify-between items-start mb-1">
                     <div><span class="font-black text-sm">${d.version}</span><span class="badge ${dsb} ml-1">${d.client_status}</span><div class="text-xs text-gray-400">${d.design_date}</div></div>
                     <div class="flex items-center gap-1">
-                        ${canEdit?`<select onchange="updDS(${d.id},this.value,${pid})" class="inp" style="width:auto;height:26px;padding:0 22px 0 6px;font-size:11px;"><option ${d.client_status==='待確認'?'selected':''}>待確認</option><option ${d.client_status==='已確認'?'selected':''}>已確認</option><option ${d.client_status==='退回修改'?'selected':''}>退回修改</option></select>`:''}
-                        ${canEdit?`<button onclick="delR('design_records',${d.id},${pid})" class="text-gray-300 hover:text-red-400 text-xl leading-none ml-1">×</button>`:''}
+                        ${canEdit?`<button onclick="delR('design_records',${d.id},${pid})" class="text-gray-300 hover:text-red-400 text-xl leading-none">×</button>`:''}
                     </div>
                 </div>
                 ${d.designer_notes?`<div class="text-xs text-gray-500 bg-gray-50 rounded p-2 mb-1">${d.designer_notes}</div>`:''}
@@ -963,10 +962,15 @@ function fmt(n){if(!n&&n!==0)return'0';return Math.abs(n)>=10000?(n/10000).toFix
 
 function ig(urls){
     if(!urls)return'';
-    const arr=Array.isArray(urls)?urls:(typeof urls==='string'&&urls.startsWith('['))?JSON.parse(urls):[];
+    let arr=[];
+    if(Array.isArray(urls)) arr=urls;
+    else if(typeof urls==='string'){
+        try{ arr=JSON.parse(urls); }catch{ arr=urls?[urls]:[]; }
+    } else if(typeof urls==='object') arr=Object.values(urls);
+    arr=arr.filter(u=>u&&typeof u==='string');
     if(!arr.length)return'';
     const safe=JSON.stringify(arr).replace(/"/g,'&quot;');
-    return `<div class="img-grid">${arr.map((u,i)=>`<img src="${u}" onclick="openLb('${safe}',${i})" loading="lazy">`).join('')}</div>`;
+    return `<div class="img-grid">${arr.map((u,i)=>`<img src="${u}" onclick="openLb('${safe}',${i})" loading="lazy" onerror="this.style.display='none'">`).join('')}</div>`;
 }
 function prevF(input,pvId,phId){
     const pv=document.getElementById(pvId),ph=document.getElementById(phId);
