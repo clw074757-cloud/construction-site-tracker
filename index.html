@@ -723,7 +723,7 @@ function closeM(){document.getElementById('modal').classList.add('hidden');}
 document.addEventListener('click',e=>{if(e.target.id==='modal')closeM();});
 
 function openNewProject(){
-    const mO=D.u.filter(u=>u.role==='manager'||u.role==='admin').map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
+    const mO='<option value="">（不指定）</option>'+D.u.filter(u=>u.role==='manager'||u.role==='admin').map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
     const cO='<option value="">（不指定）</option>'+D.u.filter(u=>u.role==='client').map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
     openM(`<h3 class="text-base font-black mb-4">＋ 新增案場</h3>
         <div class="space-y-3">
@@ -731,14 +731,15 @@ function openNewProject(){
             <div><label class="label">施工地址</label><input id="m-pa" class="inp" placeholder="地址"></div>
             <div><label class="label">負責人</label><select id="m-pm" class="inp">${mO}</select></div>
             <div><label class="label">業主帳號</label><select id="m-pc" class="inp">${cO}</select></div>
-            <div><label class="label">保固到期日</label><input id="m-pw" type="date" class="inp" style="color-scheme:light"></div>
         </div>
         <div class="flex gap-3 mt-5"><button onclick="closeM()" class="btn btn-s">取消</button><button onclick="saveNewP()" class="btn btn-p">建立</button></div>`);
 }
 async function saveNewP(){
     const name=document.getElementById('m-pn').value.trim();if(!name)return alert('請填案場名稱');
+    const mid=parseInt(document.getElementById('m-pm').value)||null;
+    const cid=parseInt(document.getElementById('m-pc').value)||null;
     load(true);
-    const r=await POST('projects',{name,address:document.getElementById('m-pa').value.trim()||null,manager_id:parseInt(document.getElementById('m-pm').value)||null,client_id:parseInt(document.getElementById('m-pc').value)||null,warranty_end_date:document.getElementById('m-pw').value||null,status:'會勘'});
+    const r=await POST('projects',{name,address:document.getElementById('m-pa').value.trim()||null,manager_id:mid,client_id:cid,status:'會勘'});
     load(false);if(r){closeM();await loadAll();renderProjects();}else alert('建立失敗');
 }
 
