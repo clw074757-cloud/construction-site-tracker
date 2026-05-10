@@ -1,672 +1,2381 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
+<!doctype html>
+<html lang="zh-TW" class="h-full">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>案場追蹤系統</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-body{font-family:'Noto Sans TC',sans-serif;background:#f4f4f4;color:#111;font-size:15px;min-height:100vh;}
-.hidden{display:none!important;}
-.inp{width:100%;height:48px;padding:0 14px;background:#f8f8f8;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;font-family:'Noto Sans TC',sans-serif;color:#111;outline:none;transition:border-color 0.2s;-webkit-appearance:none;}
-.inp:focus{border-color:#111;background:#fff;}
-.inp::placeholder{color:#bbb;}
-textarea.inp{height:auto;padding:12px 14px;resize:none;}
-select.inp{background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23111' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");background-repeat:no-repeat;background-position:right 12px center;background-size:18px;padding-right:36px;background-color:#f8f8f8;}
-.label{display:block;font-size:11px;font-weight:700;color:#888;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.06em;}
-.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px 20px;border-radius:10px;font-weight:700;font-size:15px;font-family:'Noto Sans TC',sans-serif;border:none;cursor:pointer;transition:all 0.15s;}
-.btn:active{transform:scale(0.97);}
-.btn-p{background:#111;color:#fff;}
-.btn-s{background:#fff;color:#111;border:1.5px solid #ddd;}
-.btn-d{background:#fee2e2;color:#dc2626;border:1.5px solid #fca5a5;}
-.btn-sm{padding:7px 14px;font-size:13px;width:auto;border-radius:8px;}
-.btn-ic{width:34px;height:34px;padding:0;border-radius:8px;flex-shrink:0;}
-.card{background:#fff;border:1.5px solid #e8e8e8;border-radius:16px;padding:18px;margin-bottom:12px;}
-.csm{background:#f8f8f8;border:1.5px solid #e8e8e8;border-radius:12px;padding:14px;margin-bottom:8px;}
-.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;}
-.bk{background:#111;color:#fff;}
-.bg{background:#f0f0f0;color:#555;border:1px solid #e0e0e0;}
-.bgn{background:#dcfce7;color:#166534;border:1px solid #bbf7d0;}
-.by{background:#fef9c3;color:#854d0e;border:1px solid #fde68a;}
-.prog-bar{height:5px;background:#eee;border-radius:99px;overflow:hidden;}
-.prog-fill{height:100%;background:#111;border-radius:99px;transition:width 0.4s;}
-.nav-bar{background:rgba(255,255,255,0.97);backdrop-filter:blur(12px);border-top:1.5px solid #e8e8e8;}
-.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;padding:9px 4px 11px;color:#ccc;font-size:10px;font-weight:700;font-family:'Noto Sans TC',sans-serif;background:none;border:none;cursor:pointer;gap:3px;transition:color 0.2s;}
-.nav-btn.active{color:#111;}
-.nav-btn svg{width:20px;height:20px;}
-.modal-bg{background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);}
-.modal-box{background:#fff;border:1.5px solid #e0e0e0;border-radius:20px;max-height:88vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,0.12);}
-.img-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:8px;}
-.img-grid img{width:100%;height:90px;object-fit:cover;border-radius:7px;border:1px solid #e8e8e8;cursor:pointer;}
-.spinner{border:3px solid #eee;border-top:3px solid #111;border-radius:50%;width:32px;height:32px;animation:spin 0.8s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
-#lightbox{background:rgba(0,0,0,0.93);}
-details>summary{list-style:none;cursor:pointer;}
-details>summary::-webkit-details-marker{display:none;}
-::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:#ddd;border-radius:99px;}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>工程案場管理系統</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Noto Sans TC', sans-serif; box-sizing: border-box; }
+
+    :root {
+      --amber: #f59e0b;
+      --amber-dark: #d97706;
+      --surface: #1e293b;
+      --surface2: #0f172a;
+      --border: #334155;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --emerald: #10b981;
+      --blue: #3b82f6;
+      --red: #ef4444;
+    }
+
+    body { background: var(--surface2); color: var(--text); min-height: 100vh; }
+
+    .fade-in { animation: fadeIn 0.25s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .slide-up { animation: slideUp 0.3s ease; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Nav */
+    .nav-link { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 16px; border-radius: 10px; color: var(--text-muted); font-size: 11px; cursor: pointer; transition: all .2s; }
+    .nav-link:hover { color: var(--text); background: rgba(255,255,255,.05); }
+    .nav-link.active { color: var(--amber); background: rgba(245,158,11,.1); }
+    .nav-icon { font-size: 20px; }
+
+    /* Cards */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; transition: border-color .2s; }
+    .card:hover { border-color: rgba(245,158,11,.4); }
+
+    /* Status badges */
+    .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; }
+    .badge-pending { background: rgba(245,158,11,.15); color: #fbbf24; }
+    .badge-active { background: rgba(16,185,129,.15); color: #34d399; }
+    .badge-done { background: rgba(59,130,246,.15); color: #60a5fa; }
+    .badge-paused { background: rgba(239,68,68,.15); color: #f87171; }
+
+    /* Progress bar */
+    .progress-track { height: 6px; background: #334155; border-radius: 999px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--amber), #fbbf24); border-radius: 999px; transition: width .4s ease; }
+
+    /* Buttons */
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; transition: all .15s; }
+    .btn-primary { background: var(--amber); color: #0f172a; }
+    .btn-primary:hover { background: var(--amber-dark); }
+    .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
+    .btn-ghost:hover { background: rgba(255,255,255,.05); color: var(--text); }
+    .btn-danger { background: rgba(239,68,68,.15); color: #f87171; border: 1px solid rgba(239,68,68,.3); }
+    .btn-danger:hover { background: rgba(239,68,68,.25); }
+    .btn-sm { padding: 5px 12px; font-size: 12px; border-radius: 7px; }
+
+    /* Inputs */
+    .input { width: 100%; background: #0f172a; border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; color: var(--text); font-size: 14px; outline: none; transition: border-color .2s; }
+    .input:focus { border-color: var(--amber); }
+    .input::placeholder { color: var(--text-muted); }
+    select.input option { background: #1e293b; }
+    textarea.input { resize: vertical; min-height: 80px; }
+
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.65); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+    .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 22px; border-bottom: 1px solid var(--border); }
+    .modal-body { padding: 22px; }
+
+    /* Toast */
+    .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 12px 22px; border-radius: 10px; font-size: 14px; font-weight: 500; z-index: 200; white-space: nowrap; animation: fadeIn .2s ease; }
+    .toast-success { background: rgba(16,185,129,.2); border: 1px solid rgba(16,185,129,.4); color: #34d399; }
+    .toast-error { background: rgba(239,68,68,.2); border: 1px solid rgba(239,68,68,.4); color: #f87171; }
+    .toast-info { background: rgba(245,158,11,.2); border: 1px solid rgba(245,158,11,.4); color: #fbbf24; }
+
+    /* Tabs */
+    .tab-bar { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 20px; overflow-x: auto; }
+    .tab-btn { padding: 8px 16px; font-size: 14px; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all .2s; background: none; border-left: none; border-right: none; border-top: none; }
+    .tab-btn.active { color: var(--amber); border-bottom-color: var(--amber); font-weight: 600; }
+
+    /* Notification badge */
+    .notif-dot { position: absolute; top: 2px; right: 2px; width: 8px; height: 8px; background: var(--red); border-radius: 50%; border: 2px solid var(--surface2); }
+
+    /* Photo grid */
+    .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+    .photo-item { position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; background: #0f172a; }
+    .photo-item img { width: 100%; height: 100%; object-fit: cover; }
+    .photo-item .del-overlay { position: absolute; inset: 0; background: rgba(0,0,0,.6); display: none; align-items: center; justify-content: center; }
+    .photo-item:hover .del-overlay { display: flex; }
+
+    /* Drag drop zone */
+    .drop-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 28px; text-align: center; cursor: pointer; transition: all .2s; }
+    .drop-zone:hover, .drop-zone.drag-over { border-color: var(--amber); background: rgba(245,158,11,.05); }
+
+    /* Stats row */
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+
+    /* Login page */
+    .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .login-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 36px 32px; width: 100%; max-width: 400px; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    /* Page sections */
+    #page-login, #page-app { display: none; }
+    #page-login.active, #page-app.active { display: block; }
+
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* Empty state */
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; }
+
+    /* Notification item */
+    .notif-item { padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); margin-bottom: 8px; }
+    .notif-item.unread { border-color: rgba(245,158,11,.3); background: rgba(245,158,11,.05); }
+
+    label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px; }
+    h1, h2, h3 { font-weight: 700; }
+  </style>
 </head>
 <body>
 
-<div id="login-screen" class="fixed inset-0 z-[100] flex items-center justify-center p-5 bg-gray-100">
-  <div class="bg-white w-full max-w-sm p-8 rounded-3xl shadow-lg border border-gray-200">
-    <div class="text-center mb-8">
-      <div class="w-12 h-12 bg-black rounded-2xl flex items-center justify-center mx-auto mb-4">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+<!-- ===================== LOGIN PAGE ===================== -->
+<div id="page-login">
+  <div class="login-wrap">
+    <div class="login-card fade-in">
+      <div style="text-align:center; margin-bottom:28px;">
+        <div id="login-logo-wrap" style="margin-bottom:10px; display:flex; align-items:center; justify-content:center; gap:10px;">
+          <img id="login-logo-img" src="" alt="logo" style="height:48px; width:auto; object-fit:contain; display:none;">
+          <span id="login-logo-fallback" style="font-size:40px;">🏗️</span>
+        </div>
+        <h1 id="login-app-name" style="font-size:22px; color:var(--amber); margin-bottom:4px;">工程案場管理系統</h1>
+        <p id="login-app-subtitle" style="font-size:13px; color:var(--text-muted);">請登入以繼續</p>
       </div>
-      <h1 class="text-2xl font-black">案場追蹤系統</h1>
-      <p class="text-sm text-gray-400 mt-1">工程進度管理平台</p>
-    </div>
-    <div class="space-y-3">
-      <div><label class="label">帳號</label><input id="li" class="inp" placeholder="帳號"></div>
-      <div><label class="label">密碼</label><input id="lp" type="password" class="inp" placeholder="密碼" onkeydown="if(event.key==='Enter')doLogin()"></div>
-    </div>
-    <button onclick="doLogin()" class="btn btn-p mt-5">登入</button>
-    <p id="lmsg" class="text-center text-red-400 text-sm mt-3 min-h-[20px]"></p>
-  </div>
-</div>
 
-<div id="lov" class="fixed inset-0 bg-black/60 z-[200] hidden flex items-center justify-center flex-col gap-3">
-  <div class="spinner" style="border-top-color:#fff"></div>
-  <div id="ltxt" class="text-white font-bold text-sm">處理中...</div>
-</div>
+      <div id="login-form-wrap">
+        <div style="margin-bottom:16px;">
+          <label>帳號</label>
+          <input id="login-email" class="input" type="text" placeholder="輸入帳號或 Email">
+        </div>
+        <div style="margin-bottom:24px;">
+          <label>密碼</label>
+          <input id="login-password" class="input" type="password" placeholder="輸入密碼">
+        </div>
+        <button id="login-btn" class="btn btn-primary" style="width:100%; justify-content:center;">登入</button>
+        <div style="margin-top:16px; text-align:center;">
+          <span style="font-size:13px; color:var(--text-muted);">沒有帳號？</span>
+          <button id="goto-register" style="background:none;border:none;color:var(--amber);font-size:13px;cursor:pointer;padding:0 4px;">點此聯絡設計師</button>
+        </div>
+      </div>
 
-<div id="lightbox" class="fixed inset-0 z-[300] hidden flex items-center justify-center" style="background:rgba(0,0,0,0.93)">
-  <button onclick="closeLb()" class="absolute top-4 right-4 text-white w-10 h-10 flex items-center justify-center bg-white/10 rounded-full text-2xl">x</button>
-  <button id="lb-prev" onclick="changeLb(-1)" class="absolute left-2 text-white text-4xl w-12 h-20 flex items-center justify-center bg-white/10 rounded-xl hidden">&#8249;</button>
-  <button id="lb-next" onclick="changeLb(1)" class="absolute right-2 text-white text-4xl w-12 h-20 flex items-center justify-center bg-white/10 rounded-xl hidden">&#8250;</button>
-  <button onclick="dlLb()" class="absolute bottom-5 right-5 text-white w-12 h-12 flex items-center justify-center bg-white/10 rounded-full text-xl border border-white/20">&#11015;</button>
-  <img id="lb-img" class="max-h-[90vh] max-w-[92vw] object-contain select-none rounded-lg" src="">
-</div>
-
-<div id="modal" class="fixed inset-0 modal-bg z-[80] hidden flex items-end sm:items-center justify-center p-4">
-  <div class="modal-box w-full max-w-md p-6"><div id="mc"></div></div>
-</div>
-
-<header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 px-4 py-3 flex justify-between items-center">
-  <div class="flex items-center gap-3">
-    <div class="w-8 h-8 bg-black rounded-lg flex items-center justify-center flex-shrink-0">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
-    </div>
-    <div>
-      <div class="font-black text-sm leading-tight">案場追蹤系統</div>
-      <div id="urd" class="text-xs text-gray-400">未登入</div>
+      <!-- Demo accounts hint -->
+      <div style="margin-top:24px; padding:14px; background:#0f172a; border-radius:10px; border:1px solid var(--border);">
+        <p style="font-size:12px; color:var(--text-muted); margin-bottom:8px; font-weight:600;">🔑 DEMO 帳號</p>
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <button class="demo-login-btn" data-role="designer" style="background:none;border:none;color:#60a5fa;font-size:12px;cursor:pointer;text-align:left;padding:2px 0;">設計師：designer / 1234</button>
+          <button class="demo-login-btn" data-role="worker" style="background:none;border:none;color:#34d399;font-size:12px;cursor:pointer;text-align:left;padding:2px 0;">工班：worker / 1234</button>
+        </div>
+      </div>
     </div>
   </div>
-  <button onclick="logout()" class="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200">登出</button>
-</header>
+</div>
 
-<main class="pb-28">
-  <div id="page-projects" class="hidden p-4">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-base font-black">案場列表</h2>
-      <button id="btn-np" onclick="openNewProject()" class="btn btn-p btn-sm hidden">+ 新增案場</button>
-    </div>
-    <div class="flex gap-2 overflow-x-auto pb-2 mb-3" style="scrollbar-width:none;">
-      <button onclick="setF('all')" id="f-all" class="badge bk flex-shrink-0 cursor-pointer py-1.5 px-3">全部</button>
-      <button onclick="setF('進行中')" id="f-進行中" class="badge bg flex-shrink-0 cursor-pointer py-1.5 px-3">進行中</button>
-      <button onclick="setF('暫停')" id="f-暫停" class="badge bg flex-shrink-0 cursor-pointer py-1.5 px-3">暫停</button>
-      <button onclick="setF('已完工')" id="f-已完工" class="badge bg flex-shrink-0 cursor-pointer py-1.5 px-3">完工</button>
-    </div>
-    <div id="plist"><div class="flex justify-center py-10"><div class="spinner"></div></div></div>
-  </div>
+<!-- ===================== MAIN APP ===================== -->
+<div id="page-app">
 
-  <div id="page-detail" class="hidden p-4">
-    <button onclick="backToList()" class="flex items-center gap-1.5 text-gray-400 text-sm font-bold mb-4">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>返回
+  <!-- Top bar -->
+  <header style="background:var(--surface); border-bottom:1px solid var(--border); padding:14px 20px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <img id="header-logo-img" src="" alt="logo" style="height:36px; width:auto; object-fit:contain; display:none; border-radius:6px;">
+      <span id="header-logo-fallback" style="font-size:22px;">🏗️</span>
+      <div>
+        <h1 id="header-app-name" style="font-size:16px; color:var(--amber); line-height:1.2;">工程案場管理</h1>
+        <p id="user-role-label" style="font-size:11px; color:var(--text-muted); line-height:1.2;"></p>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div id="user-avatar" style="width:36px; height:36px; border-radius:50%; background:rgba(245,158,11,.2); border:1px solid rgba(245,158,11,.4); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:var(--amber); cursor:pointer;"></div>
+      <button id="brand-settings-btn" class="btn btn-ghost btn-sm" style="display:none;">⚙️ 品牌設定</button>
+      <button id="logout-btn" class="btn btn-ghost btn-sm">登出</button>
+    </div>
+  </header>
+
+  <!-- Content area -->
+  <main style="padding-bottom:80px; min-height:calc(100vh - 57px);">
+
+    <!-- ── DASHBOARD (Designer) ── -->
+    <section id="section-dashboard" class="section fade-in" style="padding:20px;">
+
+      <!-- Stats -->
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:20px;" id="stats-row">
+        <div class="stat-card">
+          <p style="font-size:12px; color:var(--text-muted);">總案場</p>
+          <p id="stat-total" style="font-size:24px; font-weight:700;">0</p>
+        </div>
+        <div class="stat-card">
+          <p style="font-size:12px; color:var(--text-muted);">進行中</p>
+          <p id="stat-active" style="font-size:24px; font-weight:700; color:var(--emerald);">0</p>
+        </div>
+        <div class="stat-card">
+          <p style="font-size:12px; color:var(--text-muted);">已完工</p>
+          <p id="stat-done" style="font-size:24px; font-weight:700; color:var(--blue);">0</p>
+        </div>
+        <div class="stat-card">
+          <p style="font-size:12px; color:var(--text-muted);">待開工</p>
+          <p id="stat-pending" style="font-size:24px; font-weight:700; color:var(--amber);">0</p>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+        <h2 style="font-size:16px;">案場列表</h2>
+        <div style="display:flex; gap:8px;">
+          <button id="designer-add-worker-btn" class="btn btn-ghost btn-sm">＋ 新增工班</button>
+          <button id="designer-add-btn" class="btn btn-primary btn-sm">＋ 新增案場</button>
+        </div>
+      </div>
+
+      <!-- Project grid -->
+      <div id="project-grid" style="display:grid; gap:14px; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));"></div>
+      <div id="project-empty" class="empty-state hidden">
+        <div class="empty-icon">🏗️</div>
+        <p>尚無案場，點擊「新增案場」開始</p>
+      </div>
+    </section>
+
+    <!-- ── WORKER VIEW ── -->
+    <section id="section-worker" class="section fade-in" style="padding:20px;">
+      <h2 style="font-size:16px; margin-bottom:16px;">我的案場</h2>
+      <div id="worker-project-grid" style="display:grid; gap:14px; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));"></div>
+      <div id="worker-empty" class="empty-state hidden">
+        <div class="empty-icon">📋</div>
+        <p>目前沒有被分配的案場</p>
+      </div>
+    </section>
+
+    <!-- ── NOTIFICATIONS ── -->
+    <section id="section-notifications" class="section fade-in" style="padding:20px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+        <h2 style="font-size:16px;">通知</h2>
+        <button id="mark-all-read-btn" class="btn btn-ghost btn-sm">全部已讀</button>
+      </div>
+      <div id="notif-list"></div>
+      <div id="notif-empty" class="empty-state hidden">
+        <div class="empty-icon">🔔</div>
+        <p>目前沒有通知</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom nav -->
+  <nav style="position:fixed; bottom:0; left:0; right:0; background:var(--surface); border-top:1px solid var(--border); display:flex; justify-content:space-around; padding:8px 0; z-index:50;">
+    <button class="nav-link active" data-section="dashboard" id="nav-dashboard">
+      <span class="nav-icon">🏠</span>
+      <span id="nav-dashboard-label">儀表板</span>
     </button>
-    <div id="dcontent"></div>
-  </div>
+    <button class="nav-link" data-section="notifications" id="nav-notifications" style="position:relative;">
+      <span class="nav-icon">🔔</span>
+      <span>通知</span>
+      <span id="notif-badge" class="notif-dot hidden"></span>
+    </button>
+  </nav>
 
-  <div id="page-worker" class="hidden p-4">
-    <h2 class="text-base font-black mb-4">我的任務</h2>
-    <div id="wlist"><div class="flex justify-center py-10"><div class="spinner"></div></div></div>
-  </div>
+</div>
 
-  <div id="page-admin" class="hidden p-4">
-    <h2 class="text-base font-black mb-4">帳號管理</h2>
-    <div class="card mb-4">
-      <h3 class="font-black text-sm mb-4">+ 新增帳號</h3>
-      <div class="grid grid-cols-2 gap-3 mb-3">
-        <div><label class="label">姓名</label><input id="nu-n" class="inp" placeholder="姓名"></div>
-        <div><label class="label">密碼</label><input id="nu-p" class="inp" placeholder="密碼"></div>
+<!-- Brand Settings Modal -->
+<div id="brand-modal" class="modal-overlay hidden">
+  <div class="modal-box fade-in" style="max-width:440px;">
+    <div class="modal-header">
+      <h2 style="font-size:16px;">品牌設定</h2>
+      <button class="modal-close btn btn-ghost btn-sm" data-modal="brand-modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:16px;">
+        <label>系統名稱</label>
+        <input id="brand-name" class="input" placeholder="例：○○工程管理系統">
       </div>
-      <div class="mb-3"><label class="label">角色</label>
-        <select id="nu-r" class="inp" onchange="toggleWF()">
-          <option value="manager">設計師/負責人</option>
-          <option value="worker">工班</option>
-          <option value="admin">管理員</option>
+      <div style="margin-bottom:16px;">
+        <label>登入頁副標題</label>
+        <input id="brand-subtitle" class="input" placeholder="例：施工管理平台">
+      </div>
+      <div style="margin-bottom:8px;">
+        <label>Logo 圖片</label>
+        <div id="brand-logo-preview" style="margin-bottom:10px; height:64px; display:flex; align-items:center; justify-content:center; background:#0f172a; border-radius:10px; border:1px solid var(--border);">
+          <img id="brand-logo-preview-img" src="" alt="" style="max-height:52px; max-width:200px; object-fit:contain; display:none;">
+          <span id="brand-logo-preview-fallback" style="font-size:32px;">🏗️</span>
+        </div>
+        <div id="brand-logo-drop" class="drop-zone" style="margin-bottom:8px;">
+          <div style="font-size:22px; margin-bottom:4px;">🖼️</div>
+          <p style="font-size:13px; color:var(--text-muted);">點擊或拖曳上傳 Logo</p>
+          <p style="font-size:11px; color:#64748b; margin-top:2px;">PNG / JPG / SVG，建議透明背景</p>
+          <input id="brand-logo-input" type="file" accept="image/*" style="display:none;">
+        </div>
+        <button id="brand-logo-clear-btn" class="btn btn-ghost btn-sm" style="display:none;">✕ 移除 Logo</button>
+      </div>
+      <button id="brand-save-btn" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:8px;">儲存設定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MODALS ===================== -->
+
+<!-- Project Modal (Add/Edit) -->
+<div id="project-modal" class="modal-overlay hidden">
+  <div class="modal-box fade-in">
+    <div class="modal-header">
+      <h2 id="project-modal-title" style="font-size:16px;">新增案場</h2>
+      <button class="modal-close btn btn-ghost btn-sm" data-modal="project-modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="pm-id">
+      <div style="margin-bottom:14px;">
+        <label>案場名稱 *</label>
+        <input id="pm-name" class="input" placeholder="例：台南市○○大樓新建工程">
+      </div>
+      <div style="margin-bottom:14px;">
+        <label>地點</label>
+        <input id="pm-location" class="input" placeholder="例：台南市中西區...">
+      </div>
+      <div style="margin-bottom:14px;">
+        <label>負責人</label>
+        <input id="pm-manager" class="input" placeholder="例：王大明">
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+        <div>
+          <label>開工日期</label>
+          <input id="pm-start" class="input" type="date">
+        </div>
+        <div>
+          <label>完工日期</label>
+          <input id="pm-end" class="input" type="date">
+        </div>
+      </div>
+      <div style="margin-bottom:14px;">
+        <label>狀態</label>
+        <select id="pm-status" class="input">
+          <option value="待開工">待開工</option>
+          <option value="進行中">進行中</option>
+          <option value="已完工">已完工</option>
+          <option value="暫停">暫停</option>
         </select>
       </div>
-      <div id="wf" class="hidden space-y-3 mb-3">
-        <div class="grid grid-cols-2 gap-3">
-          <div><label class="label">公司名稱</label><input id="nu-c" class="inp" placeholder="公司名稱"></div>
-          <div><label class="label">聯絡電話</label><input id="nu-ph" class="inp" placeholder="電話"></div>
+      <div style="margin-bottom:14px;">
+        <label>進度 (<span id="pm-progress-val">0</span>%)</label>
+        <input id="pm-progress" type="range" min="0" max="100" value="0" class="input" style="padding:0; height:auto; border:none; background:none;">
+      </div>
+      <div style="margin-bottom:14px;">
+        <label>指定工班</label>
+        <div id="pm-workers-list" style="display:flex; flex-wrap:wrap; gap:8px; min-height:32px; padding:8px; background:#0f172a; border-radius:10px; border:1px solid var(--border);"></div>
+      </div>
+      <div style="margin-bottom:20px;">
+        <label>備註</label>
+        <textarea id="pm-notes" class="input" placeholder="其他備注..."></textarea>
+      </div>
+      <button id="pm-submit" class="btn btn-primary" style="width:100%; justify-content:center;">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Project Detail Modal -->
+<div id="detail-modal" class="modal-overlay hidden">
+  <div class="modal-box fade-in" style="max-width:600px;">
+    <div class="modal-header">
+      <h2 id="detail-title" style="font-size:16px;"></h2>
+      <button class="modal-close btn btn-ghost btn-sm" data-modal="detail-modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="overview">詳細資料</button>
+        <button class="tab-btn" data-tab="photos">相片</button>
+        <button class="tab-btn" data-tab="meetings">會議記錄</button>
+        <button class="tab-btn" data-tab="gantt" id="tab-gantt-btn">甘特圖</button>
+        <button class="tab-btn" data-tab="notify" id="tab-notify-btn">發送通知</button>
+      </div>
+
+      <!-- Overview tab -->
+      <div id="dtab-overview" class="dtab-content">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:16px;">
+          <div><p style="font-size:12px; color:var(--text-muted);">狀態</p><div id="d-status"></div></div>
+          <div><p style="font-size:12px; color:var(--text-muted);">負責人</p><p id="d-manager" style="font-weight:600;">—</p></div>
+          <div><p style="font-size:12px; color:var(--text-muted);">地點</p><p id="d-location" style="font-size:13px; color:var(--text-muted);">—</p></div>
+          <div><p style="font-size:12px; color:var(--text-muted);">開工/完工</p><p id="d-dates" style="font-size:13px; color:var(--text-muted);">—</p></div>
         </div>
-        <div><label class="label">工班類型</label>
-          <select id="nu-wt" class="inp">
-            <option>泥作</option><option>木工</option><option>水電</option><option>油漆</option><option>鐵工</option><option>拆除</option><option>空調</option><option>其他</option>
-          </select>
+        <div style="margin-bottom:16px;">
+          <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted); margin-bottom:6px;">
+            <span>進度</span><span id="d-progress-pct">0%</span>
+          </div>
+          <div class="progress-track"><div id="d-progress-bar" class="progress-fill" style="width:0%"></div></div>
+        </div>
+        <div style="margin-bottom:16px;">
+          <p style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">指定工班</p>
+          <div id="d-workers" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+        </div>
+        <div style="margin-bottom:20px;">
+          <p style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">備註</p>
+          <p id="d-notes" style="font-size:13px; color:var(--text-muted);">—</p>
+        </div>
+        <div id="designer-actions" style="display:flex; gap:8px;">
+          <button id="d-edit-btn" class="btn btn-primary" style="flex:1; justify-content:center;">編輯</button>
+          <button id="d-delete-btn" class="btn btn-danger">🗑 刪除</button>
         </div>
       </div>
-      <button onclick="addUser()" class="btn btn-p">新增帳號</button>
-    </div>
-    <div class="text-xs font-black text-gray-400 uppercase mb-2 tracking-wide">帳號列表</div>
-    <div id="ulist" class="space-y-2"></div>
-  </div>
-</main>
 
-<nav id="bnav" class="nav-bar fixed bottom-0 w-full flex z-50"></nav>
+      <!-- Photos tab -->
+      <div id="dtab-photos" class="dtab-content hidden">
+        <div id="upload-zone-wrap">
+          <div id="photo-drop-zone" class="drop-zone" style="margin-bottom:12px;">
+            <div style="font-size:28px; margin-bottom:6px;">📷</div>
+            <p style="font-size:14px; color:var(--text-muted);">拖曳或點擊上傳照片</p>
+            <p style="font-size:11px; color:#64748b; margin-top:4px;">支援多張 JPG / PNG</p>
+            <input id="photo-input" type="file" accept="image/*" multiple style="display:none;">
+          </div>
+          <input id="photo-desc" class="input" placeholder="照片說明（選填）" style="margin-bottom:10px;">
+          <button id="photo-upload-btn" class="btn btn-primary btn-sm" style="margin-bottom:16px;">上傳</button>
+        </div>
+        <div id="photo-grid" class="photo-grid"></div>
+        <div id="photo-empty" class="empty-state hidden"><div class="empty-icon">🖼️</div><p>尚無照片</p></div>
+      </div>
+
+      <!-- Meetings tab -->
+      <div id="dtab-meetings" class="dtab-content hidden">
+        <div id="meeting-form-wrap">
+          <div style="margin-bottom:10px;">
+            <label>會議日期</label>
+            <input id="meeting-date" class="input" type="date">
+          </div>
+          <div style="margin-bottom:10px;">
+            <label>出席人員</label>
+            <input id="meeting-attendees" class="input" placeholder="例：現場主任、監造工程師">
+          </div>
+          <div style="margin-bottom:10px;">
+            <label>會議記錄</label>
+            <textarea id="meeting-content" class="input" placeholder="紀錄決議事項..." style="min-height:120px; resize:vertical;"></textarea>
+          </div>
+          <input type="hidden" id="meeting-editing-id">
+          <button id="meeting-save-btn" class="btn btn-primary btn-sm" style="margin-bottom:16px;">新增記錄</button>
+        </div>
+        <div id="meetings-list"></div>
+        <div id="meetings-empty" class="empty-state hidden"><div class="empty-icon">📝</div><p>尚無會議記錄</p></div>
+
+        <!-- 匯出區 -->
+        <div id="meetings-export-wrap" style="margin-top:16px; padding:14px; background:#0f172a; border-radius:12px; border:1px solid var(--border);">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+            <p style="font-size:12px; color:var(--text-muted); margin:0;">選擇要匯出的記錄</p>
+            <button id="meeting-select-all-btn" class="btn btn-ghost btn-sm">全選</button>
+          </div>
+          <div id="meeting-export-checklist" style="margin-bottom:12px; max-height:200px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;"></div>
+          <button id="meeting-export-pdf-btn" class="btn btn-primary" style="width:100%; justify-content:center;">📄 匯出已選記錄 PDF</button>
+        </div>
+      </div>
+
+      <!-- Gantt tab -->
+      <div id="dtab-gantt" class="dtab-content hidden">
+        <div id="gantt-designer-tools" style="margin-bottom:16px;">
+          <p style="font-size:13px; color:var(--text-muted); margin-bottom:10px;">為各工班新增施工時段（可分次進場）</p>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
+            <div>
+              <label>工班</label>
+              <select id="gantt-worker-select" class="input">
+                <option value="">— 選擇工班 —</option>
+              </select>
+            </div>
+            <div>
+              <label>說明（選填）</label>
+              <input id="gantt-segment-label" class="input" placeholder="例：一期紮筋">
+            </div>
+            <div>
+              <label>開始日期</label>
+              <input id="gantt-start" class="input" type="date">
+            </div>
+            <div>
+              <label>結束日期</label>
+              <input id="gantt-end" class="input" type="date">
+            </div>
+          </div>
+          <button id="gantt-add-btn" class="btn btn-primary btn-sm" style="margin-bottom:16px;">＋ 新增時段</button>
+        </div>
+
+        <!-- Gantt chart canvas area -->
+        <div id="gantt-chart-wrap" style="overflow-x:auto; margin-bottom:16px;">
+          <canvas id="gantt-canvas" style="min-width:500px;"></canvas>
+        </div>
+
+        <!-- Segments list -->
+        <div id="gantt-segments-list" style="margin-bottom:16px;"></div>
+        <div id="gantt-empty" class="empty-state hidden"><div class="empty-icon">📅</div><p>尚無施工時段，請新增</p></div>
+
+        <div id="gantt-export-wrap">
+          <button id="gantt-export-pdf-btn" class="btn btn-primary" style="width:100%; justify-content:center;">📄 匯出 PDF 甘特圖</button>
+        </div>
+      </div>
+
+      <!-- Notify tab -->
+      <div id="dtab-notify" class="dtab-content hidden">
+        <div style="margin-bottom:10px;">
+          <label>今日進場工班</label>
+          <select id="notify-team" class="input">
+            <option value="">— 選擇工班 —</option>
+          </select>
+        </div>
+        <div style="margin-bottom:10px;">
+          <label>通知訊息</label>
+          <textarea id="notify-message" class="input" placeholder="例：今日鋼筋工班進場，請配合施工區域管制..."></textarea>
+        </div>
+        <button id="notify-send-btn" class="btn btn-primary" style="width:100%; justify-content:center;">📣 發送通知</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Worker Modal -->
+<div id="worker-modal" class="modal-overlay hidden">
+  <div class="modal-box fade-in">
+    <div class="modal-header">
+      <h2 style="font-size:16px;">工班帳號管理</h2>
+      <button class="modal-close btn btn-ghost btn-sm" data-modal="worker-modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:10px;"><label>帳號</label><input id="wm-account" class="input" placeholder="工班帳號"></div>
+      <div style="margin-bottom:10px;"><label>密碼</label><input id="wm-password" class="input" type="password" placeholder="密碼"></div>
+      <div style="margin-bottom:16px;"><label>工班名稱</label><input id="wm-name" class="input" placeholder="例：鋼筋工班、水電工班"></div>
+      <button id="wm-add-btn" class="btn btn-primary" style="width:100%; justify-content:center; margin-bottom:16px;">新增工班</button>
+      <div id="workers-list-modal"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm -->
+<div id="delete-modal" class="modal-overlay hidden">
+  <div class="modal-box fade-in" style="max-width:340px;">
+    <div class="modal-body" style="text-align:center; padding:32px 24px;">
+      <div style="font-size:40px; margin-bottom:12px;">🗑️</div>
+      <h2 style="font-size:16px; margin-bottom:8px;">確定要刪除？</h2>
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:24px;">此操作無法復原</p>
+      <div style="display:flex; gap:10px; justify-content:center;">
+        <button id="delete-confirm-btn" class="btn btn-danger">確定刪除</button>
+        <button class="modal-close btn btn-ghost" data-modal="delete-modal">取消</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
-const PU='https://jikwrufwagfjdfzhomle.supabase.co';
-const AK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imppa3dydWZ3YWdmamRmemhvbWxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0Nzg5MzYsImV4cCI6MjA5MzA1NDkzNn0.bDXPFk0nB80JLKfZ9yWiCHLV6JhCC8lJhEpfPyjT0ag';
-const H={'apikey':AK,'Authorization':'Bearer '+AK,'Content-Type':'application/json','Prefer':'return=representation'};
-const api=t=>PU+'/rest/v1/'+t;
-const ST=PU+'/storage/v1/object/site_photos';
-let CU=null,filt='all',lbI=[],lbX=0;
-let D={projects:[],users:[],stages:[],reports:[],notifs:[]};
+// ══════════════════════════════════════════
+//  SUPABASE 設定
+// ══════════════════════════════════════════
+const SUPABASE_URL  = 'https://jikwrufwagfjdfzhomle.supabase.co';
+const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imppa3dydWZ3YWdmamRmemhvbWxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0Nzg5MzYsImV4cCI6MjA5MzA1NDkzNn0.bDXPFk0nB80JLKfZ9yWiCHLV6JhCC8lJhEpfPyjT0ag';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const GET=async(t,q)=>{try{const r=await fetch(api(t)+'?'+(q||'')+'&limit=500',{headers:H});return r.ok?await r.json():[];}catch{return[];}};
-const POST=async(t,d)=>{try{const r=await fetch(api(t),{method:'POST',headers:H,body:JSON.stringify(d)});if(!r.ok)return null;const x=await r.json();return Array.isArray(x)?x[0]:x;}catch{return null;}};
-const PATCH=async(t,id,d)=>{try{const r=await fetch(api(t)+'?id=eq.'+id,{method:'PATCH',headers:H,body:JSON.stringify(d)});return r.ok;}catch{return false;}};
-const DEL=async(t,id)=>{try{await fetch(api(t)+'?id=eq.'+id,{method:'DELETE',headers:H});return true;}catch{return false;}};
-const UP=async f=>{
-  const n='img_'+Date.now()+'_'+Math.random().toString(36).substr(2,5)+'.jpg';
-  try{const r=await fetch(ST+'/'+n,{method:'POST',headers:{'apikey':AK,'Authorization':'Bearer '+AK,'Content-Type':f.type,'x-upsert':'true'},body:f});
-  return r.ok?PU+'/storage/v1/object/public/site_photos/'+n:null;}catch{return null;}
+// ══════════════════════════════════════════
+//  商標設定（從 Supabase organizations 讀取）
+// ══════════════════════════════════════════
+const APP_CONFIG = {
+  logo_url: '',
+  app_name: '工程案場管理系統',
+  app_subtitle: '施工管理平台',
 };
 
-async function loadAll(){
-  const[p,u,s,r,n]=await Promise.all([
-    GET('projects','order=created_at.desc'),
-    GET('users','order=name.asc'),
-    GET('project_stages','order=sort_order.asc'),
-    GET('progress_reports','order=timestamp.desc'),
-    GET('site_notifications','order=notify_date.asc'),
+// ══════════════════════════════════════════
+//  資料層（Supabase）
+// ══════════════════════════════════════════
+
+// 本地快取（從 Supabase 載入後存這裡）
+let DB = {
+  users: [],
+  projects: [],
+  photos: [],
+  meetings: [],
+  notifications: [],
+  gantt_segments: [],
+};
+
+let currentUser = null;
+let currentProject = null;
+let pendingDeleteId = null;
+let nextId = 100;
+
+function genId() { return 'id' + (++nextId); }
+
+// ══════════════════════════════════════════
+//  UTILITIES
+// ══════════════════════════════════════════
+
+function statusBadge(status) {
+  const map = { '待開工': 'badge-pending', '進行中': 'badge-active', '已完工': 'badge-done', '暫停': 'badge-paused' };
+  const dot = { '待開工': '⏳', '進行中': '🟢', '已完工': '✅', '暫停': '🔴' };
+  return `<span class="badge ${map[status]||''}">${dot[status]||''} ${status}</span>`;
+}
+
+function showToast(msg, type = 'success') {
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2800);
+}
+
+function showModal(id) { document.getElementById(id).classList.remove('hidden'); }
+function hideModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+function getUserName(uid) {
+  const u = DB.users.find(u => u.id === uid);
+  return u ? (u.display_name || u.name || '未知') : '未知';
+}
+
+// ══════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════
+
+document.getElementById('login-btn').onclick = doLogin;
+document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+// 移除 demo 登入按鈕（已接 Supabase）
+document.querySelectorAll('.demo-login-btn').forEach(btn => btn.style.display = 'none');
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw    = document.getElementById('login-password').value;
+  if (!email || !pw) { showToast('請輸入帳號與密碼', 'error'); return; }
+
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true; btn.textContent = '登入中...';
+
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
+    if (error) { showToast('帳號或密碼錯誤', 'error'); return; }
+
+    // Load profile
+    const { data: profile, error: pe } = await sb
+      .from('profiles')
+      .select('*, organizations(id, name, brand_config)')
+      .eq('id', data.user.id)
+      .single();
+
+    if (pe || !profile) { showToast('找不到使用者資料', 'error'); return; }
+
+    currentUser = {
+      id: data.user.id,
+      email: data.user.email,
+      role: profile.role,
+      name: profile.display_name,
+      org_id: profile.org_id,
+      org: profile.organizations,
+    };
+
+    // Apply org brand config
+    if (profile.organizations?.brand_config) {
+      Object.assign(APP_CONFIG, profile.organizations.brand_config);
+    }
+
+    await loadOrgData();
+    enterApp();
+  } catch(e) {
+    showToast('登入失敗，請再試一次', 'error');
+    console.error(e);
+  } finally {
+    btn.disabled = false; btn.textContent = '登入';
+  }
+}
+
+// ── 載入組織資料 ─────────────────────────────────────────
+async function loadOrgData() {
+  if (!currentUser?.org_id) return;
+  const org = currentUser.org_id;
+
+  // Load workers (profiles in same org)
+  const { data: users } = await sb.from('profiles').select('*').eq('org_id', org);
+  DB.users = users || [];
+
+  // Load projects
+  let projectsQuery = sb.from('projects')
+    .select('*, project_members(user_id), design_companies(id,name,color)')
+    .eq('org_id', org)
+    .order('created_at', { ascending: false });
+
+  if (currentUser.role === 'worker') {
+    const { data: myProjects } = await sb
+      .from('project_members').select('project_id').eq('user_id', currentUser.id);
+    const ids = (myProjects || []).map(m => m.project_id);
+    if (ids.length === 0) { DB.projects = []; }
+    else {
+      projectsQuery = sb.from('projects')
+        .select('*, project_members(user_id), design_companies(id,name,color)')
+        .in('id', ids).order('created_at', { ascending: false });
+    }
+  }
+
+  const { data: projects } = await projectsQuery;
+  DB.projects = (projects || []).map(p => ({
+    ...p,
+    workers: (p.project_members || []).map(m => m.user_id),
+    design_company: p.design_companies || null,
+  }));
+
+  // Load notifications
+  const { data: notifs } = await sb.from('notifications')
+    .select('*, notification_reads(user_id)')
+    .eq('org_id', org).order('created_at', { ascending: false });
+  DB.notifications = (notifs || []).map(n => ({
+    ...n,
+    read_by: (n.notification_reads || []).map(r => r.user_id),
+  }));
+}
+
+// ── 登出 ──────────────────────────────────────────────────
+document.getElementById('logout-btn').onclick = async () => {
+  await sb.auth.signOut();
+  currentUser = null;
+  DB = { users: [], projects: [], photos: [], meetings: [], notifications: [], gantt_segments: [] };
+  document.getElementById('page-app').classList.remove('active');
+  // ══════════════════════════════════════════
+//  BRAND SETTINGS
+// ══════════════════════════════════════════
+
+function loadBrandConfig() {
+  try {
+    const saved = localStorage.getItem('app_brand_config');
+    if (saved) Object.assign(APP_CONFIG, JSON.parse(saved));
+  } catch(e) {}
+}
+
+function saveBrandConfig() {
+  try {
+    localStorage.setItem('app_brand_config', JSON.stringify(APP_CONFIG));
+  } catch(e) {}
+}
+
+// Show brand settings button for designer only
+function initBrandButton() {
+  const btn = document.getElementById('brand-settings-btn');
+  if (currentUser?.role === 'designer' || currentUser?.role === 'author') {
+    btn.style.display = '';
+  }
+}
+
+document.getElementById('brand-settings-btn').onclick = () => {
+  // Populate modal with current config
+  document.getElementById('brand-name').value = APP_CONFIG.app_name;
+  document.getElementById('brand-subtitle').value = APP_CONFIG.app_subtitle;
+
+  const previewImg = document.getElementById('brand-logo-preview-img');
+  const previewFallback = document.getElementById('brand-logo-preview-fallback');
+  const clearBtn = document.getElementById('brand-logo-clear-btn');
+
+  if (APP_CONFIG.logo_url) {
+    previewImg.src = APP_CONFIG.logo_url;
+    previewImg.style.display = '';
+    previewFallback.style.display = 'none';
+    clearBtn.style.display = '';
+  } else {
+    previewImg.style.display = 'none';
+    previewFallback.style.display = '';
+    clearBtn.style.display = 'none';
+  }
+
+  showModal('brand-modal');
+};
+
+// Logo upload
+const brandLogoInput = document.getElementById('brand-logo-input');
+const brandLogoDrop  = document.getElementById('brand-logo-drop');
+
+brandLogoDrop.onclick = () => brandLogoInput.click();
+brandLogoDrop.ondragover = e => { e.preventDefault(); brandLogoDrop.classList.add('drag-over'); };
+brandLogoDrop.ondragleave = () => brandLogoDrop.classList.remove('drag-over');
+brandLogoDrop.ondrop = e => {
+  e.preventDefault();
+  brandLogoDrop.classList.remove('drag-over');
+  if (e.dataTransfer.files[0]) handleBrandLogoFile(e.dataTransfer.files[0]);
+};
+brandLogoInput.onchange = () => {
+  if (brandLogoInput.files[0]) handleBrandLogoFile(brandLogoInput.files[0]);
+};
+
+function handleBrandLogoFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    const previewImg = document.getElementById('brand-logo-preview-img');
+    const previewFallback = document.getElementById('brand-logo-preview-fallback');
+    previewImg.src = dataUrl;
+    previewImg.style.display = '';
+    previewFallback.style.display = 'none';
+    document.getElementById('brand-logo-clear-btn').style.display = '';
+    // Temporarily store in APP_CONFIG for preview
+    APP_CONFIG._pending_logo = dataUrl;
+  };
+  reader.readAsDataURL(file);
+}
+
+document.getElementById('brand-logo-clear-btn').onclick = () => {
+  APP_CONFIG._pending_logo = '';
+  const previewImg = document.getElementById('brand-logo-preview-img');
+  previewImg.src = '';
+  previewImg.style.display = 'none';
+  document.getElementById('brand-logo-preview-fallback').style.display = '';
+  document.getElementById('brand-logo-clear-btn').style.display = 'none';
+  brandLogoInput.value = '';
+};
+
+document.getElementById('brand-save-btn').onclick = async () => {
+  const name     = document.getElementById('brand-name').value.trim();
+  const subtitle = document.getElementById('brand-subtitle').value.trim();
+
+  if (!name) { showToast('請輸入系統名稱', 'error'); return; }
+
+  APP_CONFIG.app_name    = name;
+  APP_CONFIG.app_subtitle = subtitle;
+
+  // Apply pending logo if any
+  if (APP_CONFIG._pending_logo !== undefined) {
+    APP_CONFIG.logo_url = APP_CONFIG._pending_logo;
+    delete APP_CONFIG._pending_logo;
+  }
+
+  saveBrandConfig(); // localStorage backup
+  // Save to Supabase organizations table
+  try {
+    await sb.from('organizations').update({
+      brand_config: {
+        app_name:    APP_CONFIG.app_name,
+        app_subtitle: APP_CONFIG.app_subtitle,
+        logo_url:    APP_CONFIG.logo_url,
+      }
+    }).eq('id', currentUser.org_id);
+  } catch(e) { console.warn('品牌設定 Supabase 儲存失敗，已存 localStorage', e); }
+
+  applyAppConfig();
+  hideModal('brand-modal');
+  showToast('品牌設定已儲存');
+};
+
+// 套用商標設定
+function applyAppConfig() {
+  const { logo_url, app_name, app_subtitle } = APP_CONFIG;
+
+  // Login page
+  document.getElementById('login-app-name').textContent = app_name;
+  document.getElementById('login-app-subtitle').textContent = app_subtitle || '請登入以繼續';
+
+  // Header
+  document.getElementById('header-app-name').textContent = app_name;
+
+  if (logo_url) {
+    // Show logo image, hide emoji fallback
+    const loginImg = document.getElementById('login-logo-img');
+    const headerImg = document.getElementById('header-logo-img');
+    loginImg.src = logo_url;
+    headerImg.src = logo_url;
+    loginImg.style.display = '';
+    headerImg.style.display = '';
+    document.getElementById('login-logo-fallback').style.display = 'none';
+    document.getElementById('header-logo-fallback').style.display = 'none';
+  }
+}
+
+loadBrandConfig();
+applyAppConfig();
+document.getElementById('page-login').classList.add('active');
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-password').value = '';
+};
+
+function enterApp() {
+  document.getElementById('page-login').classList.remove('active');
+  document.getElementById('page-app').classList.add('active');
+
+  const roleLabel = { designer: '設計師（管理員）', worker: '工班' };
+  document.getElementById('user-role-label').textContent = roleLabel[currentUser.role] + ' · ' + currentUser.name;
+  document.getElementById('user-avatar').textContent = currentUser.name[0];
+
+  // Setup nav for role
+  const dashboardNav = document.getElementById('nav-dashboard');
+  if (currentUser.role === 'worker') {
+    dashboardNav.querySelector('span:last-child').textContent = '我的案場';
+    dashboardNav.dataset.section = 'worker';
+  } else {
+    dashboardNav.querySelector('span:last-child').textContent = '儀表板';
+    dashboardNav.dataset.section = 'dashboard';
+  }
+
+  // Designer-only features
+  const isDesigner = currentUser.role === 'designer' || currentUser.role === 'author';
+  document.getElementById('designer-add-btn').style.display = isDesigner ? '' : 'none';
+  document.getElementById('designer-add-worker-btn').style.display = isDesigner ? '' : 'none';
+  document.getElementById('tab-notify-btn').style.display = isDesigner ? '' : 'none';
+  document.getElementById('designer-actions').style.display = isDesigner ? '' : 'none';
+  document.getElementById('meeting-form-wrap').style.display = isDesigner ? '' : 'none';
+  document.getElementById('upload-zone-wrap').style.display = ''; // workers can upload
+  document.getElementById('brand-settings-btn').style.display = isDesigner ? '' : 'none';
+
+  navigateTo(currentUser.role === 'worker' ? 'worker' : 'dashboard');
+  updateNotifBadge();
+  initBrandButton();
+}
+
+// ══════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════
+
+document.querySelectorAll('.nav-link').forEach(btn => {
+  btn.onclick = () => navigateTo(btn.dataset.section);
+});
+
+function navigateTo(section) {
+  document.querySelectorAll('.nav-link').forEach(b => b.classList.toggle('active', b.dataset.section === section));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById('section-' + section);
+  if (target) target.classList.add('active');
+  if (section === 'dashboard') renderDashboard();
+  if (section === 'worker') renderWorkerView();
+  if (section === 'notifications') renderNotifications();
+}
+
+// ══════════════════════════════════════════
+//  DASHBOARD (Designer)
+// ══════════════════════════════════════════
+
+function renderDashboard() {
+  const org = currentUser.org_id;
+  const projects = DB.projects.filter(p => p.org_id === org);
+
+  document.getElementById('stat-total').textContent = projects.length;
+  document.getElementById('stat-active').textContent = projects.filter(p => p.status === '進行中').length;
+  document.getElementById('stat-done').textContent = projects.filter(p => p.status === '已完工').length;
+  document.getElementById('stat-pending').textContent = projects.filter(p => p.status === '待開工').length;
+
+  const grid = document.getElementById('project-grid');
+  const empty = document.getElementById('project-empty');
+  if (projects.length === 0) { grid.innerHTML = ''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+
+  grid.innerHTML = projects.map(p => `
+    <div class="card fade-in" style="cursor:pointer;" onclick="openDetail('${p.id}')">
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:10px;">
+        <h3 style="font-size:15px; flex:1; padding-right:8px;">${p.name}</h3>
+        ${statusBadge(p.status)}
+      </div>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">📍 ${p.location || '—'} &nbsp;·&nbsp; 👷 ${p.manager || '—'}</p>
+      <div style="margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-bottom:5px;"><span>進度</span><span>${p.progress}%</span></div>
+        <div class="progress-track"><div class="progress-fill" style="width:${p.progress}%"></div></div>
+      </div>
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        ${p.workers.map(wid => `<span style="font-size:11px; background:rgba(255,255,255,.07); padding:2px 8px; border-radius:6px; color:var(--text-muted);">${getUserName(wid)}</span>`).join('')}
+        ${p.workers.length === 0 ? '<span style="font-size:11px; color:#475569;">尚無工班</span>' : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ══════════════════════════════════════════
+//  WORKER VIEW
+// ══════════════════════════════════════════
+
+function renderWorkerView() {
+  const myProjects = DB.projects.filter(p => p.workers.includes(currentUser.id));
+  const grid = document.getElementById('worker-project-grid');
+  const empty = document.getElementById('worker-empty');
+
+  if (myProjects.length === 0) { grid.innerHTML = ''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+
+  grid.innerHTML = myProjects.map(p => `
+    <div class="card fade-in" style="cursor:pointer;" onclick="openDetail('${p.id}')">
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:10px;">
+        <h3 style="font-size:15px; flex:1; padding-right:8px;">${p.name}</h3>
+        ${statusBadge(p.status)}
+      </div>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">📍 ${p.location || '—'}</p>
+      <div style="margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-bottom:5px;"><span>進度</span><span>${p.progress}%</span></div>
+        <div class="progress-track"><div class="progress-fill" style="width:${p.progress}%"></div></div>
+      </div>
+      <button class="btn btn-primary btn-sm" style="width:100%; justify-content:center;" onclick="event.stopPropagation(); openDetail('${p.id}')">查看 / 上傳照片</button>
+    </div>
+  `).join('');
+}
+
+// ══════════════════════════════════════════
+//  PROJECT DETAIL MODAL
+// ══════════════════════════════════════════
+
+async function openDetail(projectId) {
+  currentProject = DB.projects.find(p => p.id === projectId);
+  if (!currentProject) return;
+
+  // Load project-specific data from Supabase
+  const [photosRes, meetingsRes, ganttRes] = await Promise.all([
+    sb.from('photos').select('*').eq('project_id', projectId).order('created_at', { ascending: false }),
+    sb.from('meetings').select('*').eq('project_id', projectId).order('meeting_date', { ascending: true }),
+    sb.from('gantt_segments').select('*').eq('project_id', projectId).order('sort_order'),
   ]);
-  D={projects:p,users:u,stages:s,reports:r,notifs:n};
+  DB.photos    = photosRes.data    || [];
+  DB.meetings  = meetingsRes.data  || [];
+  DB.gantt_segments = (ganttRes.data || []).map(s => ({ ...s, start: s.start_date, end: s.end_date }));
+
+  document.getElementById('detail-title').textContent = currentProject.name;
+  document.getElementById('d-status').innerHTML = statusBadge(currentProject.status);
+  document.getElementById('d-manager').textContent = currentProject.manager || '—';
+  document.getElementById('d-location').textContent = currentProject.location || '—';
+  document.getElementById('d-dates').textContent = `${currentProject.start_date || '?'} ～ ${currentProject.end_date || '?'}`;
+  document.getElementById('d-progress-bar').style.width = currentProject.progress + '%';
+  document.getElementById('d-progress-pct').textContent = currentProject.progress + '%';
+  document.getElementById('d-notes').textContent = currentProject.notes || '—';
+
+  // Workers
+  const workersEl = document.getElementById('d-workers');
+  workersEl.innerHTML = currentProject.workers.length
+    ? currentProject.workers.map(wid => `<span class="badge" style="background:rgba(255,255,255,.08); color:var(--text-muted);">👷 ${getUserName(wid)}</span>`).join('')
+    : '<span style="font-size:12px; color:#475569;">尚無指定工班</span>';
+
+  // Notify team dropdown
+  const notifySelect = document.getElementById('notify-team');
+  notifySelect.innerHTML = '<option value="">— 選擇工班 —</option>' +
+    currentProject.workers.map(wid => `<option value="${wid}">${getUserName(wid)}</option>`).join('');
+
+  switchDetailTab('overview');
+  renderPhotos();
+  renderMeetings();
+  showModal('detail-modal');
 }
 
-window.onload=async()=>{
-  const sid=localStorage.getItem('uid');
-  if(sid){await loadAll();const u=D.users.find(x=>x.id==sid);if(u){CU=u;login();return;}}
+// Detail tabs
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.onclick = () => switchDetailTab(btn.dataset.tab);
+});
+
+function switchDetailTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.dtab-content').forEach(c => c.classList.add('hidden'));
+  const el = document.getElementById('dtab-' + tab);
+  if (el) el.classList.remove('hidden');
+}
+
+// Edit from detail
+document.getElementById('d-edit-btn').onclick = () => {
+  hideModal('detail-modal');
+  openProjectModal(currentProject);
 };
 
-async function doLogin(){
-  const id=document.getElementById('li').value.trim(),pw=document.getElementById('lp').value.trim();
-  if(!id||!pw)return setMsg('請輸入帳號密碼');
-  setMsg('驗證中...');await loadAll();
-  const u=D.users.find(x=>x.name===id&&x.password===pw);
-  if(!u)return setMsg('帳號或密碼錯誤');
-  CU=u;localStorage.setItem('uid',u.id);login();
-}
-function setMsg(m){document.getElementById('lmsg').innerText=m;}
-function login(){
-  document.getElementById('login-screen').classList.add('hidden');
-  const rl={admin:'管理員',manager:'設計師',worker:'工班'};
-  document.getElementById('urd').innerText=CU.name+' · '+(rl[CU.role]||CU.role);
-  buildNav();navTo(CU.role==='worker'?'worker':'projects');
-}
-function logout(){localStorage.removeItem('uid');location.reload();}
+document.getElementById('d-delete-btn').onclick = () => {
+  pendingDeleteId = currentProject.id;
+  hideModal('detail-modal');
+  showModal('delete-modal');
+};
 
-function buildNav(){
-  const pages=CU.role==='worker'?[
-    {id:'worker',label:'任務',d:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'}
-  ]:[
-    {id:'projects',label:'案場',d:'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z'},
-    {id:'admin',label:'帳號',d:'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75'},
-  ];
-  document.getElementById('bnav').innerHTML=pages.map(p=>'<button onclick="navTo(\''+p.id+'\')" class="nav-btn" id="nb-'+p.id+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="'+p.d+'"/></svg>'+p.label+'</button>').join('');
+// ══════════════════════════════════════════
+//  PHOTOS
+// ══════════════════════════════════════════
+
+const dropZone = document.getElementById('photo-drop-zone');
+const photoInput = document.getElementById('photo-input');
+
+dropZone.onclick = () => photoInput.click();
+dropZone.ondragover = e => { e.preventDefault(); dropZone.classList.add('drag-over'); };
+dropZone.ondragleave = () => dropZone.classList.remove('drag-over');
+dropZone.ondrop = e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  handlePhotoFiles(e.dataTransfer.files);
+};
+photoInput.onchange = () => handlePhotoFiles(photoInput.files);
+document.getElementById('photo-upload-btn').onclick = () => photoInput.click();
+
+async function handlePhotoFiles(files) {
+  if (!files.length || !currentProject) return;
+  const desc = document.getElementById('photo-desc').value;
+  const btn  = document.getElementById('photo-upload-btn');
+  btn.disabled = true; btn.textContent = '上傳中...';
+
+  let done = 0;
+  const errors = [];
+
+  for (const file of [...files]) {
+    try {
+      const ext  = file.name.split('.').pop();
+      const path = `${currentUser.org_id}/${currentProject.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+
+      // Upload to Supabase Storage
+      const { error: upErr } = await sb.storage.from('project-photos').upload(path, file);
+      if (upErr) throw upErr;
+
+      // Get public URL
+      const { data: urlData } = sb.storage.from('project-photos').getPublicUrl(path);
+
+      // Save record to DB
+      const { error: dbErr } = await sb.from('photos').insert({
+        project_id:  currentProject.id,
+        uploader_id: currentUser.id,
+        storage_url: urlData.publicUrl,
+        description: desc,
+      });
+      if (dbErr) throw dbErr;
+      done++;
+    } catch(e) {
+      errors.push(e.message);
+      console.error(e);
+    }
+  }
+
+  photoInput.value = '';
+  document.getElementById('photo-desc').value = '';
+
+  // Reload photos
+  await loadProjectPhotos(currentProject.id);
+  renderPhotos();
+
+  if (errors.length) showToast(`上傳部分失敗：${errors[0]}`, 'error');
+  else showToast(`已上傳 ${done} 張照片`);
+
+  btn.disabled = false; btn.textContent = '上傳';
 }
 
-function navTo(p){
-  ['projects','detail','worker','admin'].forEach(v=>{
-    document.getElementById('page-'+v).classList.add('hidden');
-    const b=document.getElementById('nb-'+v);if(b)b.classList.remove('active');
+async function loadProjectPhotos(projectId) {
+  const { data } = await sb.from('photos')
+    .select('*')
+    .eq('project_id', projectId)
+    .order('created_at', { ascending: false });
+  DB.photos = data || [];
+}
+
+function renderPhotos() {
+  if (!currentProject) return;
+  const photos = DB.photos.filter(ph => ph.project_id === currentProject.id);
+  const grid = document.getElementById('photo-grid');
+  const empty = document.getElementById('photo-empty');
+
+  if (photos.length === 0) { grid.innerHTML = ''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+
+  grid.innerHTML = photos.map(ph => {
+    const canDelete = currentUser.role === 'designer' || ph.uploader_id === currentUser.id;
+    const imgSrc = ph.storage_url || ph.url || '';
+    return `
+      <div style="display:flex; flex-direction:column; gap:4px;">
+        <div class="photo-item">
+          <img src="${imgSrc}" alt="${ph.description || ''}">
+          ${canDelete ? `
+            <div class="del-overlay">
+              <button onclick="deletePhoto('${ph.id}')" style="background:var(--red); border:none; color:white; border-radius:8px; padding:6px 12px; font-size:12px; cursor:pointer;">🗑 刪除</button>
+            </div>
+          ` : ''}
+        </div>
+        <div style="padding:0 2px;">
+          ${ph.description ? `<p style="font-size:11px; font-weight:600; color:var(--text); margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ph.description}</p>` : ''}
+          <p style="font-size:10px; color:var(--text-muted); margin:0;">📅 ${ph.created_at}</p>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function deletePhoto(id) {
+  const photo = DB.photos.find(ph => ph.id === id);
+  if (!photo) return;
+  try {
+    // Delete from storage
+    const url = photo.storage_url;
+    const path = url.split('/project-photos/')[1];
+    if (path) await sb.storage.from('project-photos').remove([path]);
+    // Delete record
+    await sb.from('photos').delete().eq('id', id);
+    await loadProjectPhotos(currentProject.id);
+    renderPhotos();
+    showToast('照片已刪除');
+  } catch(e) {
+    showToast('刪除失敗', 'error');
+  }
+}
+
+// ══════════════════════════════════════════
+//  MEETINGS
+// ══════════════════════════════════════════
+
+document.getElementById('meeting-save-btn').onclick = saveMeeting;
+
+async function saveMeeting() {
+  const meetingDate = document.getElementById('meeting-date').value;
+  const attendees   = document.getElementById('meeting-attendees').value.trim();
+  const content     = document.getElementById('meeting-content').value.trim();
+  const editId      = document.getElementById('meeting-editing-id').value;
+
+  if (!meetingDate) { showToast('請選擇會議日期', 'error'); return; }
+  if (!attendees || !content) { showToast('請填寫出席人員與記錄', 'error'); return; }
+
+  const btn = document.getElementById('meeting-save-btn');
+  btn.disabled = true;
+
+  try {
+    if (editId) {
+      await sb.from('meetings').update({ meeting_date: meetingDate, attendees, content }).eq('id', editId);
+      document.getElementById('meeting-editing-id').value = '';
+      btn.textContent = '新增記錄';
+    } else {
+      await sb.from('meetings').insert({
+        project_id: currentProject.id,
+        meeting_date: meetingDate,
+        attendees,
+        content,
+        created_by: currentUser.id,
+      });
+    }
+    // Reload
+    const { data } = await sb.from('meetings').select('*').eq('project_id', currentProject.id).order('meeting_date');
+    DB.meetings = data || [];
+    document.getElementById('meeting-date').value = '';
+    document.getElementById('meeting-attendees').value = '';
+    document.getElementById('meeting-content').value = '';
+    renderMeetings();
+    showToast('會議記錄已儲存');
+  } catch(e) {
+    showToast('儲存失敗：' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function renderMeetings() {
+  if (!currentProject) return;
+  const meetings = DB.meetings.filter(m => m.project_id === currentProject.id);
+  const list = document.getElementById('meetings-list');
+  const empty = document.getElementById('meetings-empty');
+
+  if (meetings.length === 0) { list.innerHTML = ''; empty.classList.remove('hidden'); renderMeetingChecklist([]); return; }
+  empty.classList.add('hidden');
+
+  const sorted = [...meetings].sort((a, b) => a.meeting_date.localeCompare(b.meeting_date));
+  list.innerHTML = sorted.map(m => `
+    <div style="background:#0f172a; border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:8px;">
+      <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:6px;">
+        <p style="font-size:13px; font-weight:600;">${m.attendees}</p>
+        <span style="font-size:11px; color:var(--text-muted);">${m.meeting_date.replace(/-/g, '/')}</span>
+      </div>
+      <p style="font-size:13px; color:var(--text-muted); white-space:pre-wrap;">${m.content}</p>
+      ${currentUser.role === 'designer' ? `
+        <div style="display:flex; gap:6px; margin-top:8px;">
+          <button class="btn btn-ghost btn-sm" onclick="editMeeting('${m.id}')">✏️ 編輯</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteMeeting('${m.id}')">🗑 刪除</button>
+        </div>
+      ` : ''}
+    </div>
+  `).join('');
+  renderMeetingChecklist(meetings);
+}
+
+function renderMeetingChecklist(meetings) {
+  const wrap = document.getElementById('meeting-export-checklist');
+  if (!wrap) return;
+  const sorted = [...meetings].sort((a, b) => a.meeting_date.localeCompare(b.meeting_date));
+  if (sorted.length === 0) {
+    wrap.innerHTML = '<p style="font-size:12px; color:var(--text-muted); text-align:center; padding:8px 0;">尚無會議記錄</p>';
+    return;
+  }
+  wrap.innerHTML = sorted.map(m => `
+    <label style="display:flex; align-items:flex-start; gap:10px; padding:8px 10px;
+      background:var(--surface); border:1px solid var(--border); border-radius:8px;
+      cursor:pointer; margin:0;">
+      <input type="checkbox" class="meeting-export-check" value="${m.id}"
+        style="accent-color:var(--amber); margin-top:2px; width:16px; height:16px; flex-shrink:0;">
+      <div>
+        <p style="font-size:12px; font-weight:600; margin:0; color:var(--text);">${m.meeting_date.replace(/-/g, '/')} · ${m.attendees}</p>
+        <p style="font-size:11px; color:var(--text-muted); margin:2px 0 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:320px;">${m.content.slice(0, 60)}${m.content.length > 60 ? '...' : ''}</p>
+      </div>
+    </label>
+  `).join('');
+}
+
+document.getElementById('meeting-select-all-btn').onclick = () => {
+  const checks = document.querySelectorAll('.meeting-export-check');
+  const allChecked = [...checks].every(c => c.checked);
+  checks.forEach(c => c.checked = !allChecked);
+  document.getElementById('meeting-select-all-btn').textContent = allChecked ? '全選' : '取消全選';
+};
+
+function editMeeting(id) {
+  const m = DB.meetings.find(m => m.id === id);
+  if (!m) return;
+  document.getElementById('meeting-date').value = m.meeting_date;
+  document.getElementById('meeting-attendees').value = m.attendees;
+  document.getElementById('meeting-content').value = m.content;
+  document.getElementById('meeting-editing-id').value = m.id;
+  document.getElementById('meeting-save-btn').textContent = '更新記錄';
+  // Scroll form into view
+  document.getElementById('meeting-form-wrap').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function deleteMeeting(id) {
+  await sb.from('meetings').delete().eq('id', id);
+  DB.meetings = DB.meetings.filter(m => m.id !== id);
+  renderMeetings();
+  showToast('記錄已刪除');
+}
+
+// ══════════════════════════════════════════
+//  NOTIFICATIONS
+// ══════════════════════════════════════════
+
+document.getElementById('notify-send-btn').onclick = sendNotification;
+
+async function sendNotification() {
+  const team    = document.getElementById('notify-team').value;
+  const message = document.getElementById('notify-message').value.trim();
+  if (!message) { showToast('請輸入通知訊息', 'error'); return; }
+
+  const teamName = team ? getUserName(team) : '所有工班';
+  const fullMsg  = `【${currentProject.name}】${teamName} — ${message}`;
+
+  try {
+    await sb.from('notifications').insert({
+      org_id:     currentUser.org_id,
+      project_id: currentProject.id,
+      sender_id:  currentUser.id,
+      message:    fullMsg,
+    });
+    // Reload notifications
+    const { data } = await sb.from('notifications')
+      .select('*, notification_reads(user_id)')
+      .eq('org_id', currentUser.org_id)
+      .order('created_at', { ascending: false });
+    DB.notifications = (data || []).map(n => ({
+      ...n, read_by: (n.notification_reads || []).map(r => r.user_id),
+    }));
+    document.getElementById('notify-message').value = '';
+    document.getElementById('notify-team').value = '';
+    updateNotifBadge();
+    showToast('通知已發送 📣');
+    hideModal('detail-modal');
+  } catch(e) {
+    showToast('發送失敗：' + e.message, 'error');
+  }
+}
+
+function renderNotifications() {
+  const notifs = DB.notifications.filter(n => n.org_id === currentUser.org_id);
+  const list = document.getElementById('notif-list');
+  const empty = document.getElementById('notif-empty');
+
+  if (notifs.length === 0) { list.innerHTML = ''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+
+  list.innerHTML = notifs.map(n => {
+    const isUnread = !n.read_by.includes(currentUser.id);
+    return `
+      <div class="notif-item ${isUnread ? 'unread' : ''}" onclick="markRead('${n.id}')">
+        <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:4px;">
+          <span style="font-size:12px; color:var(--text-muted);">📣 ${getUserName(n.sender_id)}</span>
+          <span style="font-size:11px; color:#475569;">${n.created_at}</span>
+        </div>
+        <p style="font-size:14px;">${n.message}</p>
+        ${isUnread ? '<div style="margin-top:6px;"><span style="font-size:11px; color:var(--amber);">● 未讀</span></div>' : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+async function markRead(id) {
+  const n = DB.notifications.find(n => n.id === id);
+  if (n && !n.read_by.includes(currentUser.id)) {
+    try {
+      await sb.from('notification_reads').insert({ notification_id: id, user_id: currentUser.id });
+      n.read_by.push(currentUser.id);
+      renderNotifications();
+      updateNotifBadge();
+    } catch(e) { console.error(e); }
+  }
+}
+
+document.getElementById('mark-all-read-btn').onclick = async () => {
+  const unread = DB.notifications.filter(n => !n.read_by.includes(currentUser.id));
+  if (unread.length === 0) return;
+  try {
+    await sb.from('notification_reads').insert(
+      unread.map(n => ({ notification_id: n.id, user_id: currentUser.id }))
+    );
+    unread.forEach(n => n.read_by.push(currentUser.id));
+    renderNotifications();
+    updateNotifBadge();
+    showToast('全部已標記已讀');
+  } catch(e) { showToast('操作失敗', 'error'); }
+};
+
+function updateNotifBadge() {
+  if (!currentUser) return;
+  const unread = DB.notifications.filter(n => n.org_id === currentUser.org_id && !n.read_by.includes(currentUser.id)).length;
+  document.getElementById('notif-badge').classList.toggle('hidden', unread === 0);
+}
+
+// ══════════════════════════════════════════
+//  PROJECT ADD/EDIT MODAL
+// ══════════════════════════════════════════
+
+document.getElementById('designer-add-btn').onclick = () => openProjectModal(null);
+
+function openProjectModal(project) {
+  const isEdit = !!project;
+  document.getElementById('project-modal-title').textContent = isEdit ? '編輯案場' : '新增案場';
+  document.getElementById('pm-id').value = project?.id || '';
+  document.getElementById('pm-name').value = project?.name || '';
+  document.getElementById('pm-location').value = project?.location || '';
+  document.getElementById('pm-manager').value = project?.manager || '';
+  document.getElementById('pm-start').value = project?.start_date || '';
+  document.getElementById('pm-end').value = project?.end_date || '';
+  document.getElementById('pm-status').value = project?.status || '待開工';
+  document.getElementById('pm-progress').value = project?.progress || 0;
+  document.getElementById('pm-progress-val').textContent = project?.progress || 0;
+  document.getElementById('pm-notes').value = project?.notes || '';
+
+  // Worker checkboxes
+  const orgWorkers = DB.users.filter(u => u.role === 'worker' && u.org_id === currentUser.org_id);
+  const selected = project?.workers || [];
+  const wList = document.getElementById('pm-workers-list');
+  wList.innerHTML = orgWorkers.length === 0
+    ? '<span style="font-size:12px; color:#475569;">尚無工班帳號</span>'
+    : orgWorkers.map(w => `
+      <label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:var(--text); margin:0; font-size:13px;">
+        <input type="checkbox" value="${w.id}" ${selected.includes(w.id) ? 'checked' : ''} style="accent-color:var(--amber);">
+        ${w.name}
+      </label>
+    `).join('');
+
+  showModal('project-modal');
+}
+
+document.getElementById('pm-progress').oninput = function() {
+  document.getElementById('pm-progress-val').textContent = this.value;
+};
+
+document.getElementById('pm-submit').onclick = async () => {
+  const name = document.getElementById('pm-name').value.trim();
+  if (!name) { showToast('請輸入案場名稱', 'error'); return; }
+
+  const btn = document.getElementById('pm-submit');
+  btn.disabled = true; btn.textContent = '儲存中...';
+
+  const workers = [...document.querySelectorAll('#pm-workers-list input[type=checkbox]:checked')].map(cb => cb.value);
+  const editId  = document.getElementById('pm-id').value;
+
+  const projectData = {
+    org_id:    currentUser.org_id,
+    name,
+    location:  document.getElementById('pm-location').value,
+    manager:   document.getElementById('pm-manager').value,
+    start_date: document.getElementById('pm-start').value || null,
+    end_date:   document.getElementById('pm-end').value || null,
+    status:    document.getElementById('pm-status').value,
+    progress:  parseInt(document.getElementById('pm-progress').value),
+    notes:     document.getElementById('pm-notes').value,
+  };
+
+  try {
+    let projectId = editId;
+
+    if (editId) {
+      const { error } = await sb.from('projects').update(projectData).eq('id', editId);
+      if (error) throw error;
+    } else {
+      const { data, error } = await sb.from('projects').insert(projectData).select().single();
+      if (error) throw error;
+      projectId = data.id;
+    }
+
+    // Sync project_members
+    await sb.from('project_members').delete().eq('project_id', projectId);
+    if (workers.length > 0) {
+      await sb.from('project_members').insert(
+        workers.map(uid => ({ project_id: projectId, user_id: uid }))
+      );
+    }
+
+    await loadOrgData();
+    hideModal('project-modal');
+    renderDashboard();
+    showToast(editId ? '案場已更新' : '案場已新增');
+  } catch(e) {
+    showToast('儲存失敗：' + e.message, 'error');
+    console.error(e);
+  } finally {
+    btn.disabled = false; btn.textContent = '儲存';
+  }
+};
+
+// ══════════════════════════════════════════
+//  WORKER MANAGEMENT
+// ══════════════════════════════════════════
+
+document.getElementById('designer-add-worker-btn').onclick = () => {
+  renderWorkersModal();
+  showModal('worker-modal');
+};
+
+function renderWorkersModal() {
+  const workers = DB.users.filter(u => u.role === 'worker' && u.org_id === currentUser.org_id);
+  const list = document.getElementById('workers-list-modal');
+  list.innerHTML = workers.length === 0
+    ? '<p style="font-size:13px; color:var(--text-muted); text-align:center;">尚無工班帳號</p>'
+    : workers.map(w => `
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 12px; background:#0f172a; border-radius:10px; margin-bottom:6px; border:1px solid var(--border);">
+        <div>
+          <p style="font-size:13px; font-weight:600;">${w.display_name || w.name || '—'}</p>
+          <p style="font-size:11px; color:var(--text-muted);">帳號：${w.account}</p>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="deleteWorker('${w.id}')">移除</button>
+      </div>
+    `).join('');
+}
+
+document.getElementById('wm-add-btn').onclick = async () => {
+  const email    = document.getElementById('wm-account').value.trim();
+  const password = document.getElementById('wm-password').value;
+  const name     = document.getElementById('wm-name').value.trim();
+  if (!email || !password || !name) { showToast('請填寫所有欄位', 'error'); return; }
+
+  const btn = document.getElementById('wm-add-btn');
+  btn.disabled = true; btn.textContent = '新增中...';
+
+  try {
+    // Create user via Supabase Auth (requires service role in production)
+    // For now: use admin API via edge function or manually create in Supabase dashboard
+    // Temp: create auth user + profile
+    const { data, error } = await sb.auth.admin?.createUser({
+      email, password,
+      user_metadata: { role: 'worker', display_name: name, org_id: currentUser.org_id },
+      email_confirm: true,
+    });
+
+    if (error) {
+      // Fallback: show instructions
+      showToast('請至 Supabase Auth 手動建立工班帳號', 'info');
+      return;
+    }
+
+    // Reload workers
+    const { data: users } = await sb.from('profiles').select('*').eq('org_id', currentUser.org_id);
+    DB.users = users || [];
+    document.getElementById('wm-account').value = '';
+    document.getElementById('wm-password').value = '';
+    document.getElementById('wm-name').value = '';
+    renderWorkersModal();
+    showToast('工班帳號已新增');
+  } catch(e) {
+    showToast('新增工班需使用 Supabase 後台操作', 'info');
+  } finally {
+    btn.disabled = false; btn.textContent = '新增工班';
+  }
+};
+
+async function deleteWorker(uid) {
+  try {
+    // Remove from all project_members
+    await sb.from('project_members').delete().eq('user_id', uid);
+    // Delete profile (auth user deletion requires service role)
+    await sb.from('profiles').delete().eq('id', uid);
+    DB.users = DB.users.filter(u => u.id !== uid);
+    DB.projects.forEach(p => { p.workers = p.workers.filter(w => w !== uid); });
+    renderWorkersModal();
+    showToast('工班已移除');
+  } catch(e) {
+    showToast('移除失敗：' + e.message, 'error');
+  }
+}
+
+// ══════════════════════════════════════════
+//  DELETE
+// ══════════════════════════════════════════
+
+document.getElementById('delete-confirm-btn').onclick = async () => {
+  if (!pendingDeleteId) return;
+  const btn = document.getElementById('delete-confirm-btn');
+  btn.disabled = true; btn.textContent = '刪除中...';
+  try {
+    // Cascade deletes handled by DB foreign keys
+    const { error } = await sb.from('projects').delete().eq('id', pendingDeleteId);
+    if (error) throw error;
+    pendingDeleteId = null;
+    await loadOrgData();
+    hideModal('delete-modal');
+    renderDashboard();
+    showToast('案場已刪除');
+  } catch(e) {
+    showToast('刪除失敗：' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = '確定刪除';
+  }
+};
+
+// ══════════════════════════════════════════
+//  MODAL CLOSE HANDLERS
+// ══════════════════════════════════════════
+
+document.querySelectorAll('.modal-close').forEach(btn => {
+  btn.onclick = () => hideModal(btn.dataset.modal);
+});
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.onclick = e => { if (e.target === overlay) hideModal(overlay.id); };
+});
+
+// ══════════════════════════════════════════
+//  GANTT CHART
+// ══════════════════════════════════════════
+
+// Add gantt_segments to DB
+DB.gantt_segments = [
+  { id: 'g1', project_id: 'p1', worker_id: 'u2', label: '一期紮筋', start: '2025-01-20', end: '2025-02-05' },
+  { id: 'g2', project_id: 'p1', worker_id: 'u2', label: '二期紮筋', start: '2025-03-10', end: '2025-03-25' },
+  { id: 'g3', project_id: 'p1', worker_id: 'u3', label: '管線配置', start: '2025-02-10', end: '2025-03-01' },
+];
+
+let ganttChart = null;
+let ganttWorkerOrder = [];
+let dragSrcWorkerId = null;
+
+const GANTT_COLORS = [
+  '#f59e0b','#10b981','#3b82f6','#a855f7','#ef4444','#06b6d4','#84cc16','#f97316'
+];
+
+function openGanttTab() {
+  if (!currentProject) return;
+  const sel = document.getElementById('gantt-worker-select');
+  const orgWorkers = DB.users.filter(u => u.role === 'worker' && u.org_id === currentUser.org_id);
+  const projectWorkers = orgWorkers.filter(w => currentProject.workers.includes(w.id));
+  sel.innerHTML = '<option value="">— 選擇工班 —</option>' +
+    projectWorkers.map(w => `<option value="${w.id}">${w.display_name || w.name || "—"}</option>`).join('');
+  document.getElementById('gantt-designer-tools').style.display = currentUser.role === 'designer' ? '' : 'none';
+  renderGantt();
+}
+
+function getOrderedWorkerIds(segments) {
+  const inSegs = [...new Set(segments.map(s => s.worker_id))];
+  const ordered = ganttWorkerOrder.filter(wid => inSegs.includes(wid));
+  inSegs.forEach(wid => { if (!ordered.includes(wid)) ordered.push(wid); });
+  ganttWorkerOrder = ordered;
+  return ordered;
+}
+
+document.getElementById('gantt-add-btn').onclick = async () => {
+  const workerId = document.getElementById('gantt-worker-select').value;
+  const start    = document.getElementById('gantt-start').value;
+  const end      = document.getElementById('gantt-end').value;
+  const label    = document.getElementById('gantt-segment-label').value.trim();
+
+  if (!workerId || !start || !end) { showToast('請選擇工班並填寫日期', 'error'); return; }
+  if (start > end) { showToast('開始日期不能晚於結束日期', 'error'); return; }
+
+  try {
+    await sb.from('gantt_segments').insert({
+      project_id: currentProject.id,
+      worker_id:  workerId,
+      label,
+      start_date: start,
+      end_date:   end,
+      sort_order: DB.gantt_segments.length,
+    });
+    const { data } = await sb.from('gantt_segments').select('*').eq('project_id', currentProject.id).order('sort_order');
+    DB.gantt_segments = (data || []).map(s => ({ ...s, start: s.start_date, end: s.end_date }));
+    document.getElementById('gantt-worker-select').value = '';
+    document.getElementById('gantt-start').value = '';
+    document.getElementById('gantt-end').value = '';
+    document.getElementById('gantt-segment-label').value = '';
+    renderGantt();
+    showToast('時段已新增');
+  } catch(e) {
+    showToast('新增失敗：' + e.message, 'error');
+  }
+};
+
+function renderGantt() {
+  if (!currentProject) return;
+  const segments = DB.gantt_segments.filter(s => s.project_id === currentProject.id);
+  const empty = document.getElementById('gantt-empty');
+  const chartWrap = document.getElementById('gantt-chart-wrap');
+
+  if (segments.length === 0) {
+    empty.classList.remove('hidden');
+    chartWrap.style.display = 'none';
+    document.getElementById('gantt-segments-list').innerHTML = '';
+    document.getElementById('gantt-export-wrap').style.display = 'none';
+    if (ganttChart) { ganttChart.destroy(); ganttChart = null; }
+    return;
+  }
+
+  empty.classList.add('hidden');
+  chartWrap.style.display = '';
+  document.getElementById('gantt-export-wrap').style.display = '';
+
+  // Use ordered worker list (respects drag-to-reorder)
+  const workerIds = getOrderedWorkerIds(segments);
+  const workerColorMap = {};
+  workerIds.forEach((wid, i) => { workerColorMap[wid] = GANTT_COLORS[i % GANTT_COLORS.length]; });
+
+  // Calculate date range
+  const allDates = segments.flatMap(s => [new Date(s.start), new Date(s.end)]);
+  const minDate = new Date(Math.min(...allDates));
+  const maxDate = new Date(Math.max(...allDates));
+  minDate.setDate(minDate.getDate() - 3);
+  maxDate.setDate(maxDate.getDate() + 3);
+
+  // Build datasets — one dataset per worker (stacked bar trick)
+  // Each segment: [gap_from_min, duration]
+  const workerLabels = workerIds.map(wid => getUserName(wid));
+
+  // For each worker row: collect all segments, render as stacked floating bars
+  // Chart.js floating bar: data = [{x: [start_ms, end_ms], y: workerLabel}]
+  const datasets = [];
+  const segsByWorker = {};
+  workerIds.forEach(wid => { segsByWorker[wid] = segments.filter(s => s.worker_id === wid); });
+
+  workerIds.forEach((wid, wi) => {
+    const segs = segsByWorker[wid];
+    const color = workerColorMap[wid];
+    datasets.push({
+      label: getUserName(wid),
+      data: segs.map(s => ({
+        x: [new Date(s.start).getTime(), new Date(s.end).getTime()],
+        y: getUserName(wid),
+        segId: s.id,
+        segLabel: s.label
+      })),
+      backgroundColor: color + 'cc',
+      borderColor: color,
+      borderWidth: 1,
+      borderRadius: 4,
+      borderSkipped: false,
+    });
   });
-  document.getElementById('page-'+p).classList.remove('hidden');
-  const b=document.getElementById('nb-'+p);if(b)b.classList.add('active');
-  if(p==='projects')renderProjects();
-  if(p==='worker')renderWorker();
-  if(p==='admin')renderAdmin();
-}
 
-function setF(f){
-  filt=f;
-  document.querySelectorAll('[id^=f-]').forEach(b=>b.className='badge bg flex-shrink-0 cursor-pointer py-1.5 px-3');
-  document.getElementById('f-'+f).className='badge bk flex-shrink-0 cursor-pointer py-1.5 px-3';
-  renderProjects();
-}
+  const canvas = document.getElementById('gantt-canvas');
+  canvas.height = Math.max(120, workerIds.length * 60 + 60);
 
-const SB={'進行中':'bk','暫停':'by','已完工':'bgn'};
+  if (ganttChart) ganttChart.destroy();
 
-function renderProjects(){
-  if(CU.role!=='worker')document.getElementById('btn-np').classList.remove('hidden');
-  let list=CU.role==='admin'?D.projects:D.projects.filter(p=>p.manager_id===CU.id);
-  if(filt!=='all')list=list.filter(p=>p.status===filt);
-  const el=document.getElementById('plist');
-  if(!list.length){el.innerHTML='<div class="text-center py-14 text-gray-400 text-sm font-bold">目前沒有案場</div>';return;}
-  el.innerHTML=list.map(function(p){
-    const stages=D.stages.filter(s=>s.project_id===p.id);
-    const done=stages.filter(s=>s.status==='完成').length;
-    const pct=stages.length?Math.round(done/stages.length*100):0;
-    const mgr=D.users.find(u=>u.id===p.manager_id);
-    const tn=D.notifs.filter(n=>n.project_id===p.id&&n.notify_date===toStr());
-    const last=D.reports.filter(r=>r.project_id===p.id)[0];
-    return '<div class="card cursor-pointer" onclick="openProject('+p.id+')">'+
-      '<div class="flex justify-between items-start mb-2">'+
-        '<div class="flex-1 mr-3">'+
-          '<div class="font-black text-base mb-0.5">'+p.name+'</div>'+
-          '<div class="text-xs text-gray-400">'+(p.address||'未填地址')+(mgr&&CU.role==='admin'?' · '+mgr.name:'')+'</div>'+
-        '</div>'+
-        '<span class="badge '+(SB[p.status]||'bg')+' flex-shrink-0">'+p.status+'</span>'+
-      '</div>'+
-      (tn.length?'<div class="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-2 text-xs text-amber-700 font-bold">今日進場：'+tn.map(n=>n.worker_name).join('、')+'</div>':'')+
-      '<div class="mb-1"><div class="flex justify-between text-xs text-gray-400 mb-1.5"><span>工種進度</span><span>'+done+'/'+stages.length+'</span></div>'+
-      '<div class="prog-bar"><div class="prog-fill" style="width:'+pct+'%"></div></div></div>'+
-      (last?'<div class="text-xs text-gray-400 mt-2 pt-2 border-t border-gray-100">最新：'+last.worker_name+' · '+new Date(last.timestamp).toLocaleDateString('zh-TW')+'</div>':'')+
-    '</div>';
-  }).join('');
-}
+  ganttChart = new Chart(canvas, {
+    type: 'bar',
+    data: { datasets },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: ctx => ctx[0]?.raw?.segLabel || getUserName(ctx[0]?.raw?.y) || '',
+            label: ctx => {
+              const [s, e] = ctx.raw.x;
+              return `${new Date(s).toLocaleDateString('zh-TW')} ～ ${new Date(e).toLocaleDateString('zh-TW')}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: 'time',
+          time: { unit: 'day', tooltipFormat: 'yyyy/MM/dd', displayFormats: { day: 'M/d', week: 'M/d', month: 'yyyy/MM' } },
+          min: minDate.getTime(),
+          max: maxDate.getTime(),
+          grid: { color: 'rgba(255,255,255,0.06)' },
+          ticks: { color: '#94a3b8', font: { size: 11 } }
+        },
+        y: {
+          stacked: false,
+          grid: { color: 'rgba(255,255,255,0.06)' },
+          ticks: { color: '#f1f5f9', font: { size: 12 } }
+        }
+      }
+    }
+  });
 
-function openProject(id){
-  document.getElementById('page-projects').classList.add('hidden');
-  document.getElementById('page-detail').classList.remove('hidden');
-  const b=document.getElementById('nb-projects');if(b)b.classList.remove('active');
-  renderDetail(id);
-}
-function backToList(){
-  document.getElementById('page-detail').classList.add('hidden');
-  document.getElementById('page-projects').classList.remove('hidden');
-  const b=document.getElementById('nb-projects');if(b)b.classList.add('active');
-  renderProjects();
-}
+  // Segments list — grouped by worker, with drag-to-reorder (designer only)
+  const list = document.getElementById('gantt-segments-list');
+  const canDrag = currentUser.role === 'designer';
 
-function renderDetail(pid){
-  const p=D.projects.find(x=>x.id===pid);if(!p)return;
-  const canEdit=CU.role==='admin'||CU.id===p.manager_id;
-  const stages=D.stages.filter(s=>s.project_id===pid).sort((a,b)=>a.sort_order-b.sort_order);
-  const notifs=D.notifs.filter(n=>n.project_id===pid).sort((a,b)=>b.notify_date.localeCompare(a.notify_date));
-  const mgr=D.users.find(u=>u.id===p.manager_id);
-  const stOpts=['進行中','暫停','已完工'].map(s=>'<option '+(p.status===s?'selected':'')+'>'+s+'</option>').join('');
+  let html = '<p style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">' +
+    (canDrag ? '已設定時段（拖拉 ☰ 可調整工班順序）' : '已設定時段') + '</p>';
 
-  let html='<div class="card mb-3">'+
-    '<div class="flex justify-between items-start">'+
-      '<div><h2 class="text-xl font-black">'+p.name+'</h2>'+
-      '<div class="text-xs text-gray-400 mt-0.5">'+(p.address||'未填地址')+(mgr?' · '+mgr.name:'')+'</div></div>'+
-      (canEdit?'<select onchange="updStatus('+p.id+',this.value)" class="inp" style="width:auto;height:34px;padding:0 28px 0 10px;font-size:13px;">'+stOpts+'</select>':
-      '<span class="badge '+(SB[p.status]||'bg')+'">'+p.status+'</span>')+
-    '</div>'+
-    (p.notes?'<div class="text-sm text-gray-500 mt-2 bg-gray-50 rounded p-2">'+p.notes+'</div>':'')+
-  '</div>';
+  workerIds.forEach(wid => {
+    const color = workerColorMap[wid] || '#888';
+    const workerSegs = segments.filter(s => s.worker_id === wid);
+    html += `
+      <div class="gantt-worker-group" data-worker-id="${wid}"
+        draggable="${canDrag}"
+        style="margin-bottom:10px; border-radius:10px; border:1px solid ${color}44; overflow:hidden; background:#0f172a;">
+        <div style="display:flex; align-items:center; justify-content:space-between;
+          padding:8px 12px; background:${color}18; border-bottom:1px solid ${color}33;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            ${canDrag ? `<span style="color:${color}; font-size:16px; cursor:grab; user-select:none;" title="拖拉排序">☰</span>` : ''}
+            <span style="font-size:13px; font-weight:700; color:${color};">${getUserName(wid)}</span>
+            <span style="font-size:11px; color:var(--text-muted);">${workerSegs.length} 個時段</span>
+          </div>
+        </div>
+        <div style="padding:8px 12px;">
+          ${workerSegs.map(s => `
+            <div style="display:flex; align-items:center; justify-content:space-between;
+              padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+              <div>
+                ${s.label ? `<span style="font-size:12px; font-weight:600; color:var(--text);">${s.label}</span>` : ''}
+                <p style="font-size:11px; color:var(--text-muted); margin-top:2px;">${s.start} ～ ${s.end}</p>
+              </div>
+              ${canDrag ? `<button class="btn btn-danger btn-sm" onclick="deleteGanttSegment('${s.id}')" style="flex-shrink:0;">✕</button>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+  });
 
-  if(canEdit){
-    html+='<div class="card mb-3">'+
-      '<div class="flex justify-between items-center mb-3">'+
-        '<span class="font-black text-sm">進場通報</span>'+
-        '<button onclick="openNotify('+pid+')" class="btn btn-sm" style="background:#fef9c3;color:#854d0e;border:1px solid #fde68a;font-weight:700;">+ 發通報</button>'+
-      '</div>'+
-      (notifs.length?
-        '<div class="space-y-1">'+notifs.slice(0,8).map(function(n){
-          const isT=n.notify_date===toStr(),isP=n.notify_date<toStr();
-          return '<div class="flex items-center gap-3 py-2 border-b border-gray-100 last:border-0">'+
-            '<div class="w-2 h-2 rounded-full flex-shrink-0 '+(isT?'bg-amber-400':isP?'bg-gray-200':'bg-blue-400')+'"></div>'+
-            '<div class="text-xs font-bold flex-shrink-0 w-16 '+(isT?'text-amber-600':isP?'text-gray-300':'text-gray-500')+'">'+n.notify_date+'</div>'+
-            '<div class="flex-1 text-sm font-bold '+(isP?'text-gray-400':'')+'">'+n.worker_name+'</div>'+
-            (n.message?'<div class="text-xs text-gray-400 truncate max-w-[80px]">'+n.message+'</div>':'')+
-            '<button onclick="delNotif('+n.id+','+pid+')" class="text-gray-300 hover:text-red-400 text-lg leading-none flex-shrink-0">x</button>'+
-          '</div>';
-        }).join('')+'</div>' :
-        '<div class="text-xs text-gray-400 text-center py-3">尚無進場通報</div>')+
-    '</div>';
-  }
+  list.innerHTML = html;
 
-  html+='<div class="mb-3">'+
-    '<div class="flex justify-between items-center mb-3">'+
-      '<span class="font-black text-sm">工種進度</span>'+
-      (canEdit?'<button onclick="openAddStage('+pid+')" class="btn btn-p btn-sm">+ 新增工種</button>':'')+
-    '</div>'+
-    (stages.length?stages.map(s=>renderStage(s,canEdit)).join(''):'<div class="text-xs text-gray-400 text-center py-6 bg-white rounded-xl border border-dashed border-gray-300">尚未新增工種</div>')+
-  '</div>';
-
-  const allR=D.reports.filter(r=>r.project_id===pid);
-  if(allR.length){
-    html+='<details class="card mb-3" open>'+
-      '<summary class="flex justify-between items-center font-black text-sm">'+
-        '<span>施工回報記錄</span><span class="text-gray-400 font-normal text-xs">'+allR.length+' 筆</span>'+
-      '</summary>'+
-      '<div class="mt-3 space-y-4">'+allR.map(function(r){
-        const stage=D.stages.find(s=>s.id===r.stage_id);
-        return '<div class="border-b border-gray-100 pb-3 last:border-0">'+
-          (stage?'<div class="text-xs font-bold text-gray-400 mb-0.5">'+stage.name+'</div>':'')+
-          '<div class="flex justify-between items-start">'+
-            '<div class="font-bold text-sm">'+r.worker_name+'</div>'+
-            '<div class="text-xs text-gray-400">'+new Date(r.timestamp).toLocaleString('zh-TW',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})+'</div>'+
-          '</div>'+
-          (r.notes?'<div class="text-sm text-gray-600 mt-0.5">'+r.notes+'</div>':'')+
-          ig(r.image_urls)+
-        '</div>';
-      }).join('')+'</div>'+
-    '</details>';
-  }
-
-  if(CU.role==='admin'){
-    html+='<div class="mt-2 mb-4"><button onclick="delProject('+pid+')" class="btn btn-d btn-sm w-full">削除此案場</button></div>';
-  }
-  document.getElementById('dcontent').innerHTML=html;
-}
-
-function renderStage(s,canEdit){
-  const w=D.users.find(u=>u.id===s.assigned_worker_id);
-  const rpts=D.reports.filter(r=>r.stage_id===s.id);
-  const ssb={'待開始':'bg','進行中':'bk','待確認':'by','完成':'bgn'}[s.status]||'bg';
-  const last=rpts[0];
-  return '<div class="card mb-2 '+(s.status==='進行中'?'border-black':'')+'">'+
-    '<div class="flex justify-between items-start">'+
-      '<div class="flex-1 mr-3">'+
-        '<div class="flex items-center gap-2 mb-1"><span class="font-black text-base">'+s.name+'</span><span class="badge '+ssb+'">'+s.status+'</span></div>'+
-        (w?'<div class="text-xs text-gray-500">'+(w.company_name||w.name)+(w.worker_type?' · '+w.worker_type:'')+'</div>':'<div class="text-xs text-gray-400">未指派工班</div>')+
-        (s.scheduled_date?'<div class="text-xs text-gray-400 mt-0.5">預計進場：'+s.scheduled_date+'</div>':'')+
-      '</div>'+
-      (canEdit?'<div class="flex gap-1.5 flex-shrink-0"><button onclick="openEditStage('+s.id+')" class="btn btn-s btn-ic text-sm">✏️</button><button onclick="delStage('+s.id+','+s.project_id+')" class="btn btn-d btn-ic text-sm">x</button></div>':'')+
-    '</div>'+
-    (s.notes?'<div class="text-xs text-gray-500 bg-gray-50 rounded p-2 mt-2">'+s.notes+'</div>':'')+
-    (last?'<div class="mt-2 pt-2 border-t border-gray-100">'+
-      '<div class="text-xs text-gray-400 mb-1">最新：'+new Date(last.timestamp).toLocaleDateString('zh-TW')+' · '+last.worker_name+'</div>'+
-      (last.notes?'<div class="text-xs text-gray-600">'+last.notes+'</div>':'')+
-      ig(last.image_urls)+
-    '</div>':'')+
-    (rpts.length>1?'<details class="mt-2"><summary class="text-xs text-gray-400 cursor-pointer font-bold">查看全部 '+rpts.length+' 筆回報</summary>'+
-      '<div class="mt-2 space-y-2">'+rpts.slice(1).map(function(r){
-        return '<div class="bg-gray-50 rounded-lg p-3">'+
-          '<div class="flex justify-between text-xs text-gray-400 mb-1"><span class="font-bold text-gray-600">'+r.worker_name+'</span><span>'+new Date(r.timestamp).toLocaleString('zh-TW',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})+'</span></div>'+
-          (r.notes?'<div class="text-xs">'+r.notes+'</div>':'')+ig(r.image_urls)+
-        '</div>';
-      }).join('')+'</div></details>':'')+
-  '</div>';
-}
-
-function renderWorker(){
-  const ms=D.stages.filter(s=>s.assigned_worker_id===CU.id);
-  const el=document.getElementById('wlist');
-  if(!ms.length){el.innerHTML='<div class="text-center py-14 text-gray-400 text-sm font-bold">目前沒有指派任務</div>';return;}
-  const tn=D.notifs.filter(n=>n.worker_id===CU.id&&n.notify_date===toStr());
-  let html='';
-  if(tn.length){
-    html+='<div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 mb-4">'+
-      '<div class="font-black text-amber-800 mb-1">今日進場通知</div>'+
-      tn.map(function(n){const p=D.projects.find(x=>x.id===n.project_id);return '<div class="text-sm text-amber-700 font-bold">'+(p?p.name:'')+' '+(n.message?n.message:'')+'</div>';}).join('')+
-    '</div>';
-  }
-  const active=ms.filter(s=>s.status!=='完成');
-  const done=ms.filter(s=>s.status==='完成');
-  if(active.length){html+='<div class="text-xs font-black text-gray-400 uppercase mb-2 tracking-wide">進行中的任務</div>';html+=active.map(workerCard).join('');}
-  if(done.length){html+='<div class="text-xs font-black text-gray-400 uppercase mt-5 mb-2 tracking-wide">已完成</div>';html+=done.map(workerCard).join('');}
-  el.innerHTML=html;
-}
-
-function workerCard(s){
-  const p=D.projects.find(x=>x.id===s.project_id);
-  const rpts=D.reports.filter(r=>r.stage_id===s.id);
-  const ssb={'待開始':'bg','進行中':'bk','待確認':'by','完成':'bgn'}[s.status]||'bg';
-  return '<div class="card mb-3">'+
-    '<div class="flex justify-between items-start mb-2">'+
-      '<div>'+
-        '<div class="text-xs text-gray-400 font-bold mb-0.5">'+(p?p.name:'')+'</div>'+
-        '<div class="font-black text-base">'+s.name+'</div>'+
-        (p&&p.address?'<div class="text-xs text-gray-400">'+p.address+'</div>':'')+
-      '</div>'+
-      '<span class="badge '+ssb+' flex-shrink-0">'+s.status+'</span>'+
-    '</div>'+
-    (s.scheduled_date?'<div class="text-xs text-gray-500 bg-gray-50 rounded p-2 mb-2">預計進場：<strong>'+s.scheduled_date+'</strong></div>':'')+
-    (s.notes?'<div class="text-xs text-gray-500 bg-gray-50 rounded p-2 mb-2">'+s.notes+'</div>':'')+
-    '<button onclick="openReport('+s.id+',\''+s.name.replace(/'/g,"\\'")+'\',' +s.project_id+')" class="btn btn-p w-full mt-1">回報今日進度</button>'+
-    (rpts.length?'<div class="text-xs text-gray-400 mt-2 text-center">已回報 '+rpts.length+' 次</div>':'')+
-  '</div>';
-}
-
-function renderAdmin(){
-  const rl={admin:'管理員',manager:'設計師',worker:'工班'};
-  document.getElementById('ulist').innerHTML=D.users.map(function(u){
-    return '<details class="bg-white rounded-xl border border-gray-200 mb-2">'+
-      '<summary class="flex justify-between items-center p-3 cursor-pointer">'+
-        '<div>'+
-          '<div class="font-bold text-sm">'+u.name+' <span class="badge bg ml-1 text-xs">'+(rl[u.role]||u.role)+'</span></div>'+
-          (u.company_name?'<div class="text-xs text-gray-400">'+u.company_name+(u.worker_type?' · '+u.worker_type:'')+'</div>':'')+
-          (u.phone?'<div class="text-xs text-gray-400">'+u.phone+'</div>':'')+
-        '</div><span class="text-gray-300">✏️</span>'+
-      '</summary>'+
-      '<div class="px-3 pb-3 border-t border-gray-100 pt-3 space-y-2">'+
-        '<div class="grid grid-cols-2 gap-2">'+
-          '<div><label class="label">姓名</label><input id="eu-n-'+u.id+'" class="inp" value="'+u.name+'" style="height:38px;font-size:13px;"></div>'+
-          '<div><label class="label">密碼</label><input id="eu-p-'+u.id+'" class="inp" value="'+(u.password||'')+'" style="height:38px;font-size:13px;"></div>'+
-        '</div>'+
-        '<div><label class="label">角色</label>'+
-          '<select id="eu-r-'+u.id+'" class="inp" style="height:38px;font-size:13px;" onchange="toggleEWF('+u.id+',this.value)">'+
-            '<option value="manager" '+(u.role==='manager'?'selected':'')+'>設計師/負責人</option>'+
-            '<option value="worker" '+(u.role==='worker'?'selected':'')+'>工班</option>'+
-            '<option value="admin" '+(u.role==='admin'?'selected':'')+'>管理員</option>'+
-          '</select></div>'+
-        '<div id="eu-wf-'+u.id+'" class="'+(u.role==='worker'?'':'hidden')+' space-y-2">'+
-          '<div class="grid grid-cols-2 gap-2">'+
-            '<div><label class="label">公司</label><input id="eu-c-'+u.id+'" class="inp" value="'+(u.company_name||'')+'" style="height:38px;font-size:13px;"></div>'+
-            '<div><label class="label">電話</label><input id="eu-ph-'+u.id+'" class="inp" value="'+(u.phone||'')+'" style="height:38px;font-size:13px;"></div>'+
-          '</div>'+
-          '<div><label class="label">工班類型</label>'+
-            '<select id="eu-wt-'+u.id+'" class="inp" style="height:38px;font-size:13px;">'+
-              ['泥作','木工','水電','油漆','鐵工','拆除','空調','其他'].map(t=>'<option '+(u.worker_type===t?'selected':'')+'>'+t+'</option>').join('')+
-            '</select></div>'+
-        '</div>'+
-        '<div class="flex gap-2 pt-1">'+
-          '<button onclick="saveUser('+u.id+')" class="btn btn-p btn-sm flex-1">儲存</button>'+
-          '<button onclick="delUser('+u.id+')" class="btn btn-d btn-sm">刪除</button>'+
-        '</div>'+
-      '</div>'+
-    '</details>';
-  }).join('');
-}
-function toggleWF(){document.getElementById('wf').classList.toggle('hidden',document.getElementById('nu-r').value!=='worker');}
-function toggleEWF(id,role){const el=document.getElementById('eu-wf-'+id);if(el)el.classList.toggle('hidden',role!=='worker');}
-async function addUser(){
-  const n=document.getElementById('nu-n').value.trim(),pw=document.getElementById('nu-p').value.trim(),role=document.getElementById('nu-r').value;
-  if(!n||!pw)return alert('請填姓名與密碼');
-  const d={name:n,password:pw,role,phone:document.getElementById('nu-ph').value.trim()||null,company_name:document.getElementById('nu-c').value.trim()||null,worker_type:role==='worker'?document.getElementById('nu-wt').value:null};
-  if(await POST('users',d)){alert('新增成功');['nu-n','nu-p','nu-ph','nu-c'].forEach(id=>document.getElementById(id).value='');await loadAll();renderAdmin();}
-  else alert('新增失敗');
-}
-async function saveUser(id){
-  const role=document.getElementById('eu-r-'+id).value;
-  const d={name:document.getElementById('eu-n-'+id).value.trim(),password:document.getElementById('eu-p-'+id).value.trim(),role};
-  const c=document.getElementById('eu-c-'+id);if(c)d.company_name=c.value.trim()||null;
-  const ph=document.getElementById('eu-ph-'+id);if(ph)d.phone=ph.value.trim()||null;
-  const wt=document.getElementById('eu-wt-'+id);d.worker_type=role==='worker'&&wt?wt.value:null;
-  if(!d.name||!d.password)return alert('姓名與密碼不能為空');
-  if(await PATCH('users',id,d)){await loadAll();renderAdmin();alert('已儲存');}else alert('儲存失敗');
-}
-async function delUser(id){if(!confirm('確定刪除此帳號？'))return;await DEL('users',id);await loadAll();renderAdmin();}
-
-function openM(html){document.getElementById('mc').innerHTML=html;document.getElementById('modal').classList.remove('hidden');}
-function closeM(){document.getElementById('modal').classList.add('hidden');}
-document.addEventListener('click',function(e){if(e.target.id==='modal')closeM();});
-
-function openNewProject(){
-  const mO='<option value="">（不指定）</option>'+D.users.filter(u=>u.role==='manager'||u.role==='admin').map(u=>'<option value="'+u.id+'">'+u.name+'</option>').join('');
-  openM('<h3 class="text-base font-black mb-4">+ 新增案場</h3>'+
-    '<div class="space-y-3">'+
-      '<div><label class="label">案場名稱</label><input id="m-pn" class="inp" placeholder="例：台南民權路案"></div>'+
-      '<div><label class="label">施工地址</label><input id="m-pa" class="inp" placeholder="地址"></div>'+
-      '<div><label class="label">負責人</label><select id="m-pm" class="inp">'+mO+'</select></div>'+
-      '<div><label class="label">備註</label><textarea id="m-pnote" class="inp" rows="2" placeholder="案場備註..."></textarea></div>'+
-    '</div>'+
-    '<div class="flex gap-3 mt-5"><button onclick="closeM()" class="btn btn-s">取消</button><button onclick="saveNewProject()" class="btn btn-p">建立案場</button></div>');
-}
-async function saveNewProject(){
-  const name=document.getElementById('m-pn').value.trim();if(!name)return alert('請填案場名稱');
-  const mid=parseInt(document.getElementById('m-pm').value)||null;
-  load(true);
-  const r=await POST('projects',{name,address:document.getElementById('m-pa').value.trim()||null,manager_id:mid,notes:document.getElementById('m-pnote').value.trim()||null,status:'進行中'});
-  load(false);if(r){closeM();await loadAll();renderProjects();}else alert('建立失敗');
-}
-async function updStatus(pid,status){await PATCH('projects',pid,{status});}
-async function delProject(pid){
-  if(!confirm('確定刪除此案場？所有工種與回報記錄也會一併刪除，無法復原。'))return;
-  load(true,'刪除中...');
-  const stages=D.stages.filter(s=>s.project_id===pid);
-  for(const s of stages){
-    const rpts=D.reports.filter(r=>r.stage_id===s.id);
-    for(const r of rpts)await DEL('progress_reports',r.id);
-    await DEL('project_stages',s.id);
-  }
-  for(const n of D.notifs.filter(n=>n.project_id===pid))await DEL('site_notifications',n.id);
-  await DEL('projects',pid);
-  await loadAll();load(false);backToList();
-}
-
-function openAddStage(pid){
-  const wO='<option value="">（不指定）</option>'+D.users.filter(u=>u.role==='worker').map(u=>'<option value="'+u.id+'">'+(u.company_name||u.name)+(u.worker_type?' · '+u.worker_type:'')+'</option>').join('');
-  openM('<h3 class="text-base font-black mb-4">+ 新增工種</h3>'+
-    '<div class="space-y-3">'+
-      '<div><label class="label">工種名稱</label>'+
-        '<select id="m-sn" class="inp mb-2" onchange="document.getElementById(\'m-snc\').classList.toggle(\'hidden\',this.value!==\'自訂\')">'+
-          '<option>拆除</option><option>泥作</option><option>水電</option><option>木工</option><option>油漆</option><option>鐵工</option><option>空調</option><option>清潔</option><option>自訂</option>'+
-        '</select>'+
-        '<input id="m-snc" class="inp hidden" placeholder="自訂工種名稱">'+
-      '</div>'+
-      '<div><label class="label">指派工班</label><select id="m-sw" class="inp">'+wO+'</select></div>'+
-      '<div><label class="label">預計進場日</label><input id="m-sd" type="date" class="inp" style="color-scheme:light"></div>'+
-      '<div><label class="label">備註說明</label><textarea id="m-snote" class="inp" rows="2" placeholder="工作內容說明..."></textarea></div>'+
-    '</div>'+
-    '<div class="flex gap-3 mt-5"><button onclick="closeM()" class="btn btn-s">取消</button><button onclick="saveStage('+pid+')" class="btn btn-p">新增工種</button></div>');
-}
-async function saveStage(pid){
-  const sel=document.getElementById('m-sn').value,custom=document.getElementById('m-snc').value.trim();
-  const name=sel==='自訂'?custom:sel;if(!name)return alert('請填工種名稱');
-  const cnt=D.stages.filter(s=>s.project_id===pid).length;
-  load(true);
-  await POST('project_stages',{project_id:pid,name,assigned_worker_id:parseInt(document.getElementById('m-sw').value)||null,scheduled_date:document.getElementById('m-sd').value||null,notes:document.getElementById('m-snote').value.trim()||null,sort_order:cnt,status:'待開始'});
-  await loadAll();load(false);closeM();renderDetail(pid);
-}
-function openEditStage(sid){
-  const s=D.stages.find(x=>x.id===sid);if(!s)return;
-  const wO='<option value="">（不指定）</option>'+D.users.filter(u=>u.role==='worker').map(u=>'<option value="'+u.id+'" '+(u.id===s.assigned_worker_id?'selected':'')+'>'+( u.company_name||u.name)+(u.worker_type?' · '+u.worker_type:'')+'</option>').join('');
-  const stO=['待開始','進行中','待確認','完成'].map(x=>'<option '+(s.status===x?'selected':'')+'>'+x+'</option>').join('');
-  openM('<h3 class="text-base font-black mb-4">✏️ 編輯工種</h3>'+
-    '<div class="space-y-3">'+
-      '<div><label class="label">工種名稱</label><input id="e-sn" class="inp" value="'+s.name+'"></div>'+
-      '<div><label class="label">狀態</label><select id="e-st" class="inp">'+stO+'</select></div>'+
-      '<div><label class="label">指派工班</label><select id="e-sw" class="inp">'+wO+'</select></div>'+
-      '<div><label class="label">預計進場日</label><input id="e-sd" type="date" class="inp" style="color-scheme:light" value="'+(s.scheduled_date||'')+'"></div>'+
-      '<div><label class="label">備註說明</label><textarea id="e-snote" class="inp" rows="2">'+(s.notes||'')+'</textarea></div>'+
-    '</div>'+
-    '<div class="flex gap-3 mt-5"><button onclick="closeM()" class="btn btn-s">取消</button><button onclick="saveEditStage('+s.id+','+s.project_id+')" class="btn btn-p">儲存</button></div>');
-}
-async function saveEditStage(id,pid){
-  load(true);
-  await PATCH('project_stages',id,{name:document.getElementById('e-sn').value.trim(),status:document.getElementById('e-st').value,assigned_worker_id:parseInt(document.getElementById('e-sw').value)||null,scheduled_date:document.getElementById('e-sd').value||null,notes:document.getElementById('e-snote').value.trim()||null});
-  await loadAll();load(false);closeM();renderDetail(pid);
-}
-async function delStage(id,pid){
-  if(!confirm('確定刪除此工種？'))return;
-  load(true);
-  for(const r of D.reports.filter(r=>r.stage_id===id))await DEL('progress_reports',r.id);
-  await DEL('project_stages',id);
-  await loadAll();load(false);renderDetail(pid);
-}
-
-function openNotify(pid){
-  const wO=D.users.filter(u=>u.role==='worker').map(u=>'<option value="'+u.id+'">'+(u.company_name||u.name)+(u.worker_type?' · '+u.worker_type:'')+'</option>').join('');
-  const sO='<option value="">（不綁定工種）</option>'+D.stages.filter(s=>s.project_id===pid).map(s=>'<option value="'+s.id+'">'+s.name+'</option>').join('');
-  openM('<h3 class="text-base font-black mb-4">發出進場通報</h3>'+
-    '<div class="space-y-3">'+
-      '<div><label class="label">工班</label><select id="n-w" class="inp">'+wO+'</select></div>'+
-      '<div><label class="label">進場日期</label><input id="n-d" type="date" class="inp" style="color-scheme:light" value="'+toStr()+'"></div>'+
-      '<div><label class="label">工種</label><select id="n-s" class="inp">'+sO+'</select></div>'+
-      '<div><label class="label">備註</label><input id="n-m" class="inp" placeholder="備註說明..."></div>'+
-    '</div>'+
-    '<div class="flex gap-3 mt-5"><button onclick="closeM()" class="btn btn-s">取消</button><button onclick="saveNotify('+pid+')" class="btn btn-p">發出通報</button></div>');
-}
-async function saveNotify(pid){
-  const wid=parseInt(document.getElementById('n-w').value),w=D.users.find(u=>u.id===wid);
-  if(!w)return alert('請選擇工班');
-  await POST('site_notifications',{project_id:pid,worker_id:wid,worker_name:w.company_name||w.name,notify_date:document.getElementById('n-d').value,stage_id:parseInt(document.getElementById('n-s').value)||null,message:document.getElementById('n-m').value.trim()||null,created_by:CU.id});
-  await loadAll();closeM();renderDetail(pid);
-}
-async function delNotif(id,pid){await DEL('site_notifications',id);await loadAll();renderDetail(pid);}
-
-function openReport(sid,sname,pid){
-  openM('<h3 class="text-base font-black mb-1">今日進度回報</h3>'+
-    '<p class="text-sm text-gray-400 mb-4">'+sname+'</p>'+
-    '<div class="space-y-3">'+
-      '<div><label class="label">今日施工說明</label><textarea id="r-n" class="inp" rows="3" placeholder="今日完成哪些工項..."></textarea></div>'+
-      '<div onclick="document.getElementById(\'r-f\').click()" class="border-2 border-dashed border-gray-200 rounded-xl p-5 text-center cursor-pointer">'+
-        '<input type="file" id="r-f" accept="image/*" multiple class="hidden" onchange="prevF(this,\'r-pv\',\'r-ph\')">'+
-        '<div id="r-ph"><div class="text-3xl mb-1">📷</div><div class="text-sm text-gray-400 font-bold">點擊上傳今日施工照片</div></div>'+
-        '<div id="r-pv" class="hidden img-grid"></div>'+
-      '</div>'+
-    '</div>'+
-    '<div class="flex gap-3 mt-5"><button onclick="closeM()" class="btn btn-s">取消</button><button onclick="saveReport('+sid+','+pid+')" class="btn btn-p">提交今日回報</button></div>');
-}
-async function saveReport(sid,pid){
-  load(true,'上傳照片中...');
-  const urls=await upFiles('r-f');
-  const notes=document.getElementById('r-n').value.trim();
-  await POST('progress_reports',{stage_id:sid,project_id:pid,worker_id:CU.id,worker_name:CU.name,notes:notes,image_urls:urls,timestamp:new Date().toISOString()});
-  const stage=D.stages.find(s=>s.id===sid);
-  if(stage&&stage.status==='待開始')await PATCH('project_stages',sid,{status:'進行中'});
-  await loadAll();load(false);closeM();renderWorker();
-}
-
-function openLb(u,i){
-  i=i||0;
-  lbI=typeof u==='string'?JSON.parse(u.replace(/&quot;/g,'"')):u;
-  lbX=i;updLb();document.getElementById('lightbox').classList.remove('hidden');
-}
-function closeLb(){document.getElementById('lightbox').classList.add('hidden');}
-function updLb(){
-  document.getElementById('lb-img').src=lbI[lbX];
-  document.getElementById('lb-prev').classList.toggle('hidden',lbI.length<=1);
-  document.getElementById('lb-next').classList.toggle('hidden',lbI.length<=1);
-}
-function changeLb(d){lbX=(lbX+d+lbI.length)%lbI.length;updLb();}
-async function dlLb(){try{const r=await fetch(lbI[lbX]);saveAs(await r.blob(),'photo_'+(lbX+1)+'.jpg');}catch{window.open(lbI[lbX],'_blank');}}
-
-function load(show,text){document.getElementById('lov').classList.toggle('hidden',!show);document.getElementById('ltxt').innerText=text||'處理中...';}
-function toStr(){return new Date().toISOString().split('T')[0];}
-
-function ig(urls){
-  if(!urls)return'';
-  let arr=[];
-  if(Array.isArray(urls))arr=urls;
-  else if(typeof urls==='string'){try{arr=JSON.parse(urls);}catch{arr=urls?[urls]:[]; }}
-  else if(typeof urls==='object')arr=Object.values(urls);
-  arr=arr.filter(function(u){return u&&typeof u==='string';});
-  if(!arr.length)return'';
-  const safe=JSON.stringify(arr).replace(/"/g,'&quot;');
-  return '<div class="img-grid">'+arr.map(function(u,i){return '<img src="'+u+'" onclick="openLb(\''+safe+'\','+i+')" loading="lazy" onerror="this.style.display=\'none\'">';}).join('')+'</div>';
-}
-
-function prevF(input,pvId,phId){
-  const pv=document.getElementById(pvId),ph=document.getElementById(phId);
-  pv.innerHTML='';
-  if(input.files.length){
-    ph.classList.add('hidden');pv.classList.remove('hidden');
-    Array.from(input.files).forEach(function(f){
-      const reader=new FileReader();
-      reader.onload=function(e){const img=document.createElement('img');img.src=e.target.result;img.className='w-full h-20 object-cover rounded-lg';pv.appendChild(img);};
-      reader.readAsDataURL(f);
+  // Drag-to-reorder logic (desktop + touch via mouse events)
+  if (canDrag) {
+    list.querySelectorAll('.gantt-worker-group').forEach(el => {
+      el.addEventListener('dragstart', e => {
+        dragSrcWorkerId = el.dataset.workerId;
+        el.style.opacity = '0.4';
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      el.addEventListener('dragend', e => {
+        el.style.opacity = '';
+        list.querySelectorAll('.gantt-worker-group').forEach(g => g.style.border = '');
+      });
+      el.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        const color = workerColorMap[el.dataset.workerId] || '#888';
+        el.style.outline = `2px dashed ${color}`;
+      });
+      el.addEventListener('dragleave', e => {
+        el.style.outline = '';
+      });
+      el.addEventListener('drop', e => {
+        e.preventDefault();
+        el.style.outline = '';
+        const targetId = el.dataset.workerId;
+        if (dragSrcWorkerId && dragSrcWorkerId !== targetId) {
+          const srcIdx = ganttWorkerOrder.indexOf(dragSrcWorkerId);
+          const tgtIdx = ganttWorkerOrder.indexOf(targetId);
+          if (srcIdx !== -1 && tgtIdx !== -1) {
+            ganttWorkerOrder.splice(srcIdx, 1);
+            ganttWorkerOrder.splice(tgtIdx, 0, dragSrcWorkerId);
+            renderGantt();
+          }
+        }
+        dragSrcWorkerId = null;
+      });
     });
   }
 }
-async function upFiles(inputId){
-  const files=document.getElementById(inputId)?document.getElementById(inputId).files:[];
-  const urls=[];
-  for(let i=0;i<files.length;i++){const u=await UP(files[i]);if(u)urls.push(u);}
-  return urls;
+
+async function deleteGanttSegment(id) {
+  await sb.from('gantt_segments').delete().eq('id', id);
+  DB.gantt_segments = DB.gantt_segments.filter(s => s.id !== id);
+  renderGantt();
+  showToast('時段已刪除');
 }
+
+function exportGanttExcel() {
+  if (!currentProject) return;
+  if (typeof XLSX === 'undefined') { showToast('Excel 套件載入中，請稍候再試', 'error'); return; }
+
+  const segments = DB.gantt_segments.filter(s => s.project_id === currentProject.id);
+  if (segments.length === 0) { showToast('尚無時段資料', 'error'); return; }
+
+  const workerIds = getOrderedWorkerIds(segments);
+  const workerColorMap = {};
+  workerIds.forEach((wid, i) => { workerColorMap[wid] = GANTT_COLORS[i % GANTT_COLORS.length]; });
+
+  // Calculate base date (earliest start)
+  const allStarts = segments.map(s => new Date(s.start));
+  const minDate = new Date(Math.min(...allStarts));
+
+  const wb = XLSX.utils.book_new();
+
+  // ── Sheet 1: 施工時程資料 ──────────────────────────────────────
+  const dataRows = [
+    [`工程案場甘特圖 — ${currentProject.name}`],
+    [`匯出時間：${new Date().toLocaleString('zh-TW')}`],
+    [],
+    ['工班名稱', '說明', '開始日期', '結束日期', '天數']
+  ];
+
+  // Group by worker order
+  workerIds.forEach(wid => {
+    const workerSegs = segments.filter(s => s.worker_id === wid);
+    workerSegs.forEach(s => {
+      const days = Math.ceil((new Date(s.end) - new Date(s.start)) / 86400000) + 1;
+      dataRows.push([getUserName(wid), s.label || '', s.start, s.end, days]);
+    });
+  });
+
+  const ws1 = XLSX.utils.aoa_to_sheet(dataRows);
+  ws1['!cols'] = [{ wch: 16 }, { wch: 16 }, { wch: 14 }, { wch: 14 }, { wch: 8 }];
+  ws1['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }];
+  XLSX.utils.book_append_sheet(wb, ws1, '施工時程資料');
+
+  // ── Sheet 2: 甘特圖資料（堆疊橫條圖用）────────────────────────
+  const ganttRows = [['時段說明', '開始前空白天數', '施工天數']];
+
+  // Build rows in worker order, each segment as a row
+  workerIds.forEach(wid => {
+    const workerSegs = segments.filter(s => s.worker_id === wid);
+    workerSegs.forEach(s => {
+      const label = s.label ? `${getUserName(wid)}・${s.label}` : getUserName(wid);
+      const gap = Math.round((new Date(s.start) - minDate) / 86400000);
+      const dur = Math.ceil((new Date(s.end) - new Date(s.start)) / 86400000) + 1;
+      ganttRows.push([label, gap, dur]);
+    });
+  });
+
+  const ws2 = XLSX.utils.aoa_to_sheet(ganttRows);
+  ws2['!cols'] = [{ wch: 26 }, { wch: 18 }, { wch: 12 }];
+
+  // ── 插入甘特圖（堆疊橫條圖）────────────────────────────────────
+  const n = ganttRows.length - 1; // data rows count
+  const chart = {
+    name: `施工甘特圖 — ${currentProject.name}`,
+    plotArea: {
+      bar: [{
+        barDir: 'bar',
+        grouping: 'stacked',
+        overlap: 100,
+        ser: [
+          // Series 1: gap (white/invisible)
+          {
+            idx: 0,
+            order: 0,
+            tx: { strRef: { f: `甘特圖!B1`, strCache: { pt: [{ idx: 0, v: '開始前空白天數' }] } } },
+            cat: { strRef: { f: `甘特圖!A2:A${n + 1}` } },
+            val: { numRef: { f: `甘特圖!B2:B${n + 1}` } },
+            spPr: {
+              solidFill: 'FFFFFF',
+              ln: { solidFill: 'FFFFFF' }
+            }
+          },
+          // Series 2: duration (amber)
+          {
+            idx: 1,
+            order: 1,
+            tx: { strRef: { f: `甘特圖!C1`, strCache: { pt: [{ idx: 0, v: '施工天數' }] } } },
+            cat: { strRef: { f: `甘特圖!A2:A${n + 1}` } },
+            val: { numRef: { f: `甘特圖!C2:C${n + 1}` } },
+            spPr: {
+              solidFill: 'F59E0B',
+              ln: { solidFill: 'D97706' }
+            }
+          }
+        ]
+      }]
+    }
+  };
+
+  // SheetJS chart embedding via sheet add (basic approach: embed chart XML)
+  // Since SheetJS Community doesn't support chart embedding directly,
+  // we write the data + instructions, then add a note sheet
+  XLSX.utils.book_append_sheet(wb, ws2, '甘特圖');
+
+  // ── Sheet 3: 使用說明 ────────────────────────────────────────────
+  const minDateStr = minDate.toLocaleDateString('zh-TW');
+  const noteRows = [
+    ['甘特圖使用說明'],
+    [],
+    [`基準日：${minDateStr}（最早開工日，X 軸天數從此日起算）`],
+    ['步驟 1：切換到「甘特圖」工作表'],
+    ['步驟 2：選取 A1:C' + (n + 1) + ' 的資料範圍'],
+    ['步驟 3：插入 → 圖表 → 橫條圖 → 堆疊橫條圖'],
+    ['步驟 4：選取「開始前空白天數」系列 → 填滿設為「無填滿」'],
+    ['步驟 5：完成，橘色色塊即為各工班施工期間'],
+    [],
+    ['白色/無填滿色塊 = 開工前間距（定位用）'],
+    ['橘色色塊 = 實際施工天數'],
+  ];
+  const ws3 = XLSX.utils.aoa_to_sheet(noteRows);
+  ws3['!cols'] = [{ wch: 60 }];
+  ws3['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 2 } }];
+  XLSX.utils.book_append_sheet(wb, ws3, '使用說明');
+
+  // Download
+  const filename = `${currentProject.name}_甘特圖.xlsx`;
+  XLSX.writeFile(wb, filename);
+  showToast('✅ Excel 已匯出，請依使用說明插入圖表');
+}
+
+// ── PDF 匯出 ────────────────────────────────────────────────
+document.getElementById('gantt-export-pdf-btn').onclick = exportGanttPDF;
+
+async function exportGanttPDF() {
+  if (!currentProject) return;
+  const segments = DB.gantt_segments.filter(s => s.project_id === currentProject.id);
+  if (segments.length === 0) { showToast('尚無時段資料', 'error'); return; }
+
+  if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
+    showToast('PDF 套件載入中，請稍候再試', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('gantt-export-pdf-btn');
+  btn.disabled = true;
+  btn.textContent = '產生中...';
+
+  try {
+    // Build a standalone print-ready gantt div
+    const workerIds = getOrderedWorkerIds(segments);
+    const workerColorMap = {};
+    workerIds.forEach((wid, i) => { workerColorMap[wid] = GANTT_COLORS[i % GANTT_COLORS.length]; });
+
+    const allDates = segments.flatMap(s => [new Date(s.start), new Date(s.end)]);
+    const minDate = new Date(Math.min(...allDates));
+    const maxDate = new Date(Math.max(...allDates));
+    const totalDays = Math.ceil((maxDate - minDate) / 86400000) + 6;
+
+    // Create off-screen render container
+    const wrap = document.createElement('div');
+    wrap.style.cssText = `
+      position:fixed; left:-9999px; top:0;
+      width:900px; background:#ffffff; color:#1e293b;
+      font-family:'Noto Sans TC',sans-serif; padding:32px;
+      box-sizing:border-box;
+    `;
+
+    // Title
+    wrap.innerHTML = `
+      <div style="margin-bottom:20px; border-bottom:3px solid #f59e0b; padding-bottom:12px;">
+        <h1 style="font-size:20px; font-weight:700; color:#1e293b; margin:0 0 4px;">施工甘特圖</h1>
+        <p style="font-size:13px; color:#64748b; margin:0;">${currentProject.name} &nbsp;·&nbsp; 匯出時間：${new Date().toLocaleString('zh-TW')}</p>
+      </div>
+    `;
+
+    // Legend
+    const legendHtml = workerIds.map(wid => `
+      <span style="display:inline-flex; align-items:center; gap:5px; margin-right:16px; font-size:12px;">
+        <span style="display:inline-block; width:14px; height:14px; border-radius:3px; background:${workerColorMap[wid]};"></span>
+        ${getUserName(wid)}
+      </span>
+    `).join('');
+    wrap.innerHTML += `<div style="margin-bottom:16px;">${legendHtml}</div>`;
+
+    // Gantt grid
+    const CHART_W = 836; // 900 - 64px padding
+    const ROW_H = 48;
+    const LABEL_W = 180;
+    const BAR_W = CHART_W - LABEL_W;
+
+    // Date axis labels (every ~7 days)
+    const axisStep = Math.max(1, Math.round(totalDays / 10));
+    let axisHtml = `<div style="display:flex; margin-left:${LABEL_W}px; margin-bottom:4px;">`;
+    for (let d = 0; d <= totalDays; d += axisStep) {
+      const dt = new Date(minDate.getTime() + d * 86400000);
+      const left = (d / totalDays) * BAR_W;
+      axisHtml += `<span style="position:absolute; left:${LABEL_W + left}px; font-size:10px; color:#94a3b8; white-space:nowrap;">${(dt.getMonth()+1)}/${dt.getDate()}</span>`;
+    }
+    axisHtml += '</div>';
+
+    let ganttHtml = `<div style="position:relative; min-height:20px;">${axisHtml}</div>`;
+    ganttHtml += `<div style="margin-top:8px; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden;">`;
+
+    workerIds.forEach((wid, wi) => {
+      const color = workerColorMap[wid];
+      const workerSegs = segments.filter(s => s.worker_id === wid);
+      const rowBg = wi % 2 === 0 ? '#f8fafc' : '#ffffff';
+
+      ganttHtml += `
+        <div style="display:flex; align-items:center; min-height:${ROW_H}px; background:${rowBg}; border-bottom:1px solid #e2e8f0;">
+          <div style="width:${LABEL_W}px; min-width:${LABEL_W}px; padding:4px 10px;
+            font-size:12px; font-weight:700; color:${color}; border-right:2px solid ${color};
+            word-break:break-all; line-height:1.3; display:flex; align-items:center;">
+            ${getUserName(wid)}
+          </div>
+          <div style="flex:1; position:relative; height:${ROW_H}px;">
+      `;
+
+      // Grid lines
+      for (let d = 0; d <= totalDays; d += axisStep) {
+        const left = (d / totalDays) * 100;
+        ganttHtml += `<div style="position:absolute; left:${left}%; top:0; bottom:0; border-left:1px dashed #e2e8f0;"></div>`;
+      }
+
+      // Bars for each segment
+      workerSegs.forEach(s => {
+        const startDay = Math.ceil((new Date(s.start) - minDate) / 86400000);
+        const endDay = Math.ceil((new Date(s.end) - minDate) / 86400000) + 1;
+        const left = (startDay / totalDays) * 100;
+        const width = Math.max(0.5, ((endDay - startDay) / totalDays) * 100);
+        const label = s.label || '';
+        ganttHtml += `
+          <div style="
+            position:absolute;
+            left:${left}%; width:${width}%;
+            top:4px; bottom:4px;
+            background:${color}; border-radius:4px;
+            display:flex; align-items:center; padding:0 8px;
+            box-sizing:border-box;
+          ">
+            ${width >= 6 && label ? '<span style="font-size:11px; color:#fff; white-space:nowrap; overflow:visible; max-width:none;">' + label + '</span>' : ''}
+          </div>
+        `;
+      });
+
+      ganttHtml += `</div></div>`;
+    });
+
+    ganttHtml += '</div>';
+    wrap.innerHTML += ganttHtml;
+
+    // Footer
+    wrap.innerHTML += `
+      <div style="margin-top:16px; font-size:11px; color:#94a3b8; text-align:right;">
+        工程案場管理系統 · ${new Date().toLocaleDateString('zh-TW')}
+      </div>
+    `;
+
+    document.body.appendChild(wrap);
+
+    // Render to canvas then PDF
+    const canvas = await html2canvas(wrap, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      width: 900,
+      logging: false
+    });
+
+    document.body.removeChild(wrap);
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+    const pdfW = pdf.internal.pageSize.getWidth();
+    const pdfH = pdf.internal.pageSize.getHeight();
+    const imgW = pdfW;
+    const imgH = (canvas.height / canvas.width) * imgW;
+
+    // If content exceeds one page, scale to fit
+    const scaleH = imgH > pdfH ? pdfH / imgH : 1;
+    const finalW = imgW * scaleH;
+    const finalH = imgH * scaleH;
+
+    const imgData = canvas.toDataURL('image/png');
+    pdf.addImage(imgData, 'PNG', (pdfW - finalW) / 2, 0, finalW, finalH);
+
+    pdf.save(`${currentProject.name}_甘特圖.pdf`);
+    showToast('✅ PDF 甘特圖已匯出');
+  } catch (err) {
+    console.error(err);
+    showToast('匯出失敗，請再試一次', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '📄 匯出 PDF 甘特圖';
+  }
+}
+
+// ══════════════════════════════════════════
+//  MEETING PDF EXPORT
+// ══════════════════════════════════════════
+
+document.getElementById('meeting-export-pdf-btn').onclick = exportMeetingsPDF;
+
+async function exportMeetingsPDF() {
+  if (!currentProject) return;
+  if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
+    showToast('PDF 套件載入中，請稍後再試', 'error'); return;
+  }
+
+  const checkedIds = [...document.querySelectorAll('.meeting-export-check:checked')].map(c => c.value);
+  if (checkedIds.length === 0) { showToast('請至少勾選一筆記錄', 'error'); return; }
+
+  const allMeetings = DB.meetings.filter(m => m.project_id === currentProject.id);
+  const filtered = allMeetings.filter(m => checkedIds.includes(m.id));
+
+  if (filtered.length === 0) { showToast('找不到選取的記錄', 'error'); return; }
+
+  const btn = document.getElementById('meeting-export-pdf-btn');
+  btn.disabled = true;
+  btn.textContent = '產生中...';
+
+  try {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = `
+      position:fixed; left:-9999px; top:0;
+      width:794px; background:#ffffff; color:#1e293b;
+      font-family:'Noto Sans TC',sans-serif; padding:40px 48px;
+      box-sizing:border-box;
+    `;
+
+    // ── 封面區：案場基本資料 ──────────────────────────────────
+    wrap.innerHTML = `
+      <div style="border-bottom:3px solid #f59e0b; padding-bottom:16px; margin-bottom:24px;">
+        <h1 style="font-size:22px; font-weight:700; color:#1e293b; margin:0 0 6px;">會議記錄報告</h1>
+        <p style="font-size:13px; color:#64748b; margin:0;">匯出時間：${new Date().toLocaleString('zh-TW')} &nbsp;·&nbsp; 共 ${filtered.length} 筆記錄</p>
+      </div>
+
+      <div style="background:#f8fafc; border-radius:10px; padding:16px 20px; margin-bottom:28px; border:1px solid #e2e8f0;">
+        <h2 style="font-size:14px; font-weight:700; color:#f59e0b; margin:0 0 12px; letter-spacing:0.05em;">案場基本資料</h2>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div>
+            <p style="font-size:11px; color:#94a3b8; margin:0 0 2px;">案場名稱</p>
+            <p style="font-size:13px; font-weight:600; margin:0;">${currentProject.name}</p>
+          </div>
+          <div>
+            <p style="font-size:11px; color:#94a3b8; margin:0 0 2px;">狀態</p>
+            <p style="font-size:13px; font-weight:600; margin:0;">${currentProject.status}</p>
+          </div>
+          <div>
+            <p style="font-size:11px; color:#94a3b8; margin:0 0 2px;">地點</p>
+            <p style="font-size:13px; margin:0;">${currentProject.location || '—'}</p>
+          </div>
+          <div>
+            <p style="font-size:11px; color:#94a3b8; margin:0 0 2px;">負責人</p>
+            <p style="font-size:13px; margin:0;">${currentProject.manager || '—'}</p>
+          </div>
+          
+        </div>
+        ${currentProject.notes ? `
+          <div style="margin-top:10px; padding-top:10px; border-top:1px solid #e2e8f0;">
+            <p style="font-size:11px; color:#94a3b8; margin:0 0 2px;">備註</p>
+            <p style="font-size:13px; margin:0;">${currentProject.notes}</p>
+          </div>` : ''}
+      </div>
+
+      <h2 style="font-size:15px; font-weight:700; color:#1e293b; margin:0 0 16px;">
+        會議記錄 <span style="font-size:12px; font-weight:400; color:#94a3b8;">（共 ${filtered.length} 筆）</span>
+      </h2>
+    `;
+
+    // ── 逐筆會議記錄 ──────────────────────────────────────────
+    const sortedMeetings = [...filtered].sort((a, b) => a.meeting_date.localeCompare(b.meeting_date));
+
+    sortedMeetings.forEach((m, i) => {
+      const isLast = i === sortedMeetings.length - 1;
+
+      // Build signature grid from attendees (split by 、，, space)
+      const attendeeList = m.attendees
+        .split(/[、，,\s]+/)
+        .map(a => a.trim())
+        .filter(a => a.length > 0);
+
+      // Each signature cell: name label + large blank space + bottom line
+      const sigCols = Math.min(attendeeList.length, 4); // max 4 per row
+      const sigWidth = sigCols > 0 ? Math.floor(100 / sigCols) : 25;
+
+      const sigCells = attendeeList.map(name => `
+        <div style="width:${sigWidth}%; padding:0 10px; box-sizing:border-box;">
+          <p style="font-size:11px; color:#94a3b8; margin:0 0 4px; text-align:center;">${name}</p>
+          <div style="height:70px; border:1px solid #e2e8f0; border-radius:6px; background:#fafafa;"></div>
+          <div style="margin-top:6px; border-bottom:1px solid #cbd5e1;"></div>
+          <p style="font-size:10px; color:#cbd5e1; text-align:center; margin:3px 0 0;">簽名</p>
+        </div>
+      `).join('');
+
+      wrap.innerHTML += `
+        <div style="
+          margin-bottom:${isLast ? 0 : 28}px;
+          border:1px solid #e2e8f0;
+          border-radius:10px;
+          border-left:4px solid #f59e0b;
+          background:#ffffff;
+          overflow:hidden;
+          page-break-inside:avoid;
+        ">
+          <!-- 會議資訊 -->
+          <div style="padding:16px 20px 12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <span style="font-size:13px; font-weight:700; color:#1e293b;">📅 ${m.meeting_date.replace(/-/g,'/')}</span>
+              <span style="font-size:11px; color:#94a3b8;">第 ${i + 1} 次會議</span>
+            </div>
+            <div style="margin-bottom:8px;">
+              <p style="font-size:11px; color:#94a3b8; margin:0 0 3px;">出席人員</p>
+              <p style="font-size:13px; font-weight:600; margin:0; color:#334155;">${m.attendees}</p>
+            </div>
+            <div>
+              <p style="font-size:11px; color:#94a3b8; margin:0 0 3px;">會議內容</p>
+              <p style="font-size:13px; margin:0; color:#475569; line-height:1.7; white-space:pre-wrap;">${m.content}</p>
+            </div>
+          </div>
+
+          <!-- 簽名區 -->
+          <div style="border-top:1px dashed #e2e8f0; padding:16px 20px; background:#f8fafc;">
+            <p style="font-size:11px; color:#94a3b8; margin:0 0 10px; font-weight:600;">出席人員簽名</p>
+            <div style="height:80px; border:1px solid #e2e8f0; border-radius:6px; background:#fff;"></div>
+          </div>
+        </div>
+      `;
+    });
+
+    // ── 頁尾 ─────────────────────────────────────────────────
+    wrap.innerHTML += `
+      <div style="margin-top:24px; padding-top:12px; border-top:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:11px; color:#94a3b8;">工程案場管理系統</span>
+        <span style="font-size:11px; color:#94a3b8;">${new Date().toLocaleDateString('zh-TW')}</span>
+      </div>
+    `;
+
+    document.body.appendChild(wrap);
+
+    const canvas = await html2canvas(wrap, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      width: 794,
+      logging: false
+    });
+
+    document.body.removeChild(wrap);
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pdfW = pdf.internal.pageSize.getWidth();
+    const pdfH = pdf.internal.pageSize.getHeight();
+
+    // Split into pages if content is taller than one A4
+    const imgW = canvas.width;
+    const imgH = canvas.height;
+    const pageHeightPx = Math.round(imgW * (pdfH / pdfW));
+    const totalPages = Math.ceil(imgH / pageHeightPx);
+
+    for (let page = 0; page < totalPages; page++) {
+      if (page > 0) pdf.addPage();
+      const srcY = page * pageHeightPx;
+      const srcH = Math.min(pageHeightPx, imgH - srcY);
+
+      // Crop this page's slice from canvas
+      const pageCanvas = document.createElement('canvas');
+      pageCanvas.width  = imgW;
+      pageCanvas.height = srcH;
+      const ctx = pageCanvas.getContext('2d');
+      ctx.drawImage(canvas, 0, srcY, imgW, srcH, 0, 0, imgW, srcH);
+
+      const pageImg = pageCanvas.toDataURL('image/png');
+      const renderH = (srcH / imgW) * pdfW;
+      pdf.addImage(pageImg, 'PNG', 0, 0, pdfW, renderH);
+    }
+
+    const filename = `${currentProject.name}_會議記錄.pdf`;
+    pdf.save(filename);
+    showToast(`✅ 已匯出 ${filtered.length} 筆會議記錄`);
+
+  } catch (err) {
+    console.error(err);
+    showToast('匯出失敗，請再試一次', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '📄 匯出 PDF 會議記錄';
+  }
+}
+
+// Hook gantt tab open - patch existing tab buttons
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  const orig = btn.onclick;
+  btn.onclick = () => {
+    switchDetailTab(btn.dataset.tab);
+    if (btn.dataset.tab === 'gantt') openGanttTab();
+  };
+});
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+
+document.getElementById('page-login').classList.add('active');
 </script>
 </body>
 </html>
