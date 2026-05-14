@@ -134,6 +134,11 @@
           <label>公司／工作室名稱</label>
           <input id="reg-company" class="input" placeholder="例：全技工程行">
         </div>
+        <!-- 邀請碼（設計師專用） -->
+        <div id="reg-invite-wrap" style="margin-bottom:14px;display:none;">
+          <label>邀請碼</label>
+          <input id="reg-invite-code" class="input" placeholder="例：A3K9-X2M7" style="text-transform:uppercase;letter-spacing:2px;">
+        </div>
         <div style="margin-bottom:14px;">
           <label>姓名</label>
           <input id="reg-name" class="input" placeholder="輸入你的姓名">
@@ -227,6 +232,23 @@
           <input id="admin-new-org-name" class="input" placeholder="公司／工作室名稱" style="flex:1;">
           <button onclick="adminCreateOrg()" class="btn btn-primary btn-sm" style="white-space:nowrap;">建立</button>
         </div>
+      </div>
+
+      <!-- 邀請碼管理 -->
+      <div class="card" style="margin-bottom:20px;">
+        <h3 style="font-size:14px;margin-bottom:12px;">🎟 邀請碼管理</h3>
+        <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap;">
+          <select id="code-expire-days" class="input" style="width:auto;padding:6px 10px;">
+            <option value="">永久有效</option>
+            <option value="1">1 天</option>
+            <option value="3">3 天</option>
+            <option value="7">7 天</option>
+            <option value="30">30 天</option>
+            <option value="90">90 天</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="adminGenerateCode()">＋ 產生邀請碼</button>
+        </div>
+        <div id="admin-codes-list"><p style="font-size:12px;color:var(--text-muted);">載入中...</p></div>
       </div>
 
       <div id="admin-orgs-list"></div>
@@ -459,6 +481,7 @@ const SUPABASE_URL = 'https://oubipbyskqaagxfdpvmi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YmlwYnlza3FhYWd4ZmRwdm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ1MTksImV4cCI6MjA5NDI2MDUxOX0.-3oWqtjM--FnCXOpxkdt71p4xVdxdpMqO1SGaIU_f2I';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+const APP_VERSION = 'v1.1';
 const APP_CONFIG = { logo_url: '', app_name: '工程管理系統', app_subtitle: '施工管理平台' };
 
 let DB = { users: [], projects: [], photos: [], meetings: [], notifications: [], gantt_segments: [] };
@@ -492,19 +515,22 @@ async function loadOrgFromURL() {
   const orgId = params.get('org');
   const badge = document.getElementById('reg-type-badge');
   const companyWrap = document.getElementById('reg-company-wrap');
+  const inviteWrap = document.getElementById('reg-invite-wrap');
 
   if (!orgId) {
-    // 設計師註冊模式
+    // 設計師註冊模式：顯示公司名稱 + 邀請碼
     badge.textContent = '設計師註冊';
     badge.className = 'reg-type-badge reg-type-designer';
     companyWrap.style.display = '';
+    inviteWrap.style.display = '';
     return;
   }
 
-  // 工班註冊模式
+  // 工班註冊模式：隱藏公司名稱與邀請碼
   badge.textContent = '工班註冊';
   badge.className = 'reg-type-badge reg-type-worker';
   companyWrap.style.display = 'none';
+  inviteWrap.style.display = 'none';
 
   try {
     const { data: org } = await sb.from('organizations').select('id, name, brand_config').eq('id', orgId).single();
@@ -546,6 +572,15 @@ async function doRegister() {
   if (isDesigner && !company) { showToast('請輸入公司名稱', 'error'); return; }
   if (!isDesigner && !urlOrgId) { showToast('請使用組織專屬連結進行註冊', 'error'); return; }
 
+  // 設計師須驗證邀請碼
+  let inviteCode = '';
+  if (isDesigner) {
+    inviteCode = document.getElementById('reg-invite-code').value.trim().toUpperCase();
+    if (!inviteCode) { showToast('請輸入邀請碼', 'error'); return; }
+    const { data: codeOk, error: codeErr } = await sb.rpc('check_invite_code', { p_code: inviteCode });
+    if (codeErr || !codeOk) { showToast('邀請碼無效、已使用或已過期', 'error'); return; }
+  }
+
   const btn = document.getElementById('register-btn');
   btn.disabled = true; btn.textContent = '註冊中...';
 
@@ -562,6 +597,8 @@ async function doRegister() {
         id: data.user.id, org_id: org.id, role: 'designer', display_name: name, account: email,
       });
       if (pe) { showToast('建立資料失敗：' + pe.message, 'error'); return; }
+      // 標記邀請碼已使用
+      await sb.rpc('use_invite_code', { p_code: inviteCode, p_user_id: data.user.id });
       showToast('設計師帳號建立成功！請登入');
     } else {
       // 建立工班 profile
@@ -575,10 +612,9 @@ async function doRegister() {
     document.getElementById('form-register').style.display = 'none';
     document.getElementById('form-login').style.display = '';
     document.getElementById('login-email').value = email;
-    document.getElementById('reg-name').value = '';
-    document.getElementById('reg-email').value = '';
-    document.getElementById('reg-password').value = '';
-    document.getElementById('reg-company').value = '';
+    ['reg-name','reg-email','reg-password','reg-company','reg-invite-code'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
 
   } catch(e) {
     showToast('註冊失敗：' + e.message, 'error');
@@ -698,7 +734,7 @@ document.getElementById('brand-save-btn').onclick = async () => {
 function applyAppConfig() {
   const { logo_url, app_name, app_subtitle } = APP_CONFIG;
   document.getElementById('login-app-name').textContent = app_name;
-  document.getElementById('login-app-subtitle').textContent = app_subtitle || '請登入以繼續';
+  document.getElementById('login-app-subtitle').innerHTML = (app_subtitle || '請登入以繼續') + ' <span style="font-size:10px;opacity:0.45;">' + APP_VERSION + '</span>';
   document.getElementById('header-app-name').textContent = app_name;
   if (logo_url) {
     const li = document.getElementById('login-logo-img'), hi = document.getElementById('header-logo-img');
@@ -814,6 +850,7 @@ async function renderAdminPanel() {
   const listEl  = document.getElementById('admin-orgs-list');
   statsEl.innerHTML = '<div class="stat-card" style="grid-column:span 3;"><p style="font-size:12px;color:var(--text-muted);">載入中...</p></div>';
   listEl.innerHTML = '';
+  renderAdminCodes();
   try {
     const { data: orgs }        = await sb.from('organizations').select('*').order('created_at');
     const { data: allProfiles } = await sb.from('profiles').select('*');
@@ -956,6 +993,78 @@ async function adminRemoveUser(uid, name) {
 
 function copyText(text) {
   navigator.clipboard.writeText(text).then(() => showToast('已複製！'));
+}
+
+// ══════════════════════════════════════════
+//  INVITE CODES
+// ══════════════════════════════════════════
+
+async function renderAdminCodes() {
+  const el = document.getElementById('admin-codes-list');
+  if (!el) return;
+  try {
+    const { data: codes, error } = await sb.from('invite_codes').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    if (!codes || codes.length === 0) {
+      el.innerHTML = '<p style="font-size:12px;color:var(--text-muted);">尚無邀請碼，點上方按鈕產生</p>';
+      return;
+    }
+    el.innerHTML = codes.map(c => {
+      const now = Date.now();
+      const expired = c.expires_at && new Date(c.expires_at).getTime() < now;
+      const used = c.is_used;
+      const invalid = used || expired;
+      const statusColor = invalid ? '#64748b' : '#10b981';
+      const statusText = used ? '已使用' : (expired ? '已過期' : '未使用');
+      const expiryText = c.expires_at
+        ? '有效至 ' + new Date(c.expires_at).toLocaleDateString('zh-TW')
+        : '永久有效';
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#0f172a;border-radius:8px;border:1px solid var(--border);margin-bottom:6px;flex-wrap:wrap;gap:8px;">' +
+        '<div>' +
+          '<span style="font-size:14px;font-weight:700;letter-spacing:2px;color:' + statusColor + ';font-family:monospace;">' + c.code + '</span>' +
+          '<p style="font-size:11px;color:var(--text-muted);margin:2px 0 0;">' + expiryText + ' · ' + statusText + '</p>' +
+        '</div>' +
+        '<div style="display:flex;gap:6px;">' +
+          (!invalid ? '<button class="btn btn-ghost btn-sm" onclick="copyText(\'' + c.code + '\')">複製</button>' : '') +
+          '<button class="btn btn-danger btn-sm" onclick="adminDeleteCode(\'' + c.id + '\')">刪除</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<p style="font-size:12px;color:var(--red);">載入失敗：' + e.message + '</p>';
+  }
+}
+
+async function adminGenerateCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const part = (n) => Array.from({ length: n }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  const code = part(4) + '-' + part(4);
+
+  const days = document.getElementById('code-expire-days').value;
+  let expires_at = null;
+  if (days) {
+    const d = new Date();
+    d.setDate(d.getDate() + parseInt(days));
+    expires_at = d.toISOString();
+  }
+
+  try {
+    const { error } = await sb.from('invite_codes').insert({
+      code, created_by: currentUser.id, expires_at,
+    });
+    if (error) throw error;
+    showToast('邀請碼已產生：' + code);
+    renderAdminCodes();
+  } catch(e) { showToast('產生失敗：' + e.message, 'error'); }
+}
+
+async function adminDeleteCode(codeId) {
+  if (!confirm('確定要刪除此邀請碼？')) return;
+  try {
+    await sb.from('invite_codes').delete().eq('id', codeId);
+    showToast('邀請碼已刪除');
+    renderAdminCodes();
+  } catch(e) { showToast('刪除失敗：' + e.message, 'error'); }
 }
 
 // ══════════════════════════════════════════
