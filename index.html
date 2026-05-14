@@ -1433,7 +1433,12 @@ document.getElementById('pm-submit').onclick = async () => {
 //  WORKER MANAGEMENT
 // ══════════════════════════════════════════
 
-document.getElementById('designer-add-worker-btn').onclick = () => { renderWorkersModal(); showModal('worker-modal'); };
+document.getElementById('designer-add-worker-btn').onclick = async () => {
+  const { data: users } = await sb.from('profiles').select('*').eq('org_id', currentUser.org_id);
+  DB.users = users || [];
+  renderWorkersModal();
+  showModal('worker-modal');
+};
 
 function renderWorkersModal() {
   const workers = DB.users.filter(u => u.role==='worker' && u.org_id===currentUser.org_id);
