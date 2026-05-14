@@ -1459,9 +1459,8 @@ async function exportMeetingsPDF() {
     const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
     const pw=pdf.internal.pageSize.getWidth(), ph=pdf.internal.pageSize.getHeight();
     const iw=canvas.width, ih=canvas.height, pph=Math.round(iw*(ph/pw)), tp=Math.ceil(ih/pph);
-    for (let p=0;
-
-            if (p>0) pdf.addPage();
+        for (let p=0; p<tp; p++) {
+      if (p>0) pdf.addPage();
       const sy=p*pph, sh=Math.min(pph,ih-sy);
       const pc=document.createElement('canvas'); pc.width=iw; pc.height=sh;
       pc.getContext('2d').drawImage(canvas,0,sy,iw,sh,0,0,iw,sh);
