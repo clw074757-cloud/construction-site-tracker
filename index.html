@@ -1011,8 +1011,8 @@ async function adminMoveUser(uid, newOrgId, oldOrgId) {
 async function adminRemoveUser(uid, name) {
   if (!confirm('確定要移除「' + name + '」？此操作無法復原。')) return;
   try {
-    await sb.from('project_members').delete().eq('user_id', uid);
-    await sb.from('profiles').delete().eq('id', uid);
+    const { error } = await sb.rpc('admin_remove_user', { p_uid: uid });
+    if (error) throw error;
     showToast('使用者已移除');
     renderAdminPanel();
   } catch(e) { showToast('移除失敗：' + e.message, 'error'); }
