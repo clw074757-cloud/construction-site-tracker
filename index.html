@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>全技工程行</title>
+  <title>工程管理系統</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -165,7 +165,7 @@
       <img id="header-logo-img" src="" alt="logo" style="height:36px; width:auto; object-fit:contain; display:none; border-radius:6px;">
       <span id="header-logo-fallback" style="font-size:22px;">🏗️</span>
       <div>
-        <h1 id="header-app-name" style="font-size:16px; color:var(--amber); line-height:1.2;">全技工程行</h1>
+        <h1 id="header-app-name" style="font-size:16px; color:var(--amber); line-height:1.2;">工程管理系統</h1>
         <p id="user-role-label" style="font-size:11px; color:var(--text-muted); line-height:1.2;"></p>
       </div>
     </div>
@@ -459,7 +459,7 @@ const SUPABASE_URL = 'https://oubipbyskqaagxfdpvmi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YmlwYnlza3FhYWd4ZmRwdm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ1MTksImV4cCI6MjA5NDI2MDUxOX0.-3oWqtjM--FnCXOpxkdt71p4xVdxdpMqO1SGaIU_f2I';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const APP_CONFIG = { logo_url: '', app_name: '全技工程行', app_subtitle: '施工管理平台' };
+const APP_CONFIG = { logo_url: '', app_name: '工程管理系統', app_subtitle: '施工管理平台' };
 
 let DB = { users: [], projects: [], photos: [], meetings: [], notifications: [], gantt_segments: [] };
 let currentUser = null;
