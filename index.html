@@ -14,45 +14,28 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * { font-family: 'Noto Sans TC', sans-serif; box-sizing: border-box; }
-
     :root {
-      --amber: #f59e0b;
-      --amber-dark: #d97706;
-      --surface: #1e293b;
-      --surface2: #0f172a;
-      --border: #334155;
-      --text: #f1f5f9;
-      --text-muted: #94a3b8;
-      --emerald: #10b981;
-      --blue: #3b82f6;
-      --red: #ef4444;
+      --amber: #f59e0b; --amber-dark: #d97706;
+      --surface: #1e293b; --surface2: #0f172a;
+      --border: #334155; --text: #f1f5f9; --text-muted: #94a3b8;
+      --emerald: #10b981; --blue: #3b82f6; --red: #ef4444;
     }
-
     body { background: var(--surface2); color: var(--text); min-height: 100vh; }
-
     .fade-in { animation: fadeIn 0.25s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-
-    .slide-up { animation: slideUp 0.3s ease; }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
     .nav-link { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 16px; border-radius: 10px; color: var(--text-muted); font-size: 11px; cursor: pointer; transition: all .2s; }
     .nav-link:hover { color: var(--text); background: rgba(255,255,255,.05); }
     .nav-link.active { color: var(--amber); background: rgba(245,158,11,.1); }
     .nav-icon { font-size: 20px; }
-
     .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; transition: border-color .2s; }
     .card:hover { border-color: rgba(245,158,11,.4); }
-
     .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; }
     .badge-pending { background: rgba(245,158,11,.15); color: #fbbf24; }
     .badge-active { background: rgba(16,185,129,.15); color: #34d399; }
     .badge-done { background: rgba(59,130,246,.15); color: #60a5fa; }
     .badge-paused { background: rgba(239,68,68,.15); color: #f87171; }
-
     .progress-track { height: 6px; background: #334155; border-radius: 999px; overflow: hidden; }
     .progress-fill { height: 100%; background: linear-gradient(90deg, var(--amber), #fbbf24); border-radius: 999px; transition: width .4s ease; }
-
     .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; transition: all .15s; }
     .btn-primary { background: var(--amber); color: #0f172a; }
     .btn-primary:hover { background: var(--amber-dark); }
@@ -62,70 +45,56 @@
     .btn-danger { background: rgba(239,68,68,.15); color: #f87171; border: 1px solid rgba(239,68,68,.3); }
     .btn-danger:hover { background: rgba(239,68,68,.25); }
     .btn-sm { padding: 5px 12px; font-size: 12px; border-radius: 7px; }
-
     .input { width: 100%; background: #0f172a; border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; color: var(--text); font-size: 14px; outline: none; transition: border-color .2s; }
     .input:focus { border-color: var(--amber); }
     .input::placeholder { color: var(--text-muted); }
     select.input option { background: #1e293b; }
     textarea.input { resize: vertical; min-height: 80px; }
-
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.65); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
     .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
     .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 22px; border-bottom: 1px solid var(--border); }
     .modal-body { padding: 22px; }
-
     .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 12px 22px; border-radius: 10px; font-size: 14px; font-weight: 500; z-index: 200; white-space: nowrap; animation: fadeIn .2s ease; }
     .toast-success { background: rgba(16,185,129,.2); border: 1px solid rgba(16,185,129,.4); color: #34d399; }
     .toast-error { background: rgba(239,68,68,.2); border: 1px solid rgba(239,68,68,.4); color: #f87171; }
     .toast-info { background: rgba(245,158,11,.2); border: 1px solid rgba(245,158,11,.4); color: #fbbf24; }
-
     .tab-bar { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 20px; overflow-x: auto; }
     .tab-btn { padding: 8px 16px; font-size: 14px; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all .2s; background: none; border-left: none; border-right: none; border-top: none; }
     .tab-btn.active { color: var(--amber); border-bottom-color: var(--amber); font-weight: 600; }
-
     .notif-dot { position: absolute; top: 2px; right: 2px; width: 8px; height: 8px; background: var(--red); border-radius: 50%; border: 2px solid var(--surface2); }
-
     .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
     .photo-item { position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; background: #0f172a; }
     .photo-item img { width: 100%; height: 100%; object-fit: cover; }
     .photo-item .del-overlay { position: absolute; inset: 0; background: rgba(0,0,0,.6); display: none; align-items: center; justify-content: center; }
     .photo-item:hover .del-overlay { display: flex; }
-
     .drop-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 28px; text-align: center; cursor: pointer; transition: all .2s; }
     .drop-zone:hover, .drop-zone.drag-over { border-color: var(--amber); background: rgba(245,158,11,.05); }
-
     .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
-
     .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
     .login-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 36px 32px; width: 100%; max-width: 400px; }
-
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
-
     #page-login, #page-app { display: none; }
     #page-login.active, #page-app.active { display: block; }
-
     .section { display: none; }
     .section.active { display: block; }
-
     .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
     .empty-icon { font-size: 48px; margin-bottom: 12px; }
-
     .notif-item { padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); margin-bottom: 8px; }
     .notif-item.unread { border-color: rgba(245,158,11,.3); background: rgba(245,158,11,.05); }
-
     label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px; }
     h1, h2, h3 { font-weight: 700; }
   </style>
 </head>
 <body>
 
+<!-- ===================== LOGIN PAGE ===================== -->
 <div id="page-login">
   <div class="login-wrap">
     <div class="login-card fade-in">
       <div style="text-align:center; margin-bottom:28px;">
-        <div id="login-logo-wrap" style="margin-bottom:10px; display:flex; align-items:center; justify-content:center; gap:10px;">
+        <div style="margin-bottom:10px; display:flex; align-items:center; justify-content:center; gap:10px;">
           <img id="login-logo-img" src="" alt="logo" style="height:48px; width:auto; object-fit:contain; display:none;">
           <span id="login-logo-fallback" style="font-size:40px;">🏗️</span>
         </div>
@@ -133,10 +102,11 @@
         <p id="login-app-subtitle" style="font-size:13px; color:var(--text-muted);">請登入以繼續</p>
       </div>
 
-      <div id="login-form-wrap">
+      <!-- 登入表單 -->
+      <div id="form-login">
         <div style="margin-bottom:16px;">
-          <label>帳號</label>
-          <input id="login-email" class="input" type="text" placeholder="輸入帳號或 Email">
+          <label>Email</label>
+          <input id="login-email" class="input" type="text" placeholder="輸入 Email">
         </div>
         <div style="margin-bottom:24px;">
           <label>密碼</label>
@@ -145,13 +115,36 @@
         <button id="login-btn" class="btn btn-primary" style="width:100%; justify-content:center;">登入</button>
         <div style="margin-top:16px; text-align:center;">
           <span style="font-size:13px; color:var(--text-muted);">沒有帳號？</span>
-          <button id="goto-register" style="background:none;border:none;color:var(--amber);font-size:13px;cursor:pointer;padding:0 4px;">點此聯絡設計師</button>
+          <button id="goto-register" style="background:none;border:none;color:var(--amber);font-size:13px;cursor:pointer;padding:0 4px;">點此註冊</button>
         </div>
       </div>
+
+      <!-- 註冊表單 -->
+      <div id="form-register" style="display:none;">
+        <div style="margin-bottom:14px;">
+          <label>姓名</label>
+          <input id="reg-name" class="input" placeholder="輸入你的姓名">
+        </div>
+        <div style="margin-bottom:14px;">
+          <label>Email</label>
+          <input id="reg-email" class="input" type="email" placeholder="輸入 Email">
+        </div>
+        <div style="margin-bottom:24px;">
+          <label>密碼</label>
+          <input id="reg-password" class="input" type="password" placeholder="設定密碼（至少 6 碼）">
+        </div>
+        <button id="register-btn" class="btn btn-primary" style="width:100%; justify-content:center;">註冊</button>
+        <div style="margin-top:16px; text-align:center;">
+          <span style="font-size:13px; color:var(--text-muted);">已有帳號？</span>
+          <button id="goto-login" style="background:none;border:none;color:var(--amber);font-size:13px;cursor:pointer;padding:0 4px;">點此登入</button>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
 
+<!-- ===================== MAIN APP ===================== -->
 <div id="page-app">
 
   <header style="background:var(--surface); border-bottom:1px solid var(--border); padding:14px 20px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50;">
@@ -173,25 +166,12 @@
   <main style="padding-bottom:80px; min-height:calc(100vh - 57px);">
 
     <section id="section-dashboard" class="section fade-in" style="padding:20px;">
-      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:20px;" id="stats-row">
-        <div class="stat-card">
-          <p style="font-size:12px; color:var(--text-muted);">總案場</p>
-          <p id="stat-total" style="font-size:24px; font-weight:700;">0</p>
-        </div>
-        <div class="stat-card">
-          <p style="font-size:12px; color:var(--text-muted);">進行中</p>
-          <p id="stat-active" style="font-size:24px; font-weight:700; color:var(--emerald);">0</p>
-        </div>
-        <div class="stat-card">
-          <p style="font-size:12px; color:var(--text-muted);">已完工</p>
-          <p id="stat-done" style="font-size:24px; font-weight:700; color:var(--blue);">0</p>
-        </div>
-        <div class="stat-card">
-          <p style="font-size:12px; color:var(--text-muted);">待開工</p>
-          <p id="stat-pending" style="font-size:24px; font-weight:700; color:var(--amber);">0</p>
-        </div>
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:20px;">
+        <div class="stat-card"><p style="font-size:12px; color:var(--text-muted);">總案場</p><p id="stat-total" style="font-size:24px; font-weight:700;">0</p></div>
+        <div class="stat-card"><p style="font-size:12px; color:var(--text-muted);">進行中</p><p id="stat-active" style="font-size:24px; font-weight:700; color:var(--emerald);">0</p></div>
+        <div class="stat-card"><p style="font-size:12px; color:var(--text-muted);">已完工</p><p id="stat-done" style="font-size:24px; font-weight:700; color:var(--blue);">0</p></div>
+        <div class="stat-card"><p style="font-size:12px; color:var(--text-muted);">待開工</p><p id="stat-pending" style="font-size:24px; font-weight:700; color:var(--amber);">0</p></div>
       </div>
-
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
         <h2 style="font-size:16px;">案場列表</h2>
         <div style="display:flex; gap:8px;">
@@ -199,21 +179,14 @@
           <button id="designer-add-btn" class="btn btn-primary btn-sm">＋ 新增案場</button>
         </div>
       </div>
-
       <div id="project-grid" style="display:grid; gap:14px; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));"></div>
-      <div id="project-empty" class="empty-state hidden">
-        <div class="empty-icon">🏗️</div>
-        <p>尚無案場，點擊「新增案場」開始</p>
-      </div>
+      <div id="project-empty" class="empty-state hidden"><div class="empty-icon">🏗️</div><p>尚無案場，點擊「新增案場」開始</p></div>
     </section>
 
     <section id="section-worker" class="section fade-in" style="padding:20px;">
       <h2 style="font-size:16px; margin-bottom:16px;">我的案場</h2>
       <div id="worker-project-grid" style="display:grid; gap:14px; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));"></div>
-      <div id="worker-empty" class="empty-state hidden">
-        <div class="empty-icon">📋</div>
-        <p>目前沒有被分配的案場</p>
-      </div>
+      <div id="worker-empty" class="empty-state hidden"><div class="empty-icon">📋</div><p>目前沒有被分配的案場</p></div>
     </section>
 
     <section id="section-notifications" class="section fade-in" style="padding:20px;">
@@ -222,10 +195,7 @@
         <button id="mark-all-read-btn" class="btn btn-ghost btn-sm">全部已讀</button>
       </div>
       <div id="notif-list"></div>
-      <div id="notif-empty" class="empty-state hidden">
-        <div class="empty-icon">🔔</div>
-        <p>目前沒有通知</p>
-      </div>
+      <div id="notif-empty" class="empty-state hidden"><div class="empty-icon">🔔</div><p>目前沒有通知</p></div>
     </section>
 
   </main>
@@ -241,10 +211,9 @@
       <span id="notif-badge" class="notif-dot hidden"></span>
     </button>
   </nav>
-
 </div>
 
-<!-- Brand Settings Modal -->
+<!-- Brand Modal -->
 <div id="brand-modal" class="modal-overlay hidden">
   <div class="modal-box fade-in" style="max-width:440px;">
     <div class="modal-header">
@@ -252,17 +221,11 @@
       <button class="modal-close btn btn-ghost btn-sm" data-modal="brand-modal">✕</button>
     </div>
     <div class="modal-body">
-      <div style="margin-bottom:16px;">
-        <label>系統名稱</label>
-        <input id="brand-name" class="input" placeholder="例：○○工程管理系統">
-      </div>
-      <div style="margin-bottom:16px;">
-        <label>登入頁副標題</label>
-        <input id="brand-subtitle" class="input" placeholder="例：施工管理平台">
-      </div>
+      <div style="margin-bottom:16px;"><label>系統名稱</label><input id="brand-name" class="input" placeholder="例：○○工程管理系統"></div>
+      <div style="margin-bottom:16px;"><label>登入頁副標題</label><input id="brand-subtitle" class="input" placeholder="例：施工管理平台"></div>
       <div style="margin-bottom:8px;">
         <label>Logo 圖片</label>
-        <div id="brand-logo-preview" style="margin-bottom:10px; height:64px; display:flex; align-items:center; justify-content:center; background:#0f172a; border-radius:10px; border:1px solid var(--border);">
+        <div style="margin-bottom:10px; height:64px; display:flex; align-items:center; justify-content:center; background:#0f172a; border-radius:10px; border:1px solid var(--border);">
           <img id="brand-logo-preview-img" src="" alt="" style="max-height:52px; max-width:200px; object-fit:contain; display:none;">
           <span id="brand-logo-preview-fallback" style="font-size:32px;">🏗️</span>
         </div>
@@ -288,27 +251,12 @@
     </div>
     <div class="modal-body">
       <input type="hidden" id="pm-id">
-      <div style="margin-bottom:14px;">
-        <label>案場名稱 *</label>
-        <input id="pm-name" class="input" placeholder="例：台南市○○大樓新建工程">
-      </div>
-      <div style="margin-bottom:14px;">
-        <label>地點</label>
-        <input id="pm-location" class="input" placeholder="例：台南市中西區...">
-      </div>
-      <div style="margin-bottom:14px;">
-        <label>負責人</label>
-        <input id="pm-manager" class="input" placeholder="例：王大明">
-      </div>
+      <div style="margin-bottom:14px;"><label>案場名稱 *</label><input id="pm-name" class="input" placeholder="例：台南市○○大樓新建工程"></div>
+      <div style="margin-bottom:14px;"><label>地點</label><input id="pm-location" class="input" placeholder="例：台南市中西區..."></div>
+      <div style="margin-bottom:14px;"><label>負責人</label><input id="pm-manager" class="input" placeholder="例：王大明"></div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
-        <div>
-          <label>開工日期</label>
-          <input id="pm-start" class="input" type="date">
-        </div>
-        <div>
-          <label>完工日期</label>
-          <input id="pm-end" class="input" type="date">
-        </div>
+        <div><label>開工日期</label><input id="pm-start" class="input" type="date"></div>
+        <div><label>完工日期</label><input id="pm-end" class="input" type="date"></div>
       </div>
       <div style="margin-bottom:14px;">
         <label>狀態</label>
@@ -327,16 +275,13 @@
         <label>指定工班</label>
         <div id="pm-workers-list" style="display:flex; flex-wrap:wrap; gap:8px; min-height:32px; padding:8px; background:#0f172a; border-radius:10px; border:1px solid var(--border);"></div>
       </div>
-      <div style="margin-bottom:20px;">
-        <label>備註</label>
-        <textarea id="pm-notes" class="input" placeholder="其他備注..."></textarea>
-      </div>
+      <div style="margin-bottom:20px;"><label>備註</label><textarea id="pm-notes" class="input" placeholder="其他備注..."></textarea></div>
       <button id="pm-submit" class="btn btn-primary" style="width:100%; justify-content:center;">儲存</button>
     </div>
   </div>
 </div>
 
-<!-- Project Detail Modal -->
+<!-- Detail Modal -->
 <div id="detail-modal" class="modal-overlay hidden">
   <div class="modal-box fade-in" style="max-width:600px;">
     <div class="modal-header">
@@ -360,9 +305,7 @@
           <div><p style="font-size:12px; color:var(--text-muted);">開工/完工</p><p id="d-dates" style="font-size:13px; color:var(--text-muted);">—</p></div>
         </div>
         <div style="margin-bottom:16px;">
-          <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted); margin-bottom:6px;">
-            <span>進度</span><span id="d-progress-pct">0%</span>
-          </div>
+          <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted); margin-bottom:6px;"><span>進度</span><span id="d-progress-pct">0%</span></div>
           <div class="progress-track"><div id="d-progress-bar" class="progress-fill" style="width:0%"></div></div>
         </div>
         <div style="margin-bottom:16px;">
@@ -396,24 +339,14 @@
 
       <div id="dtab-meetings" class="dtab-content hidden">
         <div id="meeting-form-wrap">
-          <div style="margin-bottom:10px;">
-            <label>會議日期</label>
-            <input id="meeting-date" class="input" type="date">
-          </div>
-          <div style="margin-bottom:10px;">
-            <label>出席人員</label>
-            <input id="meeting-attendees" class="input" placeholder="例：現場主任、監造工程師">
-          </div>
-          <div style="margin-bottom:10px;">
-            <label>會議記錄</label>
-            <textarea id="meeting-content" class="input" placeholder="紀錄決議事項..." style="min-height:120px; resize:vertical;"></textarea>
-          </div>
+          <div style="margin-bottom:10px;"><label>會議日期</label><input id="meeting-date" class="input" type="date"></div>
+          <div style="margin-bottom:10px;"><label>出席人員</label><input id="meeting-attendees" class="input" placeholder="例：現場主任、監造工程師"></div>
+          <div style="margin-bottom:10px;"><label>會議記錄</label><textarea id="meeting-content" class="input" placeholder="紀錄決議事項..." style="min-height:120px;"></textarea></div>
           <input type="hidden" id="meeting-editing-id">
           <button id="meeting-save-btn" class="btn btn-primary btn-sm" style="margin-bottom:16px;">新增記錄</button>
         </div>
         <div id="meetings-list"></div>
         <div id="meetings-empty" class="empty-state hidden"><div class="empty-icon">📝</div><p>尚無會議記錄</p></div>
-
         <div id="meetings-export-wrap" style="margin-top:16px; padding:14px; background:#0f172a; border-radius:12px; border:1px solid var(--border);">
           <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
             <p style="font-size:12px; color:var(--text-muted); margin:0;">選擇要匯出的記錄</p>
@@ -428,58 +361,29 @@
         <div id="gantt-designer-tools" style="margin-bottom:16px;">
           <p style="font-size:13px; color:var(--text-muted); margin-bottom:10px;">為各工班新增施工時段（可分次進場）</p>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
-            <div>
-              <label>工班</label>
-              <select id="gantt-worker-select" class="input">
-                <option value="">— 選擇工班 —</option>
-              </select>
-            </div>
-            <div>
-              <label>說明（選填）</label>
-              <input id="gantt-segment-label" class="input" placeholder="例：一期紮筋">
-            </div>
-            <div>
-              <label>開始日期</label>
-              <input id="gantt-start" class="input" type="date">
-            </div>
-            <div>
-              <label>結束日期</label>
-              <input id="gantt-end" class="input" type="date">
-            </div>
+            <div><label>工班</label><select id="gantt-worker-select" class="input"><option value="">— 選擇工班 —</option></select></div>
+            <div><label>說明（選填）</label><input id="gantt-segment-label" class="input" placeholder="例：一期紮筋"></div>
+            <div><label>開始日期</label><input id="gantt-start" class="input" type="date"></div>
+            <div><label>結束日期</label><input id="gantt-end" class="input" type="date"></div>
           </div>
           <button id="gantt-add-btn" class="btn btn-primary btn-sm" style="margin-bottom:16px;">＋ 新增時段</button>
         </div>
-
-        <div id="gantt-chart-wrap" style="overflow-x:auto; margin-bottom:16px;">
-          <canvas id="gantt-canvas" style="min-width:500px;"></canvas>
-        </div>
-
+        <div id="gantt-chart-wrap" style="overflow-x:auto; margin-bottom:16px;"><canvas id="gantt-canvas" style="min-width:500px;"></canvas></div>
         <div id="gantt-segments-list" style="margin-bottom:16px;"></div>
         <div id="gantt-empty" class="empty-state hidden"><div class="empty-icon">📅</div><p>尚無施工時段，請新增</p></div>
-
-        <div id="gantt-export-wrap">
-          <button id="gantt-export-pdf-btn" class="btn btn-primary" style="width:100%; justify-content:center;">📄 匯出 PDF 甘特圖</button>
-        </div>
+        <div id="gantt-export-wrap"><button id="gantt-export-pdf-btn" class="btn btn-primary" style="width:100%; justify-content:center;">📄 匯出 PDF 甘特圖</button></div>
       </div>
 
       <div id="dtab-notify" class="dtab-content hidden">
-        <div style="margin-bottom:10px;">
-          <label>今日進場工班</label>
-          <select id="notify-team" class="input">
-            <option value="">— 選擇工班 —</option>
-          </select>
-        </div>
-        <div style="margin-bottom:10px;">
-          <label>通知訊息</label>
-          <textarea id="notify-message" class="input" placeholder="例：今日鋼筋工班進場，請配合施工區域管制..."></textarea>
-        </div>
+        <div style="margin-bottom:10px;"><label>今日進場工班</label><select id="notify-team" class="input"><option value="">— 選擇工班 —</option></select></div>
+        <div style="margin-bottom:10px;"><label>通知訊息</label><textarea id="notify-message" class="input" placeholder="例：今日鋼筋工班進場，請配合施工區域管制..."></textarea></div>
         <button id="notify-send-btn" class="btn btn-primary" style="width:100%; justify-content:center;">📣 發送通知</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Add Worker Modal -->
+<!-- Worker Modal -->
 <div id="worker-modal" class="modal-overlay hidden">
   <div class="modal-box fade-in">
     <div class="modal-header">
@@ -487,16 +391,17 @@
       <button class="modal-close btn btn-ghost btn-sm" data-modal="worker-modal">✕</button>
     </div>
     <div class="modal-body">
-      <div style="margin-bottom:10px;"><label>帳號</label><input id="wm-account" class="input" placeholder="工班帳號（Email 格式）"></div>
-      <div style="margin-bottom:10px;"><label>密碼</label><input id="wm-password" class="input" type="password" placeholder="密碼"></div>
-      <div style="margin-bottom:16px;"><label>工班名稱</label><input id="wm-name" class="input" placeholder="例：鋼筋工班、水電工班"></div>
-      <button id="wm-add-btn" class="btn btn-primary" style="width:100%; justify-content:center; margin-bottom:16px;">新增工班</button>
       <div id="workers-list-modal"></div>
+      <div style="margin-top:16px; padding:14px; background:#0f172a; border-radius:10px; border:1px solid var(--border);">
+        <p style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">📋 工班專屬註冊連結</p>
+        <p id="org-invite-link" style="font-size:11px; color:var(--amber); word-break:break-all;"></p>
+        <button id="copy-invite-link-btn" class="btn btn-ghost btn-sm" style="margin-top:8px;">複製連結</button>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- Delete Confirm -->
+<!-- Delete Modal -->
 <div id="delete-modal" class="modal-overlay hidden">
   <div class="modal-box fade-in" style="max-width:340px;">
     <div class="modal-body" style="text-align:center; padding:32px 24px;">
@@ -512,52 +417,49 @@
 </div>
 
 <script>
-// ══════════════════════════════════════════
-//  SUPABASE 設定
-// ══════════════════════════════════════════
-const SUPABASE_URL  = 'https://oubipbyskqaagxfdpvmi.supabase.co';
-const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YmlwYnlza3FhYWd4ZmRwdm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ1MTksImV4cCI6MjA5NDI2MDUxOX0.-3oWqtjM--FnCXOpxkdt71p4xVdxdpMqO1SGaIU_f2I';
+const SUPABASE_URL = 'https://oubipbyskqaagxfdpvmi.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YmlwYnlza3FhYWd4ZmRwdm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ1MTksImV4cCI6MjA5NDI2MDUxOX0.-3oWqtjM--FnCXOpxkdt71p4xVdxdpMqO1SGaIU_f2I';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const APP_CONFIG = {
-  logo_url: '',
-  app_name: '工程案場管理系統',
-  app_subtitle: '施工管理平台',
-};
+const APP_CONFIG = { logo_url: '', app_name: '工程案場管理系統', app_subtitle: '施工管理平台' };
 
-let DB = {
-  users: [],
-  projects: [],
-  photos: [],
-  meetings: [],
-  notifications: [],
-  gantt_segments: [],
-};
-
+let DB = { users: [], projects: [], photos: [], meetings: [], notifications: [], gantt_segments: [] };
 let currentUser = null;
 let currentProject = null;
 let pendingDeleteId = null;
+let urlOrgId = null;
 
 function statusBadge(status) {
-  const map = { '待開工': 'badge-pending', '進行中': 'badge-active', '已完工': 'badge-done', '暫停': 'badge-paused' };
-  const dot = { '待開工': '⏳', '進行中': '🟢', '已完工': '✅', '暫停': '🔴' };
+  const map = { '待開工':'badge-pending','進行中':'badge-active','已完工':'badge-done','暫停':'badge-paused' };
+  const dot = { '待開工':'⏳','進行中':'🟢','已完工':'✅','暫停':'🔴' };
   return `<span class="badge ${map[status]||''}">${dot[status]||''} ${status}</span>`;
 }
 
-function showToast(msg, type = 'success') {
+function showToast(msg, type='success') {
   const t = document.createElement('div');
-  t.className = `toast toast-${type}`;
-  t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(() => t.remove(), 2800);
+  t.className = `toast toast-${type}`; t.textContent = msg;
+  document.body.appendChild(t); setTimeout(() => t.remove(), 2800);
 }
 
 function showModal(id) { document.getElementById(id).classList.remove('hidden'); }
 function hideModal(id) { document.getElementById(id).classList.add('hidden'); }
+function getUserName(uid) { const u = DB.users.find(u => u.id === uid); return u ? (u.display_name || '未知') : '未知'; }
 
-function getUserName(uid) {
-  const u = DB.users.find(u => u.id === uid);
-  return u ? (u.display_name || u.name || '未知') : '未知';
+// ══════════════════════════════════════════
+//  URL ORG 載入
+// ══════════════════════════════════════════
+
+async function loadOrgFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const orgId = params.get('org');
+  if (!orgId) return;
+  try {
+    const { data: org } = await sb.from('organizations').select('id, name, brand_config').eq('id', orgId).single();
+    if (org) {
+      urlOrgId = org.id;
+      if (org.brand_config) { Object.assign(APP_CONFIG, org.brand_config); applyAppConfig(); }
+    }
+  } catch(e) { console.warn('無法載入組織設定', e); }
 }
 
 // ══════════════════════════════════════════
@@ -567,92 +469,88 @@ function getUserName(uid) {
 document.getElementById('login-btn').onclick = doLogin;
 document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
+document.getElementById('goto-register').onclick = () => {
+  document.getElementById('form-login').style.display = 'none';
+  document.getElementById('form-register').style.display = '';
+};
+document.getElementById('goto-login').onclick = () => {
+  document.getElementById('form-register').style.display = 'none';
+  document.getElementById('form-login').style.display = '';
+};
+
+document.getElementById('register-btn').onclick = doRegister;
+
+async function doRegister() {
+  const name  = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pw    = document.getElementById('reg-password').value;
+  if (!name || !email || !pw) { showToast('請填寫所有欄位', 'error'); return; }
+  if (pw.length < 6) { showToast('密碼至少需要 6 碼', 'error'); return; }
+  if (!urlOrgId) { showToast('請使用組織專屬連結進行註冊', 'error'); return; }
+
+  const btn = document.getElementById('register-btn');
+  btn.disabled = true; btn.textContent = '註冊中...';
+  try {
+    const { data, error } = await sb.auth.signUp({ email, password: pw });
+    if (error) { showToast(error.message, 'error'); return; }
+    const { error: pe } = await sb.from('profiles').insert({
+      id: data.user.id, org_id: urlOrgId, role: 'worker', display_name: name, account: email,
+    });
+    if (pe) { showToast('建立資料失敗：' + pe.message, 'error'); return; }
+    showToast('註冊成功！請登入');
+    document.getElementById('form-register').style.display = 'none';
+    document.getElementById('form-login').style.display = '';
+    document.getElementById('login-email').value = email;
+    document.getElementById('reg-name').value = '';
+    document.getElementById('reg-email').value = '';
+    document.getElementById('reg-password').value = '';
+  } catch(e) {
+    showToast('註冊失敗：' + e.message, 'error');
+  } finally { btn.disabled = false; btn.textContent = '註冊'; }
+}
+
 async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
   const pw    = document.getElementById('login-password').value;
   if (!email || !pw) { showToast('請輸入帳號與密碼', 'error'); return; }
-
   const btn = document.getElementById('login-btn');
   btn.disabled = true; btn.textContent = '登入中...';
-
   try {
     const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
     if (error) { showToast('帳號或密碼錯誤', 'error'); return; }
-
-    const { data: profile, error: pe } = await sb
-      .from('profiles')
-      .select('*, organizations(id, name, brand_config)')
-      .eq('id', data.user.id)
-      .single();
-
+    const { data: profile, error: pe } = await sb.from('profiles').select('*, organizations(id, name, brand_config)').eq('id', data.user.id).single();
     if (pe || !profile) { showToast('找不到使用者資料', 'error'); return; }
-
-    currentUser = {
-      id: data.user.id,
-      email: data.user.email,
-      role: profile.role,
-      name: profile.display_name,
-      org_id: profile.org_id,
-      org: profile.organizations,
-    };
-
-    if (profile.organizations?.brand_config) {
-      Object.assign(APP_CONFIG, profile.organizations.brand_config);
-    }
-
+    currentUser = { id: data.user.id, email: data.user.email, role: profile.role, name: profile.display_name, org_id: profile.org_id, org: profile.organizations };
+    if (profile.organizations?.brand_config) Object.assign(APP_CONFIG, profile.organizations.brand_config);
     await loadOrgData();
     enterApp();
   } catch(e) {
-    showToast('登入失敗，請再試一次', 'error');
-    console.error(e);
-  } finally {
-    btn.disabled = false; btn.textContent = '登入';
-  }
+    showToast('登入失敗，請再試一次', 'error'); console.error(e);
+  } finally { btn.disabled = false; btn.textContent = '登入'; }
 }
 
 async function loadOrgData() {
   if (!currentUser?.org_id) return;
   const org = currentUser.org_id;
-
   const { data: users } = await sb.from('profiles').select('*').eq('org_id', org);
   DB.users = users || [];
-
-  let projectsQuery = sb.from('projects')
-    .select('*, project_members(user_id)')
-    .eq('org_id', org)
-    .order('created_at', { ascending: false });
-
+  let q = sb.from('projects').select('*, project_members(user_id)').eq('org_id', org).order('created_at', { ascending: false });
   if (currentUser.role === 'worker') {
-    const { data: myProjects } = await sb
-      .from('project_members').select('project_id').eq('user_id', currentUser.id);
-    const ids = (myProjects || []).map(m => m.project_id);
+    const { data: mp } = await sb.from('project_members').select('project_id').eq('user_id', currentUser.id);
+    const ids = (mp || []).map(m => m.project_id);
     if (ids.length === 0) { DB.projects = []; }
-    else {
-      projectsQuery = sb.from('projects')
-        .select('*, project_members(user_id)')
-        .in('id', ids).order('created_at', { ascending: false });
-    }
+    else q = sb.from('projects').select('*, project_members(user_id)').in('id', ids).order('created_at', { ascending: false });
   }
-
-  const { data: projects } = await projectsQuery;
-  DB.projects = (projects || []).map(p => ({
-    ...p,
-    workers: (p.project_members || []).map(m => m.user_id),
-  }));
-
-  const { data: notifs } = await sb.from('notifications')
-    .select('*, notification_reads(user_id)')
-    .eq('org_id', org).order('created_at', { ascending: false });
-  DB.notifications = (notifs || []).map(n => ({
-    ...n,
-    read_by: (n.notification_reads || []).map(r => r.user_id),
-  }));
+  const { data: projects } = await q;
+  DB.projects = (projects || []).map(p => ({ ...p, workers: (p.project_members || []).map(m => m.user_id) }));
+  const { data: notifs } = await sb.from('notifications').select('*, notification_reads(user_id)').eq('org_id', org).order('created_at', { ascending: false });
+  DB.notifications = (notifs || []).map(n => ({ ...n, read_by: (n.notification_reads || []).map(r => r.user_id) }));
 }
 
 document.getElementById('logout-btn').onclick = async () => {
   await sb.auth.signOut();
   currentUser = null;
-  DB = { users: [], projects: [], photos: [], meetings: [], notifications: [], gantt_segments: [] };
+  DB = { users:[], projects:[], photos:[], meetings:[], notifications:[], gantt_segments:[] };
   document.getElementById('page-app').classList.remove('active');
   document.getElementById('page-login').classList.add('active');
   document.getElementById('login-email').value = '';
@@ -660,104 +558,61 @@ document.getElementById('logout-btn').onclick = async () => {
 };
 
 // ══════════════════════════════════════════
-//  BRAND SETTINGS
+//  BRAND
 // ══════════════════════════════════════════
 
-function loadBrandConfig() {
-  try {
-    const saved = localStorage.getItem('app_brand_config');
-    if (saved) Object.assign(APP_CONFIG, JSON.parse(saved));
-  } catch(e) {}
-}
-
-function saveBrandConfig() {
-  try {
-    localStorage.setItem('app_brand_config', JSON.stringify(APP_CONFIG));
-  } catch(e) {}
-}
-
-function initBrandButton() {
-  const btn = document.getElementById('brand-settings-btn');
-  if (currentUser?.role === 'designer') btn.style.display = '';
-}
+function loadBrandConfig() { try { const s = localStorage.getItem('app_brand_config'); if (s) Object.assign(APP_CONFIG, JSON.parse(s)); } catch(e) {} }
+function saveBrandConfig() { try { localStorage.setItem('app_brand_config', JSON.stringify(APP_CONFIG)); } catch(e) {} }
 
 document.getElementById('brand-settings-btn').onclick = () => {
   document.getElementById('brand-name').value = APP_CONFIG.app_name;
   document.getElementById('brand-subtitle').value = APP_CONFIG.app_subtitle;
-  const previewImg = document.getElementById('brand-logo-preview-img');
-  const previewFallback = document.getElementById('brand-logo-preview-fallback');
-  const clearBtn = document.getElementById('brand-logo-clear-btn');
-  if (APP_CONFIG.logo_url) {
-    previewImg.src = APP_CONFIG.logo_url;
-    previewImg.style.display = '';
-    previewFallback.style.display = 'none';
-    clearBtn.style.display = '';
-  } else {
-    previewImg.style.display = 'none';
-    previewFallback.style.display = '';
-    clearBtn.style.display = 'none';
-  }
+  const pi = document.getElementById('brand-logo-preview-img');
+  const pf = document.getElementById('brand-logo-preview-fallback');
+  const cb = document.getElementById('brand-logo-clear-btn');
+  if (APP_CONFIG.logo_url) { pi.src = APP_CONFIG.logo_url; pi.style.display=''; pf.style.display='none'; cb.style.display=''; }
+  else { pi.style.display='none'; pf.style.display=''; cb.style.display='none'; }
   showModal('brand-modal');
 };
 
 const brandLogoInput = document.getElementById('brand-logo-input');
 const brandLogoDrop  = document.getElementById('brand-logo-drop');
-
 brandLogoDrop.onclick = () => brandLogoInput.click();
 brandLogoDrop.ondragover = e => { e.preventDefault(); brandLogoDrop.classList.add('drag-over'); };
 brandLogoDrop.ondragleave = () => brandLogoDrop.classList.remove('drag-over');
-brandLogoDrop.ondrop = e => {
-  e.preventDefault();
-  brandLogoDrop.classList.remove('drag-over');
-  if (e.dataTransfer.files[0]) handleBrandLogoFile(e.dataTransfer.files[0]);
-};
-brandLogoInput.onchange = () => {
-  if (brandLogoInput.files[0]) handleBrandLogoFile(brandLogoInput.files[0]);
-};
+brandLogoDrop.ondrop = e => { e.preventDefault(); brandLogoDrop.classList.remove('drag-over'); if (e.dataTransfer.files[0]) handleBrandLogoFile(e.dataTransfer.files[0]); };
+brandLogoInput.onchange = () => { if (brandLogoInput.files[0]) handleBrandLogoFile(brandLogoInput.files[0]); };
 
 function handleBrandLogoFile(file) {
   const reader = new FileReader();
   reader.onload = e => {
-    const dataUrl = e.target.result;
-    const previewImg = document.getElementById('brand-logo-preview-img');
-    previewImg.src = dataUrl;
-    previewImg.style.display = '';
-    document.getElementById('brand-logo-preview-fallback').style.display = 'none';
-    document.getElementById('brand-logo-clear-btn').style.display = '';
-    APP_CONFIG._pending_logo = dataUrl;
+    const pi = document.getElementById('brand-logo-preview-img');
+    pi.src = e.target.result; pi.style.display='';
+    document.getElementById('brand-logo-preview-fallback').style.display='none';
+    document.getElementById('brand-logo-clear-btn').style.display='';
+    APP_CONFIG._pending_logo = e.target.result;
   };
   reader.readAsDataURL(file);
 }
 
 document.getElementById('brand-logo-clear-btn').onclick = () => {
   APP_CONFIG._pending_logo = '';
-  const previewImg = document.getElementById('brand-logo-preview-img');
-  previewImg.src = '';
-  previewImg.style.display = 'none';
-  document.getElementById('brand-logo-preview-fallback').style.display = '';
-  document.getElementById('brand-logo-clear-btn').style.display = 'none';
-  brandLogoInput.value = '';
+  const pi = document.getElementById('brand-logo-preview-img');
+  pi.src=''; pi.style.display='none';
+  document.getElementById('brand-logo-preview-fallback').style.display='';
+  document.getElementById('brand-logo-clear-btn').style.display='none';
+  brandLogoInput.value='';
 };
 
 document.getElementById('brand-save-btn').onclick = async () => {
-  const name     = document.getElementById('brand-name').value.trim();
+  const name = document.getElementById('brand-name').value.trim();
   const subtitle = document.getElementById('brand-subtitle').value.trim();
   if (!name) { showToast('請輸入系統名稱', 'error'); return; }
-  APP_CONFIG.app_name     = name;
-  APP_CONFIG.app_subtitle = subtitle;
-  if (APP_CONFIG._pending_logo !== undefined) {
-    APP_CONFIG.logo_url = APP_CONFIG._pending_logo;
-    delete APP_CONFIG._pending_logo;
-  }
+  APP_CONFIG.app_name = name; APP_CONFIG.app_subtitle = subtitle;
+  if (APP_CONFIG._pending_logo !== undefined) { APP_CONFIG.logo_url = APP_CONFIG._pending_logo; delete APP_CONFIG._pending_logo; }
   saveBrandConfig();
-  try {
-    await sb.from('organizations').update({
-      brand_config: { app_name: APP_CONFIG.app_name, app_subtitle: APP_CONFIG.app_subtitle, logo_url: APP_CONFIG.logo_url }
-    }).eq('id', currentUser.org_id);
-  } catch(e) { console.warn(e); }
-  applyAppConfig();
-  hideModal('brand-modal');
-  showToast('品牌設定已儲存');
+  try { await sb.from('organizations').update({ brand_config: { app_name: APP_CONFIG.app_name, app_subtitle: APP_CONFIG.app_subtitle, logo_url: APP_CONFIG.logo_url } }).eq('id', currentUser.org_id); } catch(e) {}
+  applyAppConfig(); hideModal('brand-modal'); showToast('品牌設定已儲存');
 };
 
 function applyAppConfig() {
@@ -766,62 +621,42 @@ function applyAppConfig() {
   document.getElementById('login-app-subtitle').textContent = app_subtitle || '請登入以繼續';
   document.getElementById('header-app-name').textContent = app_name;
   if (logo_url) {
-    const loginImg = document.getElementById('login-logo-img');
-    const headerImg = document.getElementById('header-logo-img');
-    loginImg.src = logo_url; headerImg.src = logo_url;
-    loginImg.style.display = ''; headerImg.style.display = '';
-    document.getElementById('login-logo-fallback').style.display = 'none';
-    document.getElementById('header-logo-fallback').style.display = 'none';
+    const li = document.getElementById('login-logo-img'), hi = document.getElementById('header-logo-img');
+    li.src = logo_url; hi.src = logo_url; li.style.display=''; hi.style.display='';
+    document.getElementById('login-logo-fallback').style.display='none';
+    document.getElementById('header-logo-fallback').style.display='none';
   }
 }
-
-loadBrandConfig();
-applyAppConfig();
-document.getElementById('page-login').classList.add('active');
 
 function enterApp() {
   document.getElementById('page-login').classList.remove('active');
   document.getElementById('page-app').classList.add('active');
-
-  const roleLabel = { designer: '設計師（管理員）', worker: '工班' };
+  const roleLabel = { designer:'設計師（管理員）', worker:'工班' };
   document.getElementById('user-role-label').textContent = roleLabel[currentUser.role] + ' · ' + currentUser.name;
   document.getElementById('user-avatar').textContent = currentUser.name[0];
-
-  const dashboardNav = document.getElementById('nav-dashboard');
-  if (currentUser.role === 'worker') {
-    dashboardNav.querySelector('#nav-dashboard-label').textContent = '我的案場';
-    dashboardNav.dataset.section = 'worker';
-  } else {
-    dashboardNav.querySelector('#nav-dashboard-label').textContent = '儀表板';
-    dashboardNav.dataset.section = 'dashboard';
-  }
-
+  const nav = document.getElementById('nav-dashboard');
+  if (currentUser.role === 'worker') { document.getElementById('nav-dashboard-label').textContent = '我的案場'; nav.dataset.section = 'worker'; }
+  else { document.getElementById('nav-dashboard-label').textContent = '儀表板'; nav.dataset.section = 'dashboard'; }
   const isDesigner = currentUser.role === 'designer';
-  document.getElementById('designer-add-btn').style.display = isDesigner ? '' : 'none';
-  document.getElementById('designer-add-worker-btn').style.display = isDesigner ? '' : 'none';
-  document.getElementById('tab-notify-btn').style.display = isDesigner ? '' : 'none';
-  document.getElementById('designer-actions').style.display = isDesigner ? '' : 'none';
-  document.getElementById('meeting-form-wrap').style.display = isDesigner ? '' : 'none';
-  document.getElementById('brand-settings-btn').style.display = isDesigner ? '' : 'none';
-
+  ['designer-add-btn','designer-add-worker-btn','tab-notify-btn','designer-actions','meeting-form-wrap','brand-settings-btn'].forEach(id => {
+    document.getElementById(id).style.display = isDesigner ? '' : 'none';
+  });
+  applyAppConfig();
   navigateTo(currentUser.role === 'worker' ? 'worker' : 'dashboard');
   updateNotifBadge();
-  initBrandButton();
 }
 
 // ══════════════════════════════════════════
 //  NAVIGATION
 // ══════════════════════════════════════════
 
-document.querySelectorAll('.nav-link').forEach(btn => {
-  btn.onclick = () => navigateTo(btn.dataset.section);
-});
+document.querySelectorAll('.nav-link').forEach(btn => { btn.onclick = () => navigateTo(btn.dataset.section); });
 
 function navigateTo(section) {
   document.querySelectorAll('.nav-link').forEach(b => b.classList.toggle('active', b.dataset.section === section));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  const target = document.getElementById('section-' + section);
-  if (target) target.classList.add('active');
+  const t = document.getElementById('section-' + section);
+  if (t) t.classList.add('active');
   if (section === 'dashboard') renderDashboard();
   if (section === 'worker') renderWorkerView();
   if (section === 'notifications') renderNotifications();
@@ -832,127 +667,92 @@ function navigateTo(section) {
 // ══════════════════════════════════════════
 
 function renderDashboard() {
-  const projects = DB.projects;
-  document.getElementById('stat-total').textContent = projects.length;
-  document.getElementById('stat-active').textContent = projects.filter(p => p.status === '進行中').length;
-  document.getElementById('stat-done').textContent = projects.filter(p => p.status === '已完工').length;
-  document.getElementById('stat-pending').textContent = projects.filter(p => p.status === '待開工').length;
-
-  const grid = document.getElementById('project-grid');
-  const empty = document.getElementById('project-empty');
-  if (projects.length === 0) { grid.innerHTML = ''; empty.classList.remove('hidden'); return; }
+  const p = DB.projects;
+  document.getElementById('stat-total').textContent = p.length;
+  document.getElementById('stat-active').textContent = p.filter(x => x.status==='進行中').length;
+  document.getElementById('stat-done').textContent = p.filter(x => x.status==='已完工').length;
+  document.getElementById('stat-pending').textContent = p.filter(x => x.status==='待開工').length;
+  const grid = document.getElementById('project-grid'), empty = document.getElementById('project-empty');
+  if (p.length === 0) { grid.innerHTML=''; empty.classList.remove('hidden'); return; }
   empty.classList.add('hidden');
-
-  grid.innerHTML = projects.map(p => `
-    <div class="card fade-in" style="cursor:pointer;" onclick="openDetail('${p.id}')">
+  grid.innerHTML = p.map(x => `
+    <div class="card fade-in" style="cursor:pointer;" onclick="openDetail('${x.id}')">
       <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:10px;">
-        <h3 style="font-size:15px; flex:1; padding-right:8px;">${p.name}</h3>
-        ${statusBadge(p.status)}
+        <h3 style="font-size:15px; flex:1; padding-right:8px;">${x.name}</h3>${statusBadge(x.status)}
       </div>
-      <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">📍 ${p.location || '—'} &nbsp;·&nbsp; 👷 ${p.manager || '—'}</p>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">📍 ${x.location||'—'} · 👷 ${x.manager||'—'}</p>
       <div style="margin-bottom:12px;">
-        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-bottom:5px;"><span>進度</span><span>${p.progress}%</span></div>
-        <div class="progress-track"><div class="progress-fill" style="width:${p.progress}%"></div></div>
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-bottom:5px;"><span>進度</span><span>${x.progress}%</span></div>
+        <div class="progress-track"><div class="progress-fill" style="width:${x.progress}%"></div></div>
       </div>
       <div style="display:flex; gap:6px; flex-wrap:wrap;">
-        ${p.workers.map(wid => `<span style="font-size:11px; background:rgba(255,255,255,.07); padding:2px 8px; border-radius:6px; color:var(--text-muted);">${getUserName(wid)}</span>`).join('')}
-        ${p.workers.length === 0 ? '<span style="font-size:11px; color:#475569;">尚無工班</span>' : ''}
+        ${x.workers.map(w=>`<span style="font-size:11px; background:rgba(255,255,255,.07); padding:2px 8px; border-radius:6px; color:var(--text-muted);">${getUserName(w)}</span>`).join('')}
+        ${x.workers.length===0?'<span style="font-size:11px; color:#475569;">尚無工班</span>':''}
       </div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
-
-// ══════════════════════════════════════════
-//  WORKER VIEW
-// ══════════════════════════════════════════
 
 function renderWorkerView() {
-  const myProjects = DB.projects.filter(p => p.workers.includes(currentUser.id));
-  const grid = document.getElementById('worker-project-grid');
-  const empty = document.getElementById('worker-empty');
-  if (myProjects.length === 0) { grid.innerHTML = ''; empty.classList.remove('hidden'); return; }
+  const p = DB.projects.filter(x => x.workers.includes(currentUser.id));
+  const grid = document.getElementById('worker-project-grid'), empty = document.getElementById('worker-empty');
+  if (p.length===0) { grid.innerHTML=''; empty.classList.remove('hidden'); return; }
   empty.classList.add('hidden');
-  grid.innerHTML = myProjects.map(p => `
-    <div class="card fade-in" style="cursor:pointer;" onclick="openDetail('${p.id}')">
+  grid.innerHTML = p.map(x => `
+    <div class="card fade-in" style="cursor:pointer;" onclick="openDetail('${x.id}')">
       <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:10px;">
-        <h3 style="font-size:15px; flex:1; padding-right:8px;">${p.name}</h3>
-        ${statusBadge(p.status)}
+        <h3 style="font-size:15px; flex:1; padding-right:8px;">${x.name}</h3>${statusBadge(x.status)}
       </div>
-      <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">📍 ${p.location || '—'}</p>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">📍 ${x.location||'—'}</p>
       <div style="margin-bottom:12px;">
-        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-bottom:5px;"><span>進度</span><span>${p.progress}%</span></div>
-        <div class="progress-track"><div class="progress-fill" style="width:${p.progress}%"></div></div>
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-bottom:5px;"><span>進度</span><span>${x.progress}%</span></div>
+        <div class="progress-track"><div class="progress-fill" style="width:${x.progress}%"></div></div>
       </div>
-      <button class="btn btn-primary btn-sm" style="width:100%; justify-content:center;" onclick="event.stopPropagation(); openDetail('${p.id}')">查看 / 上傳照片</button>
-    </div>
-  `).join('');
+      <button class="btn btn-primary btn-sm" style="width:100%; justify-content:center;" onclick="event.stopPropagation(); openDetail('${x.id}')">查看 / 上傳照片</button>
+    </div>`).join('');
 }
 
 // ══════════════════════════════════════════
-//  PROJECT DETAIL
+//  DETAIL MODAL
 // ══════════════════════════════════════════
 
 async function openDetail(projectId) {
   currentProject = DB.projects.find(p => p.id === projectId);
   if (!currentProject) return;
-
-  const [photosRes, meetingsRes, ganttRes] = await Promise.all([
+  const [pR, mR, gR] = await Promise.all([
     sb.from('photos').select('*').eq('project_id', projectId).order('created_at', { ascending: false }),
-    sb.from('meetings').select('*').eq('project_id', projectId).order('meeting_date', { ascending: true }),
+    sb.from('meetings').select('*').eq('project_id', projectId).order('meeting_date'),
     sb.from('gantt_segments').select('*').eq('project_id', projectId).order('sort_order'),
   ]);
-  DB.photos    = photosRes.data    || [];
-  DB.meetings  = meetingsRes.data  || [];
-  DB.gantt_segments = (ganttRes.data || []).map(s => ({ ...s, start: s.start_date, end: s.end_date }));
-
+  DB.photos = pR.data||[]; DB.meetings = mR.data||[];
+  DB.gantt_segments = (gR.data||[]).map(s => ({ ...s, start: s.start_date, end: s.end_date }));
   document.getElementById('detail-title').textContent = currentProject.name;
   document.getElementById('d-status').innerHTML = statusBadge(currentProject.status);
-  document.getElementById('d-manager').textContent = currentProject.manager || '—';
-  document.getElementById('d-location').textContent = currentProject.location || '—';
-  document.getElementById('d-dates').textContent = `${currentProject.start_date || '?'} ～ ${currentProject.end_date || '?'}`;
-  document.getElementById('d-progress-bar').style.width = currentProject.progress + '%';
-  document.getElementById('d-progress-pct').textContent = currentProject.progress + '%';
-  document.getElementById('d-notes').textContent = currentProject.notes || '—';
-
-  const workersEl = document.getElementById('d-workers');
-  workersEl.innerHTML = currentProject.workers.length
-    ? currentProject.workers.map(wid => `<span class="badge" style="background:rgba(255,255,255,.08); color:var(--text-muted);">👷 ${getUserName(wid)}</span>`).join('')
+  document.getElementById('d-manager').textContent = currentProject.manager||'—';
+  document.getElementById('d-location').textContent = currentProject.location||'—';
+  document.getElementById('d-dates').textContent = `${currentProject.start_date||'?'} ～ ${currentProject.end_date||'?'}`;
+  document.getElementById('d-progress-bar').style.width = currentProject.progress+'%';
+  document.getElementById('d-progress-pct').textContent = currentProject.progress+'%';
+  document.getElementById('d-notes').textContent = currentProject.notes||'—';
+  document.getElementById('d-workers').innerHTML = currentProject.workers.length
+    ? currentProject.workers.map(w=>`<span class="badge" style="background:rgba(255,255,255,.08); color:var(--text-muted);">👷 ${getUserName(w)}</span>`).join('')
     : '<span style="font-size:12px; color:#475569;">尚無指定工班</span>';
-
-  const notifySelect = document.getElementById('notify-team');
-  notifySelect.innerHTML = '<option value="">— 選擇工班 —</option>' +
-    currentProject.workers.map(wid => `<option value="${wid}">${getUserName(wid)}</option>`).join('');
-
-  switchDetailTab('overview');
-  renderPhotos();
-  renderMeetings();
-  showModal('detail-modal');
+  document.getElementById('notify-team').innerHTML = '<option value="">— 選擇工班 —</option>' +
+    currentProject.workers.map(w=>`<option value="${w}">${getUserName(w)}</option>`).join('');
+  switchDetailTab('overview'); renderPhotos(); renderMeetings(); showModal('detail-modal');
 }
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.onclick = () => {
-    switchDetailTab(btn.dataset.tab);
-    if (btn.dataset.tab === 'gantt') openGanttTab();
-  };
+  btn.onclick = () => { switchDetailTab(btn.dataset.tab); if (btn.dataset.tab==='gantt') openGanttTab(); };
 });
 
 function switchDetailTab(tab) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
   document.querySelectorAll('.dtab-content').forEach(c => c.classList.add('hidden'));
-  const el = document.getElementById('dtab-' + tab);
-  if (el) el.classList.remove('hidden');
+  const el = document.getElementById('dtab-'+tab); if (el) el.classList.remove('hidden');
 }
 
-document.getElementById('d-edit-btn').onclick = () => {
-  hideModal('detail-modal');
-  openProjectModal(currentProject);
-};
-
-document.getElementById('d-delete-btn').onclick = () => {
-  pendingDeleteId = currentProject.id;
-  hideModal('detail-modal');
-  showModal('delete-modal');
-};
+document.getElementById('d-edit-btn').onclick = () => { hideModal('detail-modal'); openProjectModal(currentProject); };
+document.getElementById('d-delete-btn').onclick = () => { pendingDeleteId = currentProject.id; hideModal('detail-modal'); showModal('delete-modal'); };
 
 // ══════════════════════════════════════════
 //  PHOTOS
@@ -960,7 +760,6 @@ document.getElementById('d-delete-btn').onclick = () => {
 
 const dropZone = document.getElementById('photo-drop-zone');
 const photoInput = document.getElementById('photo-input');
-
 dropZone.onclick = () => photoInput.click();
 dropZone.ondragover = e => { e.preventDefault(); dropZone.classList.add('drag-over'); };
 dropZone.ondragleave = () => dropZone.classList.remove('drag-over');
@@ -971,72 +770,61 @@ document.getElementById('photo-upload-btn').onclick = () => photoInput.click();
 async function handlePhotoFiles(files) {
   if (!files.length || !currentProject) return;
   const desc = document.getElementById('photo-desc').value;
-  const btn  = document.getElementById('photo-upload-btn');
-  btn.disabled = true; btn.textContent = '上傳中...';
-  let done = 0;
-  const errors = [];
+  const btn = document.getElementById('photo-upload-btn');
+  btn.disabled=true; btn.textContent='上傳中...';
+  let done=0; const errors=[];
   for (const file of [...files]) {
     try {
-      const ext  = file.name.split('.').pop();
+      const ext = file.name.split('.').pop();
       const path = `${currentUser.org_id}/${currentProject.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-      const { error: upErr } = await sb.storage.from('project-photos').upload(path, file);
-      if (upErr) throw upErr;
-      const { data: urlData } = sb.storage.from('project-photos').getPublicUrl(path);
-      const { error: dbErr } = await sb.from('photos').insert({
-        project_id: currentProject.id, uploader_id: currentUser.id,
-        storage_url: urlData.publicUrl, description: desc,
-      });
-      if (dbErr) throw dbErr;
+      const { error: ue } = await sb.storage.from('project-photos').upload(path, file);
+      if (ue) throw ue;
+      const { data: ud } = sb.storage.from('project-photos').getPublicUrl(path);
+      const { error: de } = await sb.from('photos').insert({ project_id: currentProject.id, uploader_id: currentUser.id, storage_url: ud.publicUrl, description: desc });
+      if (de) throw de;
       done++;
     } catch(e) { errors.push(e.message); }
   }
-  photoInput.value = '';
-  document.getElementById('photo-desc').value = '';
-  await loadProjectPhotos(currentProject.id);
-  renderPhotos();
+  photoInput.value=''; document.getElementById('photo-desc').value='';
+  await loadProjectPhotos(currentProject.id); renderPhotos();
   if (errors.length) showToast(`上傳部分失敗：${errors[0]}`, 'error');
   else showToast(`已上傳 ${done} 張照片`);
-  btn.disabled = false; btn.textContent = '上傳';
+  btn.disabled=false; btn.textContent='上傳';
 }
 
-async function loadProjectPhotos(projectId) {
-  const { data } = await sb.from('photos').select('*').eq('project_id', projectId).order('created_at', { ascending: false });
-  DB.photos = data || [];
+async function loadProjectPhotos(pid) {
+  const { data } = await sb.from('photos').select('*').eq('project_id', pid).order('created_at', { ascending: false });
+  DB.photos = data||[];
 }
 
 function renderPhotos() {
   if (!currentProject) return;
-  const photos = DB.photos.filter(ph => ph.project_id === currentProject.id);
-  const grid = document.getElementById('photo-grid');
-  const empty = document.getElementById('photo-empty');
-  if (photos.length === 0) { grid.innerHTML = ''; empty.classList.remove('hidden'); return; }
+  const photos = DB.photos.filter(p => p.project_id===currentProject.id);
+  const grid = document.getElementById('photo-grid'), empty = document.getElementById('photo-empty');
+  if (photos.length===0) { grid.innerHTML=''; empty.classList.remove('hidden'); return; }
   empty.classList.add('hidden');
   grid.innerHTML = photos.map(ph => {
-    const canDelete = currentUser.role === 'designer' || ph.uploader_id === currentUser.id;
-    return `
-      <div style="display:flex; flex-direction:column; gap:4px;">
-        <div class="photo-item">
-          <img src="${ph.storage_url || ''}" alt="${ph.description || ''}">
-          ${canDelete ? `<div class="del-overlay"><button onclick="deletePhoto('${ph.id}')" style="background:var(--red); border:none; color:white; border-radius:8px; padding:6px 12px; font-size:12px; cursor:pointer;">🗑 刪除</button></div>` : ''}
-        </div>
-        <div style="padding:0 2px;">
-          ${ph.description ? `<p style="font-size:11px; font-weight:600; color:var(--text); margin:0;">${ph.description}</p>` : ''}
-          <p style="font-size:10px; color:var(--text-muted); margin:0;">📅 ${ph.created_at?.slice(0,10) || ''}</p>
-        </div>
-      </div>`;
+    const canDel = currentUser.role==='designer' || ph.uploader_id===currentUser.id;
+    return `<div style="display:flex; flex-direction:column; gap:4px;">
+      <div class="photo-item">
+        <img src="${ph.storage_url||''}" alt="${ph.description||''}">
+        ${canDel ? `<div class="del-overlay"><button onclick="deletePhoto('${ph.id}')" style="background:var(--red);border:none;color:white;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;">🗑 刪除</button></div>` : ''}
+      </div>
+      <div style="padding:0 2px;">
+        ${ph.description ? `<p style="font-size:11px; font-weight:600; color:var(--text); margin:0;">${ph.description}</p>` : ''}
+        <p style="font-size:10px; color:var(--text-muted); margin:0;">📅 ${ph.created_at?.slice(0,10)||''}</p>
+      </div>
+    </div>`;
   }).join('');
 }
 
 async function deletePhoto(id) {
-  const photo = DB.photos.find(ph => ph.id === id);
-  if (!photo) return;
+  const ph = DB.photos.find(p => p.id===id); if (!ph) return;
   try {
-    const path = photo.storage_url?.split('/project-photos/')[1];
+    const path = ph.storage_url?.split('/project-photos/')[1];
     if (path) await sb.storage.from('project-photos').remove([path]);
     await sb.from('photos').delete().eq('id', id);
-    await loadProjectPhotos(currentProject.id);
-    renderPhotos();
-    showToast('照片已刪除');
+    await loadProjectPhotos(currentProject.id); renderPhotos(); showToast('照片已刪除');
   } catch(e) { showToast('刪除失敗', 'error'); }
 }
 
@@ -1047,96 +835,81 @@ async function deletePhoto(id) {
 document.getElementById('meeting-save-btn').onclick = saveMeeting;
 
 async function saveMeeting() {
-  const meetingDate = document.getElementById('meeting-date').value;
-  const attendees   = document.getElementById('meeting-attendees').value.trim();
-  const content     = document.getElementById('meeting-content').value.trim();
-  const editId      = document.getElementById('meeting-editing-id').value;
-  if (!meetingDate) { showToast('請選擇會議日期', 'error'); return; }
-  if (!attendees || !content) { showToast('請填寫出席人員與記錄', 'error'); return; }
-  const btn = document.getElementById('meeting-save-btn');
-  btn.disabled = true;
+  const d = document.getElementById('meeting-date').value;
+  const a = document.getElementById('meeting-attendees').value.trim();
+  const c = document.getElementById('meeting-content').value.trim();
+  const eid = document.getElementById('meeting-editing-id').value;
+  if (!d) { showToast('請選擇會議日期', 'error'); return; }
+  if (!a||!c) { showToast('請填寫出席人員與記錄', 'error'); return; }
+  const btn = document.getElementById('meeting-save-btn'); btn.disabled=true;
   try {
-    if (editId) {
-      await sb.from('meetings').update({ meeting_date: meetingDate, attendees, content }).eq('id', editId);
-      document.getElementById('meeting-editing-id').value = '';
-      btn.textContent = '新增記錄';
-    } else {
-      await sb.from('meetings').insert({ project_id: currentProject.id, meeting_date: meetingDate, attendees, content, created_by: currentUser.id });
-    }
+    if (eid) { await sb.from('meetings').update({ meeting_date:d, attendees:a, content:c }).eq('id', eid); document.getElementById('meeting-editing-id').value=''; btn.textContent='新增記錄'; }
+    else { await sb.from('meetings').insert({ project_id:currentProject.id, meeting_date:d, attendees:a, content:c, created_by:currentUser.id }); }
     const { data } = await sb.from('meetings').select('*').eq('project_id', currentProject.id).order('meeting_date');
-    DB.meetings = data || [];
-    document.getElementById('meeting-date').value = '';
-    document.getElementById('meeting-attendees').value = '';
-    document.getElementById('meeting-content').value = '';
-    renderMeetings();
-    showToast('會議記錄已儲存');
-  } catch(e) {
-    showToast('儲存失敗：' + e.message, 'error');
-  } finally { btn.disabled = false; }
+    DB.meetings = data||[];
+    document.getElementById('meeting-date').value=''; document.getElementById('meeting-attendees').value=''; document.getElementById('meeting-content').value='';
+    renderMeetings(); showToast('會議記錄已儲存');
+  } catch(e) { showToast('儲存失敗：'+e.message, 'error'); }
+  finally { btn.disabled=false; }
 }
 
 function renderMeetings() {
   if (!currentProject) return;
-  const meetings = DB.meetings.filter(m => m.project_id === currentProject.id);
-  const list = document.getElementById('meetings-list');
-  const empty = document.getElementById('meetings-empty');
-  if (meetings.length === 0) { list.innerHTML = ''; empty.classList.remove('hidden'); renderMeetingChecklist([]); return; }
+  const ms = DB.meetings.filter(m => m.project_id===currentProject.id);
+  const list = document.getElementById('meetings-list'), empty = document.getElementById('meetings-empty');
+  if (ms.length===0) { list.innerHTML=''; empty.classList.remove('hidden'); renderMeetingChecklist([]); return; }
   empty.classList.add('hidden');
-  const sorted = [...meetings].sort((a, b) => a.meeting_date.localeCompare(b.meeting_date));
+  const sorted = [...ms].sort((a,b) => a.meeting_date.localeCompare(b.meeting_date));
   list.innerHTML = sorted.map(m => `
     <div style="background:#0f172a; border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:8px;">
       <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:6px;">
         <p style="font-size:13px; font-weight:600;">${m.attendees}</p>
-        <span style="font-size:11px; color:var(--text-muted);">${m.meeting_date.replace(/-/g, '/')}</span>
+        <span style="font-size:11px; color:var(--text-muted);">${m.meeting_date.replace(/-/g,'/')}</span>
       </div>
       <p style="font-size:13px; color:var(--text-muted); white-space:pre-wrap;">${m.content}</p>
-      ${currentUser.role === 'designer' ? `
-        <div style="display:flex; gap:6px; margin-top:8px;">
-          <button class="btn btn-ghost btn-sm" onclick="editMeeting('${m.id}')">✏️ 編輯</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteMeeting('${m.id}')">🗑 刪除</button>
-        </div>` : ''}
+      ${currentUser.role==='designer' ? `<div style="display:flex; gap:6px; margin-top:8px;">
+        <button class="btn btn-ghost btn-sm" onclick="editMeeting('${m.id}')">✏️ 編輯</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteMeeting('${m.id}')">🗑 刪除</button>
+      </div>` : ''}
     </div>`).join('');
-  renderMeetingChecklist(meetings);
+  renderMeetingChecklist(ms);
 }
 
-function renderMeetingChecklist(meetings) {
-  const wrap = document.getElementById('meeting-export-checklist');
-  if (!wrap) return;
-  const sorted = [...meetings].sort((a, b) => a.meeting_date.localeCompare(b.meeting_date));
-  if (sorted.length === 0) { wrap.innerHTML = '<p style="font-size:12px; color:var(--text-muted); text-align:center; padding:8px 0;">尚無會議記錄</p>'; return; }
+function renderMeetingChecklist(ms) {
+  const wrap = document.getElementById('meeting-export-checklist'); if (!wrap) return;
+  const sorted = [...ms].sort((a,b) => a.meeting_date.localeCompare(b.meeting_date));
+  if (sorted.length===0) { wrap.innerHTML='<p style="font-size:12px; color:var(--text-muted); text-align:center; padding:8px 0;">尚無會議記錄</p>'; return; }
   wrap.innerHTML = sorted.map(m => `
     <label style="display:flex; align-items:flex-start; gap:10px; padding:8px 10px; background:var(--surface); border:1px solid var(--border); border-radius:8px; cursor:pointer; margin:0;">
       <input type="checkbox" class="meeting-export-check" value="${m.id}" style="accent-color:var(--amber); margin-top:2px; width:16px; height:16px; flex-shrink:0;">
       <div>
-        <p style="font-size:12px; font-weight:600; margin:0; color:var(--text);">${m.meeting_date.replace(/-/g, '/')} · ${m.attendees}</p>
-        <p style="font-size:11px; color:var(--text-muted); margin:2px 0 0;">${m.content.slice(0, 60)}${m.content.length > 60 ? '...' : ''}</p>
+        <p style="font-size:12px; font-weight:600; margin:0; color:var(--text);">${m.meeting_date.replace(/-/g,'/')} · ${m.attendees}</p>
+        <p style="font-size:11px; color:var(--text-muted); margin:2px 0 0;">${m.content.slice(0,60)}${m.content.length>60?'...':''}</p>
       </div>
     </label>`).join('');
 }
 
 document.getElementById('meeting-select-all-btn').onclick = () => {
   const checks = document.querySelectorAll('.meeting-export-check');
-  const allChecked = [...checks].every(c => c.checked);
-  checks.forEach(c => c.checked = !allChecked);
-  document.getElementById('meeting-select-all-btn').textContent = allChecked ? '全選' : '取消全選';
+  const all = [...checks].every(c => c.checked);
+  checks.forEach(c => c.checked=!all);
+  document.getElementById('meeting-select-all-btn').textContent = all ? '全選' : '取消全選';
 };
 
 function editMeeting(id) {
-  const m = DB.meetings.find(m => m.id === id);
-  if (!m) return;
+  const m = DB.meetings.find(x => x.id===id); if (!m) return;
   document.getElementById('meeting-date').value = m.meeting_date;
   document.getElementById('meeting-attendees').value = m.attendees;
   document.getElementById('meeting-content').value = m.content;
   document.getElementById('meeting-editing-id').value = m.id;
   document.getElementById('meeting-save-btn').textContent = '更新記錄';
-  document.getElementById('meeting-form-wrap').scrollIntoView({ behavior: 'smooth' });
+  document.getElementById('meeting-form-wrap').scrollIntoView({ behavior:'smooth' });
 }
 
 async function deleteMeeting(id) {
   await sb.from('meetings').delete().eq('id', id);
-  DB.meetings = DB.meetings.filter(m => m.id !== id);
-  renderMeetings();
-  showToast('記錄已刪除');
+  DB.meetings = DB.meetings.filter(m => m.id!==id);
+  renderMeetings(); showToast('記錄已刪除');
 }
 
 // ══════════════════════════════════════════
@@ -1146,71 +919,58 @@ async function deleteMeeting(id) {
 document.getElementById('notify-send-btn').onclick = sendNotification;
 
 async function sendNotification() {
-  const team    = document.getElementById('notify-team').value;
-  const message = document.getElementById('notify-message').value.trim();
-  if (!message) { showToast('請輸入通知訊息', 'error'); return; }
-  const teamName = team ? getUserName(team) : '所有工班';
-  const fullMsg  = `【${currentProject.name}】${teamName} — ${message}`;
+  const team = document.getElementById('notify-team').value;
+  const msg  = document.getElementById('notify-message').value.trim();
+  if (!msg) { showToast('請輸入通知訊息', 'error'); return; }
+  const fullMsg = `【${currentProject.name}】${team ? getUserName(team) : '所有工班'} — ${msg}`;
   try {
-    await sb.from('notifications').insert({ org_id: currentUser.org_id, project_id: currentProject.id, sender_id: currentUser.id, message: fullMsg });
-    const { data } = await sb.from('notifications').select('*, notification_reads(user_id)').eq('org_id', currentUser.org_id).order('created_at', { ascending: false });
-    DB.notifications = (data || []).map(n => ({ ...n, read_by: (n.notification_reads || []).map(r => r.user_id) }));
-    document.getElementById('notify-message').value = '';
-    document.getElementById('notify-team').value = '';
-    updateNotifBadge();
-    showToast('通知已發送 📣');
-    hideModal('detail-modal');
-  } catch(e) { showToast('發送失敗：' + e.message, 'error'); }
+    await sb.from('notifications').insert({ org_id:currentUser.org_id, project_id:currentProject.id, sender_id:currentUser.id, message:fullMsg });
+    const { data } = await sb.from('notifications').select('*, notification_reads(user_id)').eq('org_id', currentUser.org_id).order('created_at', { ascending:false });
+    DB.notifications = (data||[]).map(n => ({ ...n, read_by:(n.notification_reads||[]).map(r=>r.user_id) }));
+    document.getElementById('notify-message').value=''; document.getElementById('notify-team').value='';
+    updateNotifBadge(); showToast('通知已發送 📣'); hideModal('detail-modal');
+  } catch(e) { showToast('發送失敗：'+e.message, 'error'); }
 }
 
 function renderNotifications() {
-  const notifs = DB.notifications;
-  const list = document.getElementById('notif-list');
-  const empty = document.getElementById('notif-empty');
-  if (notifs.length === 0) { list.innerHTML = ''; empty.classList.remove('hidden'); return; }
+  const ns = DB.notifications;
+  const list = document.getElementById('notif-list'), empty = document.getElementById('notif-empty');
+  if (ns.length===0) { list.innerHTML=''; empty.classList.remove('hidden'); return; }
   empty.classList.add('hidden');
-  list.innerHTML = notifs.map(n => {
-    const isUnread = !n.read_by.includes(currentUser.id);
-    return `
-      <div class="notif-item ${isUnread ? 'unread' : ''}" onclick="markRead('${n.id}')">
-        <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:4px;">
-          <span style="font-size:12px; color:var(--text-muted);">📣 ${getUserName(n.sender_id)}</span>
-          <span style="font-size:11px; color:#475569;">${n.created_at?.slice(0,10) || ''}</span>
-        </div>
-        <p style="font-size:14px;">${n.message}</p>
-        ${isUnread ? '<div style="margin-top:6px;"><span style="font-size:11px; color:var(--amber);">● 未讀</span></div>' : ''}
-      </div>`;
+  list.innerHTML = ns.map(n => {
+    const unread = !n.read_by.includes(currentUser.id);
+    return `<div class="notif-item ${unread?'unread':''}" onclick="markRead('${n.id}')">
+      <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:4px;">
+        <span style="font-size:12px; color:var(--text-muted);">📣 ${getUserName(n.sender_id)}</span>
+        <span style="font-size:11px; color:#475569;">${n.created_at?.slice(0,10)||''}</span>
+      </div>
+      <p style="font-size:14px;">${n.message}</p>
+      ${unread ? '<div style="margin-top:6px;"><span style="font-size:11px; color:var(--amber);">● 未讀</span></div>' : ''}
+    </div>`;
   }).join('');
 }
 
 async function markRead(id) {
-  const n = DB.notifications.find(n => n.id === id);
+  const n = DB.notifications.find(x => x.id===id);
   if (n && !n.read_by.includes(currentUser.id)) {
-    try {
-      await sb.from('notification_reads').insert({ notification_id: id, user_id: currentUser.id });
-      n.read_by.push(currentUser.id);
-      renderNotifications();
-      updateNotifBadge();
-    } catch(e) { console.error(e); }
+    try { await sb.from('notification_reads').insert({ notification_id:id, user_id:currentUser.id }); n.read_by.push(currentUser.id); renderNotifications(); updateNotifBadge(); } catch(e) {}
   }
 }
 
 document.getElementById('mark-all-read-btn').onclick = async () => {
   const unread = DB.notifications.filter(n => !n.read_by.includes(currentUser.id));
-  if (unread.length === 0) return;
+  if (!unread.length) return;
   try {
-    await sb.from('notification_reads').insert(unread.map(n => ({ notification_id: n.id, user_id: currentUser.id })));
+    await sb.from('notification_reads').insert(unread.map(n => ({ notification_id:n.id, user_id:currentUser.id })));
     unread.forEach(n => n.read_by.push(currentUser.id));
-    renderNotifications();
-    updateNotifBadge();
-    showToast('全部已標記已讀');
+    renderNotifications(); updateNotifBadge(); showToast('全部已標記已讀');
   } catch(e) { showToast('操作失敗', 'error'); }
 };
 
 function updateNotifBadge() {
   if (!currentUser) return;
-  const unread = DB.notifications.filter(n => !n.read_by.includes(currentUser.id)).length;
-  document.getElementById('notif-badge').classList.toggle('hidden', unread === 0);
+  const cnt = DB.notifications.filter(n => !n.read_by.includes(currentUser.id)).length;
+  document.getElementById('notif-badge').classList.toggle('hidden', cnt===0);
 }
 
 // ══════════════════════════════════════════
@@ -1222,115 +982,79 @@ document.getElementById('designer-add-btn').onclick = () => openProjectModal(nul
 function openProjectModal(project) {
   const isEdit = !!project;
   document.getElementById('project-modal-title').textContent = isEdit ? '編輯案場' : '新增案場';
-  document.getElementById('pm-id').value = project?.id || '';
-  document.getElementById('pm-name').value = project?.name || '';
-  document.getElementById('pm-location').value = project?.location || '';
-  document.getElementById('pm-manager').value = project?.manager || '';
-  document.getElementById('pm-start').value = project?.start_date || '';
-  document.getElementById('pm-end').value = project?.end_date || '';
-  document.getElementById('pm-status').value = project?.status || '待開工';
-  document.getElementById('pm-progress').value = project?.progress || 0;
-  document.getElementById('pm-progress-val').textContent = project?.progress || 0;
-  document.getElementById('pm-notes').value = project?.notes || '';
-
-  const orgWorkers = DB.users.filter(u => u.role === 'worker' && u.org_id === currentUser.org_id);
-  const selected = project?.workers || [];
-  const wList = document.getElementById('pm-workers-list');
-  wList.innerHTML = orgWorkers.length === 0
+  document.getElementById('pm-id').value = project?.id||'';
+  document.getElementById('pm-name').value = project?.name||'';
+  document.getElementById('pm-location').value = project?.location||'';
+  document.getElementById('pm-manager').value = project?.manager||'';
+  document.getElementById('pm-start').value = project?.start_date||'';
+  document.getElementById('pm-end').value = project?.end_date||'';
+  document.getElementById('pm-status').value = project?.status||'待開工';
+  document.getElementById('pm-progress').value = project?.progress||0;
+  document.getElementById('pm-progress-val').textContent = project?.progress||0;
+  document.getElementById('pm-notes').value = project?.notes||'';
+  const workers = DB.users.filter(u => u.role==='worker' && u.org_id===currentUser.org_id);
+  const sel = project?.workers||[];
+  document.getElementById('pm-workers-list').innerHTML = workers.length===0
     ? '<span style="font-size:12px; color:#475569;">尚無工班帳號</span>'
-    : orgWorkers.map(w => `
-      <label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:var(--text); margin:0; font-size:13px;">
-        <input type="checkbox" value="${w.id}" ${selected.includes(w.id) ? 'checked' : ''} style="accent-color:var(--amber);">
-        ${w.display_name || w.name}
-      </label>`).join('');
+    : workers.map(w => `<label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:var(--text); margin:0; font-size:13px;"><input type="checkbox" value="${w.id}" ${sel.includes(w.id)?'checked':''} style="accent-color:var(--amber);">${w.display_name||w.name}</label>`).join('');
   showModal('project-modal');
 }
 
-document.getElementById('pm-progress').oninput = function() {
-  document.getElementById('pm-progress-val').textContent = this.value;
-};
+document.getElementById('pm-progress').oninput = function() { document.getElementById('pm-progress-val').textContent = this.value; };
 
 document.getElementById('pm-submit').onclick = async () => {
   const name = document.getElementById('pm-name').value.trim();
   if (!name) { showToast('請輸入案場名稱', 'error'); return; }
-  const btn = document.getElementById('pm-submit');
-  btn.disabled = true; btn.textContent = '儲存中...';
-  const workers = [...document.querySelectorAll('#pm-workers-list input[type=checkbox]:checked')].map(cb => cb.value);
-  const editId  = document.getElementById('pm-id').value;
-  const projectData = {
-    org_id: currentUser.org_id, name,
-    location: document.getElementById('pm-location').value,
-    manager:  document.getElementById('pm-manager').value,
-    start_date: document.getElementById('pm-start').value || null,
-    end_date:   document.getElementById('pm-end').value || null,
-    status:   document.getElementById('pm-status').value,
-    progress: parseInt(document.getElementById('pm-progress').value),
-    notes:    document.getElementById('pm-notes').value,
-  };
+  const btn = document.getElementById('pm-submit'); btn.disabled=true; btn.textContent='儲存中...';
+  const workers = [...document.querySelectorAll('#pm-workers-list input:checked')].map(c => c.value);
+  const editId = document.getElementById('pm-id').value;
+  const data = { org_id:currentUser.org_id, name, location:document.getElementById('pm-location').value, manager:document.getElementById('pm-manager').value, start_date:document.getElementById('pm-start').value||null, end_date:document.getElementById('pm-end').value||null, status:document.getElementById('pm-status').value, progress:parseInt(document.getElementById('pm-progress').value), notes:document.getElementById('pm-notes').value };
   try {
-    let projectId = editId;
-    if (editId) {
-      const { error } = await sb.from('projects').update(projectData).eq('id', editId);
-      if (error) throw error;
-    } else {
-      const { data, error } = await sb.from('projects').insert(projectData).select().single();
-      if (error) throw error;
-      projectId = data.id;
-    }
-    await sb.from('project_members').delete().eq('project_id', projectId);
-    if (workers.length > 0) {
-      await sb.from('project_members').insert(workers.map(uid => ({ project_id: projectId, user_id: uid })));
-    }
-    await loadOrgData();
-    hideModal('project-modal');
-    renderDashboard();
-    showToast(editId ? '案場已更新' : '案場已新增');
-  } catch(e) {
-    showToast('儲存失敗：' + e.message, 'error');
-  } finally { btn.disabled = false; btn.textContent = '儲存'; }
+    let pid = editId;
+    if (editId) { const { error } = await sb.from('projects').update(data).eq('id', editId); if (error) throw error; }
+    else { const { data:d, error } = await sb.from('projects').insert(data).select().single(); if (error) throw error; pid=d.id; }
+    await sb.from('project_members').delete().eq('project_id', pid);
+    if (workers.length>0) await sb.from('project_members').insert(workers.map(u => ({ project_id:pid, user_id:u })));
+    await loadOrgData(); hideModal('project-modal'); renderDashboard(); showToast(editId?'案場已更新':'案場已新增');
+  } catch(e) { showToast('儲存失敗：'+e.message, 'error'); }
+  finally { btn.disabled=false; btn.textContent='儲存'; }
 };
 
 // ══════════════════════════════════════════
 //  WORKER MANAGEMENT
 // ══════════════════════════════════════════
 
-document.getElementById('designer-add-worker-btn').onclick = () => {
-  renderWorkersModal();
-  showModal('worker-modal');
-};
+document.getElementById('designer-add-worker-btn').onclick = () => { renderWorkersModal(); showModal('worker-modal'); };
 
 function renderWorkersModal() {
-  const workers = DB.users.filter(u => u.role === 'worker' && u.org_id === currentUser.org_id);
-  const list = document.getElementById('workers-list-modal');
-  list.innerHTML = workers.length === 0
-    ? '<p style="font-size:13px; color:var(--text-muted); text-align:center;">尚無工班帳號</p>'
+  const workers = DB.users.filter(u => u.role==='worker' && u.org_id===currentUser.org_id);
+  document.getElementById('workers-list-modal').innerHTML = workers.length===0
+    ? '<p style="font-size:13px; color:var(--text-muted); text-align:center; margin-bottom:12px;">尚無工班帳號</p>'
     : workers.map(w => `
       <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 12px; background:#0f172a; border-radius:10px; margin-bottom:6px; border:1px solid var(--border);">
         <div>
-          <p style="font-size:13px; font-weight:600;">${w.display_name || '—'}</p>
-          <p style="font-size:11px; color:var(--text-muted);">${w.account || w.email || ''}</p>
+          <p style="font-size:13px; font-weight:600;">${w.display_name||'—'}</p>
+          <p style="font-size:11px; color:var(--text-muted);">${w.account||''}</p>
         </div>
         <button class="btn btn-danger btn-sm" onclick="deleteWorker('${w.id}')">移除</button>
       </div>`).join('');
-}
 
-document.getElementById('wm-add-btn').onclick = async () => {
-  const email    = document.getElementById('wm-account').value.trim();
-  const password = document.getElementById('wm-password').value;
-  const name     = document.getElementById('wm-name').value.trim();
-  if (!email || !password || !name) { showToast('請填寫所有欄位', 'error'); return; }
-  showToast('請至 Supabase 後台 Authentication → Add User 手動新增工班帳號', 'info');
-};
+  // 顯示邀請連結
+  const link = `${location.origin}${location.pathname}?org=${currentUser.org_id}`;
+  document.getElementById('org-invite-link').textContent = link;
+  document.getElementById('copy-invite-link-btn').onclick = () => {
+    navigator.clipboard.writeText(link).then(() => showToast('連結已複製！'));
+  };
+}
 
 async function deleteWorker(uid) {
   try {
     await sb.from('project_members').delete().eq('user_id', uid);
     await sb.from('profiles').delete().eq('id', uid);
-    DB.users = DB.users.filter(u => u.id !== uid);
-    DB.projects.forEach(p => { p.workers = p.workers.filter(w => w !== uid); });
-    renderWorkersModal();
-    showToast('工班已移除');
-  } catch(e) { showToast('移除失敗：' + e.message, 'error'); }
+    DB.users = DB.users.filter(u => u.id!==uid);
+    DB.projects.forEach(p => { p.workers = p.workers.filter(w => w!==uid); });
+    renderWorkersModal(); showToast('工班已移除');
+  } catch(e) { showToast('移除失敗：'+e.message, 'error'); }
 }
 
 // ══════════════════════════════════════════
@@ -1339,177 +1063,118 @@ async function deleteWorker(uid) {
 
 document.getElementById('delete-confirm-btn').onclick = async () => {
   if (!pendingDeleteId) return;
-  const btn = document.getElementById('delete-confirm-btn');
-  btn.disabled = true; btn.textContent = '刪除中...';
+  const btn = document.getElementById('delete-confirm-btn'); btn.disabled=true; btn.textContent='刪除中...';
   try {
     const { error } = await sb.from('projects').delete().eq('id', pendingDeleteId);
     if (error) throw error;
-    pendingDeleteId = null;
-    await loadOrgData();
-    hideModal('delete-modal');
-    renderDashboard();
-    showToast('案場已刪除');
-  } catch(e) {
-    showToast('刪除失敗：' + e.message, 'error');
-  } finally { btn.disabled = false; btn.textContent = '確定刪除'; }
+    pendingDeleteId=null; await loadOrgData(); hideModal('delete-modal'); renderDashboard(); showToast('案場已刪除');
+  } catch(e) { showToast('刪除失敗：'+e.message, 'error'); }
+  finally { btn.disabled=false; btn.textContent='確定刪除'; }
 };
 
-// ══════════════════════════════════════════
-//  MODAL CLOSE
-// ══════════════════════════════════════════
-
-document.querySelectorAll('.modal-close').forEach(btn => {
-  btn.onclick = () => hideModal(btn.dataset.modal);
-});
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-  overlay.onclick = e => { if (e.target === overlay) hideModal(overlay.id); };
-});
+document.querySelectorAll('.modal-close').forEach(btn => { btn.onclick = () => hideModal(btn.dataset.modal); });
+document.querySelectorAll('.modal-overlay').forEach(o => { o.onclick = e => { if (e.target===o) hideModal(o.id); }; });
 
 // ══════════════════════════════════════════
-//  GANTT CHART
+//  GANTT
 // ══════════════════════════════════════════
 
-let ganttChart = null;
-let ganttWorkerOrder = [];
-let dragSrcWorkerId = null;
-
+let ganttChart=null, ganttWorkerOrder=[], dragSrcWorkerId=null;
 const GANTT_COLORS = ['#f59e0b','#10b981','#3b82f6','#a855f7','#ef4444','#06b6d4','#84cc16','#f97316'];
 
 function openGanttTab() {
   if (!currentProject) return;
   const sel = document.getElementById('gantt-worker-select');
-  const orgWorkers = DB.users.filter(u => u.role === 'worker' && u.org_id === currentUser.org_id);
-  const projectWorkers = orgWorkers.filter(w => currentProject.workers.includes(w.id));
-  sel.innerHTML = '<option value="">— 選擇工班 —</option>' +
-    projectWorkers.map(w => `<option value="${w.id}">${w.display_name || w.name || '—'}</option>`).join('');
-  document.getElementById('gantt-designer-tools').style.display = currentUser.role === 'designer' ? '' : 'none';
+  const pw = DB.users.filter(u => u.role==='worker' && currentProject.workers.includes(u.id));
+  sel.innerHTML = '<option value="">— 選擇工班 —</option>' + pw.map(w=>`<option value="${w.id}">${w.display_name||w.name||'—'}</option>`).join('');
+  document.getElementById('gantt-designer-tools').style.display = currentUser.role==='designer' ? '' : 'none';
   renderGantt();
 }
 
-function getOrderedWorkerIds(segments) {
-  const inSegs = [...new Set(segments.map(s => s.worker_id))];
-  const ordered = ganttWorkerOrder.filter(wid => inSegs.includes(wid));
-  inSegs.forEach(wid => { if (!ordered.includes(wid)) ordered.push(wid); });
-  ganttWorkerOrder = ordered;
-  return ordered;
+function getOrderedWorkerIds(segs) {
+  const inSegs = [...new Set(segs.map(s=>s.worker_id))];
+  const ordered = ganttWorkerOrder.filter(w => inSegs.includes(w));
+  inSegs.forEach(w => { if (!ordered.includes(w)) ordered.push(w); });
+  ganttWorkerOrder = ordered; return ordered;
 }
 
 document.getElementById('gantt-add-btn').onclick = async () => {
-  const workerId = document.getElementById('gantt-worker-select').value;
-  const start    = document.getElementById('gantt-start').value;
-  const end      = document.getElementById('gantt-end').value;
-  const label    = document.getElementById('gantt-segment-label').value.trim();
-  if (!workerId || !start || !end) { showToast('請選擇工班並填寫日期', 'error'); return; }
-  if (start > end) { showToast('開始日期不能晚於結束日期', 'error'); return; }
+  const wid = document.getElementById('gantt-worker-select').value;
+  const s = document.getElementById('gantt-start').value;
+  const e = document.getElementById('gantt-end').value;
+  const l = document.getElementById('gantt-segment-label').value.trim();
+  if (!wid||!s||!e) { showToast('請選擇工班並填寫日期', 'error'); return; }
+  if (s>e) { showToast('開始日期不能晚於結束日期', 'error'); return; }
   try {
-    await sb.from('gantt_segments').insert({ project_id: currentProject.id, worker_id: workerId, label, start_date: start, end_date: end, sort_order: DB.gantt_segments.length });
+    await sb.from('gantt_segments').insert({ project_id:currentProject.id, worker_id:wid, label:l, start_date:s, end_date:e, sort_order:DB.gantt_segments.length });
     const { data } = await sb.from('gantt_segments').select('*').eq('project_id', currentProject.id).order('sort_order');
-    DB.gantt_segments = (data || []).map(s => ({ ...s, start: s.start_date, end: s.end_date }));
-    document.getElementById('gantt-worker-select').value = '';
-    document.getElementById('gantt-start').value = '';
-    document.getElementById('gantt-end').value = '';
-    document.getElementById('gantt-segment-label').value = '';
-    renderGantt();
-    showToast('時段已新增');
-  } catch(e) { showToast('新增失敗：' + e.message, 'error'); }
+    DB.gantt_segments = (data||[]).map(x => ({ ...x, start:x.start_date, end:x.end_date }));
+    document.getElementById('gantt-worker-select').value=''; document.getElementById('gantt-start').value='';
+    document.getElementById('gantt-end').value=''; document.getElementById('gantt-segment-label').value='';
+    renderGantt(); showToast('時段已新增');
+  } catch(e) { showToast('新增失敗：'+e.message, 'error'); }
 };
 
 function renderGantt() {
   if (!currentProject) return;
-  const segments = DB.gantt_segments.filter(s => s.project_id === currentProject.id);
-  const empty = document.getElementById('gantt-empty');
-  const chartWrap = document.getElementById('gantt-chart-wrap');
-  if (segments.length === 0) {
-    empty.classList.remove('hidden'); chartWrap.style.display = 'none';
-    document.getElementById('gantt-segments-list').innerHTML = '';
-    document.getElementById('gantt-export-wrap').style.display = 'none';
-    if (ganttChart) { ganttChart.destroy(); ganttChart = null; }
-    return;
-  }
-  empty.classList.add('hidden'); chartWrap.style.display = '';
-  document.getElementById('gantt-export-wrap').style.display = '';
-  const workerIds = getOrderedWorkerIds(segments);
-  const workerColorMap = {};
-  workerIds.forEach((wid, i) => { workerColorMap[wid] = GANTT_COLORS[i % GANTT_COLORS.length]; });
-  const allDates = segments.flatMap(s => [new Date(s.start), new Date(s.end)]);
-  const minDate = new Date(Math.min(...allDates));
-  const maxDate = new Date(Math.max(...allDates));
-  minDate.setDate(minDate.getDate() - 3);
-  maxDate.setDate(maxDate.getDate() + 3);
-  const datasets = [];
-  const segsByWorker = {};
-  workerIds.forEach(wid => { segsByWorker[wid] = segments.filter(s => s.worker_id === wid); });
-  workerIds.forEach((wid) => {
-    const segs = segsByWorker[wid];
-    const color = workerColorMap[wid];
-    datasets.push({
-      label: getUserName(wid),
-      data: segs.map(s => ({ x: [new Date(s.start).getTime(), new Date(s.end).getTime()], y: getUserName(wid), segId: s.id, segLabel: s.label })),
-      backgroundColor: color + 'cc', borderColor: color, borderWidth: 1, borderRadius: 4, borderSkipped: false,
-    });
-  });
+  const segs = DB.gantt_segments.filter(s => s.project_id===currentProject.id);
+  const empty = document.getElementById('gantt-empty'), wrap = document.getElementById('gantt-chart-wrap');
+  if (segs.length===0) { empty.classList.remove('hidden'); wrap.style.display='none'; document.getElementById('gantt-segments-list').innerHTML=''; document.getElementById('gantt-export-wrap').style.display='none'; if (ganttChart) { ganttChart.destroy(); ganttChart=null; } return; }
+  empty.classList.add('hidden'); wrap.style.display=''; document.getElementById('gantt-export-wrap').style.display='';
+  const wids = getOrderedWorkerIds(segs);
+  const cmap = {}; wids.forEach((w,i) => { cmap[w]=GANTT_COLORS[i%GANTT_COLORS.length]; });
+  const allD = segs.flatMap(s=>[new Date(s.start),new Date(s.end)]);
+  const minD = new Date(Math.min(...allD)), maxD = new Date(Math.max(...allD));
+  minD.setDate(minD.getDate()-3); maxD.setDate(maxD.getDate()+3);
+  const datasets = wids.map(wid => ({
+    label: getUserName(wid),
+    data: segs.filter(s=>s.worker_id===wid).map(s => ({ x:[new Date(s.start).getTime(),new Date(s.end).getTime()], y:getUserName(wid), segId:s.id, segLabel:s.label })),
+    backgroundColor: cmap[wid]+'cc', borderColor: cmap[wid], borderWidth:1, borderRadius:4, borderSkipped:false,
+  }));
   const canvas = document.getElementById('gantt-canvas');
-  canvas.height = Math.max(120, workerIds.length * 60 + 60);
+  canvas.height = Math.max(120, wids.length*60+60);
   if (ganttChart) ganttChart.destroy();
   ganttChart = new Chart(canvas, {
-    type: 'bar', data: { datasets },
-    options: {
-      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: {
-          title: ctx => ctx[0]?.raw?.segLabel || '',
-          label: ctx => { const [s, e] = ctx.raw.x; return `${new Date(s).toLocaleDateString('zh-TW')} ～ ${new Date(e).toLocaleDateString('zh-TW')}`; }
-        }}
-      },
-      scales: {
-        x: { type: 'time', time: { unit: 'day', tooltipFormat: 'yyyy/MM/dd', displayFormats: { day: 'M/d', week: 'M/d', month: 'yyyy/MM' } }, min: minDate.getTime(), max: maxDate.getTime(), grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#94a3b8', font: { size: 11 } } },
-        y: { stacked: false, grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#f1f5f9', font: { size: 12 } } }
-      }
+    type:'bar', data:{ datasets },
+    options: { indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins: { legend:{display:false}, tooltip:{ callbacks:{ title:ctx=>ctx[0]?.raw?.segLabel||'', label:ctx=>{ const [s,e]=ctx.raw.x; return `${new Date(s).toLocaleDateString('zh-TW')} ～ ${new Date(e).toLocaleDateString('zh-TW')}`; } } } },
+      scales: { x:{ type:'time', time:{unit:'day',tooltipFormat:'yyyy/MM/dd',displayFormats:{day:'M/d',week:'M/d',month:'yyyy/MM'}}, min:minD.getTime(), max:maxD.getTime(), grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'#94a3b8',font:{size:11}} }, y:{ stacked:false, grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'#f1f5f9',font:{size:12}} } }
     }
   });
   const list = document.getElementById('gantt-segments-list');
-  const canDrag = currentUser.role === 'designer';
-  let html = `<p style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">${canDrag ? '已設定時段（拖拉 ☰ 可調整工班順序）' : '已設定時段'}</p>`;
-  workerIds.forEach(wid => {
-    const color = workerColorMap[wid] || '#888';
-    const workerSegs = segments.filter(s => s.worker_id === wid);
-    html += `
-      <div class="gantt-worker-group" data-worker-id="${wid}" draggable="${canDrag}"
-        style="margin-bottom:10px; border-radius:10px; border:1px solid ${color}44; overflow:hidden; background:#0f172a;">
-        <div style="display:flex; align-items:center; gap:8px; padding:8px 12px; background:${color}18; border-bottom:1px solid ${color}33;">
-          ${canDrag ? `<span style="color:${color}; font-size:16px; cursor:grab; user-select:none;">☰</span>` : ''}
-          <span style="font-size:13px; font-weight:700; color:${color};">${getUserName(wid)}</span>
-          <span style="font-size:11px; color:var(--text-muted);">${workerSegs.length} 個時段</span>
-        </div>
-        <div style="padding:8px 12px;">
-          ${workerSegs.map(s => `
-            <div style="display:flex; align-items:center; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
-              <div>
-                ${s.label ? `<span style="font-size:12px; font-weight:600; color:var(--text);">${s.label}</span>` : ''}
-                <p style="font-size:11px; color:var(--text-muted); margin-top:2px;">${s.start} ～ ${s.end}</p>
-              </div>
-              ${canDrag ? `<button class="btn btn-danger btn-sm" onclick="deleteGanttSegment('${s.id}')" style="flex-shrink:0;">✕</button>` : ''}
-            </div>`).join('')}
-        </div>
-      </div>`;
+  const canDrag = currentUser.role==='designer';
+  let html = `<p style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">${canDrag?'已設定時段（拖拉 ☰ 可調整工班順序）':'已設定時段'}</p>`;
+  wids.forEach(wid => {
+    const color = cmap[wid]||'#888', ws = segs.filter(s=>s.worker_id===wid);
+    html += `<div class="gantt-worker-group" data-worker-id="${wid}" draggable="${canDrag}" style="margin-bottom:10px; border-radius:10px; border:1px solid ${color}44; overflow:hidden; background:#0f172a;">
+      <div style="display:flex; align-items:center; gap:8px; padding:8px 12px; background:${color}18; border-bottom:1px solid ${color}33;">
+        ${canDrag?`<span style="color:${color}; font-size:16px; cursor:grab; user-select:none;">☰</span>`:''}
+        <span style="font-size:13px; font-weight:700; color:${color};">${getUserName(wid)}</span>
+        <span style="font-size:11px; color:var(--text-muted);">${ws.length} 個時段</span>
+      </div>
+      <div style="padding:8px 12px;">
+        ${ws.map(s=>`<div style="display:flex; align-items:center; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+          <div>${s.label?`<span style="font-size:12px; font-weight:600; color:var(--text);">${s.label}</span>`:''}<p style="font-size:11px; color:var(--text-muted); margin-top:2px;">${s.start} ～ ${s.end}</p></div>
+          ${canDrag?`<button class="btn btn-danger btn-sm" onclick="deleteGanttSegment('${s.id}')" style="flex-shrink:0;">✕</button>`:''}
+        </div>`).join('')}
+      </div>
+    </div>`;
   });
   list.innerHTML = html;
   if (canDrag) {
     list.querySelectorAll('.gantt-worker-group').forEach(el => {
-      el.addEventListener('dragstart', e => { dragSrcWorkerId = el.dataset.workerId; el.style.opacity = '0.4'; e.dataTransfer.effectAllowed = 'move'; });
-      el.addEventListener('dragend', () => { el.style.opacity = ''; list.querySelectorAll('.gantt-worker-group').forEach(g => g.style.outline = ''); });
-      el.addEventListener('dragover', e => { e.preventDefault(); el.style.outline = `2px dashed ${workerColorMap[el.dataset.workerId] || '#888'}`; });
-      el.addEventListener('dragleave', () => { el.style.outline = ''; });
+      el.addEventListener('dragstart', e => { dragSrcWorkerId=el.dataset.workerId; el.style.opacity='0.4'; e.dataTransfer.effectAllowed='move'; });
+      el.addEventListener('dragend', () => { el.style.opacity=''; list.querySelectorAll('.gantt-worker-group').forEach(g=>g.style.outline=''); });
+      el.addEventListener('dragover', e => { e.preventDefault(); el.style.outline=`2px dashed ${cmap[el.dataset.workerId]||'#888'}`; });
+      el.addEventListener('dragleave', () => { el.style.outline=''; });
       el.addEventListener('drop', e => {
-        e.preventDefault(); el.style.outline = '';
-        const targetId = el.dataset.workerId;
-        if (dragSrcWorkerId && dragSrcWorkerId !== targetId) {
-          const srcIdx = ganttWorkerOrder.indexOf(dragSrcWorkerId);
-          const tgtIdx = ganttWorkerOrder.indexOf(targetId);
-          if (srcIdx !== -1 && tgtIdx !== -1) { ganttWorkerOrder.splice(srcIdx, 1); ganttWorkerOrder.splice(tgtIdx, 0, dragSrcWorkerId); renderGantt(); }
+        e.preventDefault(); el.style.outline='';
+        const tid = el.dataset.workerId;
+        if (dragSrcWorkerId && dragSrcWorkerId!==tid) {
+          const si=ganttWorkerOrder.indexOf(dragSrcWorkerId), ti=ganttWorkerOrder.indexOf(tid);
+          if (si!==-1&&ti!==-1) { ganttWorkerOrder.splice(si,1); ganttWorkerOrder.splice(ti,0,dragSrcWorkerId); renderGantt(); }
         }
-        dragSrcWorkerId = null;
+        dragSrcWorkerId=null;
       });
     });
   }
@@ -1517,157 +1182,107 @@ function renderGantt() {
 
 async function deleteGanttSegment(id) {
   await sb.from('gantt_segments').delete().eq('id', id);
-  DB.gantt_segments = DB.gantt_segments.filter(s => s.id !== id);
-  renderGantt();
-  showToast('時段已刪除');
+  DB.gantt_segments = DB.gantt_segments.filter(s=>s.id!==id);
+  renderGantt(); showToast('時段已刪除');
 }
 
 document.getElementById('gantt-export-pdf-btn').onclick = exportGanttPDF;
 
 async function exportGanttPDF() {
   if (!currentProject) return;
-  const segments = DB.gantt_segments.filter(s => s.project_id === currentProject.id);
-  if (segments.length === 0) { showToast('尚無時段資料', 'error'); return; }
-  if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') { showToast('PDF 套件載入中，請稍候再試', 'error'); return; }
-  const btn = document.getElementById('gantt-export-pdf-btn');
-  btn.disabled = true; btn.textContent = '產生中...';
+  const segs = DB.gantt_segments.filter(s=>s.project_id===currentProject.id);
+  if (segs.length===0) { showToast('尚無時段資料', 'error'); return; }
+  if (typeof html2canvas==='undefined'||typeof window.jspdf==='undefined') { showToast('PDF 套件載入中，請稍候再試', 'error'); return; }
+  const btn = document.getElementById('gantt-export-pdf-btn'); btn.disabled=true; btn.textContent='產生中...';
   try {
-    const workerIds = getOrderedWorkerIds(segments);
-    const workerColorMap = {};
-    workerIds.forEach((wid, i) => { workerColorMap[wid] = GANTT_COLORS[i % GANTT_COLORS.length]; });
-    const allDates = segments.flatMap(s => [new Date(s.start), new Date(s.end)]);
-    const minDate = new Date(Math.min(...allDates));
-    const maxDate = new Date(Math.max(...allDates));
-    const totalDays = Math.ceil((maxDate - minDate) / 86400000) + 6;
+    const wids = getOrderedWorkerIds(segs), cmap={};
+    wids.forEach((w,i) => { cmap[w]=GANTT_COLORS[i%GANTT_COLORS.length]; });
+    const allD = segs.flatMap(s=>[new Date(s.start),new Date(s.end)]);
+    const minD = new Date(Math.min(...allD)), maxD = new Date(Math.max(...allD));
+    const totalDays = Math.ceil((maxD-minD)/86400000)+6;
     const wrap = document.createElement('div');
-    wrap.style.cssText = 'position:fixed; left:-9999px; top:0; width:900px; background:#ffffff; color:#1e293b; font-family:\'Noto Sans TC\',sans-serif; padding:32px; box-sizing:border-box;';
-    wrap.innerHTML = `
-      <div style="margin-bottom:20px; border-bottom:3px solid #f59e0b; padding-bottom:12px;">
-        <h1 style="font-size:20px; font-weight:700; color:#1e293b; margin:0 0 4px;">施工甘特圖</h1>
-        <p style="font-size:13px; color:#64748b; margin:0;">${currentProject.name} · 匯出時間：${new Date().toLocaleString('zh-TW')}</p>
-      </div>
-      <div style="margin-bottom:16px;">${workerIds.map(wid => `<span style="display:inline-flex; align-items:center; gap:5px; margin-right:16px; font-size:12px;"><span style="display:inline-block; width:14px; height:14px; border-radius:3px; background:${workerColorMap[wid]};"></span>${getUserName(wid)}</span>`).join('')}</div>
-    `;
-    const LABEL_W = 180, BAR_W = 836 - LABEL_W, ROW_H = 48;
-    const axisStep = Math.max(1, Math.round(totalDays / 10));
-    let axisHtml = '<div style="position:relative; min-height:20px;">';
-    for (let d = 0; d <= totalDays; d += axisStep) {
-      const dt = new Date(minDate.getTime() + d * 86400000);
-      const left = (d / totalDays) * BAR_W;
-      axisHtml += `<span style="position:absolute; left:${LABEL_W + left}px; font-size:10px; color:#94a3b8; white-space:nowrap;">${dt.getMonth()+1}/${dt.getDate()}</span>`;
-    }
-    axisHtml += '</div>';
-    let ganttHtml = axisHtml + '<div style="margin-top:8px; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden;">';
-    workerIds.forEach((wid, wi) => {
-      const color = workerColorMap[wid];
-      const workerSegs = segments.filter(s => s.worker_id === wid);
-      const rowBg = wi % 2 === 0 ? '#f8fafc' : '#ffffff';
-      ganttHtml += `<div style="display:flex; align-items:center; min-height:${ROW_H}px; background:${rowBg}; border-bottom:1px solid #e2e8f0;"><div style="width:${LABEL_W}px; min-width:${LABEL_W}px; padding:4px 10px; font-size:12px; font-weight:700; color:${color}; border-right:2px solid ${color}; display:flex; align-items:center;">${getUserName(wid)}</div><div style="flex:1; position:relative; height:${ROW_H}px;">`;
-      for (let d = 0; d <= totalDays; d += axisStep) ganttHtml += `<div style="position:absolute; left:${(d/totalDays)*100}%; top:0; bottom:0; border-left:1px dashed #e2e8f0;"></div>`;
-      workerSegs.forEach(s => {
-        const startDay = Math.ceil((new Date(s.start) - minDate) / 86400000);
-        const endDay = Math.ceil((new Date(s.end) - minDate) / 86400000) + 1;
-        const left = (startDay / totalDays) * 100;
-        const width = Math.max(0.5, ((endDay - startDay) / totalDays) * 100);
-        ganttHtml += `<div style="position:absolute; left:${left}%; width:${width}%; top:4px; bottom:4px; background:${color}; border-radius:4px; display:flex; align-items:center; padding:0 8px; box-sizing:border-box;">${width >= 6 && s.label ? `<span style="font-size:11px; color:#fff; white-space:nowrap;">${s.label}</span>` : ''}</div>`;
+    wrap.style.cssText = 'position:fixed;left:-9999px;top:0;width:900px;background:#ffffff;color:#1e293b;font-family:\'Noto Sans TC\',sans-serif;padding:32px;box-sizing:border-box;';
+    wrap.innerHTML = `<div style="margin-bottom:20px;border-bottom:3px solid #f59e0b;padding-bottom:12px;"><h1 style="font-size:20px;font-weight:700;color:#1e293b;margin:0 0 4px;">施工甘特圖</h1><p style="font-size:13px;color:#64748b;margin:0;">${currentProject.name} · 匯出時間：${new Date().toLocaleString('zh-TW')}</p></div><div style="margin-bottom:16px;">${wids.map(w=>`<span style="display:inline-flex;align-items:center;gap:5px;margin-right:16px;font-size:12px;"><span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:${cmap[w]};"></span>${getUserName(w)}</span>`).join('')}</div>`;
+    const LW=180, BW=836-LW, RH=48, step=Math.max(1,Math.round(totalDays/10));
+    let ax='<div style="position:relative;min-height:20px;">';
+    for (let d=0;d<=totalDays;d+=step) { const dt=new Date(minD.getTime()+d*86400000); ax+=`<span style="position:absolute;left:${LW+(d/totalDays)*BW}px;font-size:10px;color:#94a3b8;white-space:nowrap;">${dt.getMonth()+1}/${dt.getDate()}</span>`; }
+    ax+='</div>';
+    let gh=ax+'<div style="margin-top:8px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">';
+    wids.forEach((wid,wi) => {
+      const color=cmap[wid], ws=segs.filter(s=>s.worker_id===wid), bg=wi%2===0?'#f8fafc':'#ffffff';
+      gh+=`<div style="display:flex;align-items:center;min-height:${RH}px;background:${bg};border-bottom:1px solid #e2e8f0;"><div style="width:${LW}px;min-width:${LW}px;padding:4px 10px;font-size:12px;font-weight:700;color:${color};border-right:2px solid ${color};display:flex;align-items:center;">${getUserName(wid)}</div><div style="flex:1;position:relative;height:${RH}px;">`;
+      for (let d=0;d<=totalDays;d+=step) gh+=`<div style="position:absolute;left:${(d/totalDays)*100}%;top:0;bottom:0;border-left:1px dashed #e2e8f0;"></div>`;
+      ws.forEach(s => {
+        const sd=Math.ceil((new Date(s.start)-minD)/86400000), ed=Math.ceil((new Date(s.end)-minD)/86400000)+1;
+        const l=(sd/totalDays)*100, w=Math.max(0.5,((ed-sd)/totalDays)*100);
+        gh+=`<div style="position:absolute;left:${l}%;width:${w}%;top:4px;bottom:4px;background:${color};border-radius:4px;display:flex;align-items:center;padding:0 8px;box-sizing:border-box;">${w>=6&&s.label?`<span style="font-size:11px;color:#fff;white-space:nowrap;">${s.label}</span>`:''}</div>`;
       });
-      ganttHtml += '</div></div>';
+      gh+='</div></div>';
     });
-    ganttHtml += '</div>';
-    wrap.innerHTML += ganttHtml;
-    wrap.innerHTML += `<div style="margin-top:16px; font-size:11px; color:#94a3b8; text-align:right;">工程案場管理系統 · ${new Date().toLocaleDateString('zh-TW')}</div>`;
+    gh+='</div>';
+    wrap.innerHTML+=gh+`<div style="margin-top:16px;font-size:11px;color:#94a3b8;text-align:right;">工程案場管理系統 · ${new Date().toLocaleDateString('zh-TW')}</div>`;
     document.body.appendChild(wrap);
-    const canvas = await html2canvas(wrap, { scale: 2, useCORS: true, backgroundColor: '#ffffff', width: 900, logging: false });
+    const canvas = await html2canvas(wrap, { scale:2, useCORS:true, backgroundColor:'#ffffff', width:900, logging:false });
     document.body.removeChild(wrap);
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-    const pdfW = pdf.internal.pageSize.getWidth();
-    const pdfH = pdf.internal.pageSize.getHeight();
-    const imgH = (canvas.height / canvas.width) * pdfW;
-    const scaleH = imgH > pdfH ? pdfH / imgH : 1;
-    const finalW = pdfW * scaleH, finalH = imgH * scaleH;
-    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', (pdfW - finalW) / 2, 0, finalW, finalH);
-    pdf.save(`${currentProject.name}_甘特圖.pdf`);
-    showToast('✅ PDF 甘特圖已匯出');
-  } catch(err) { console.error(err); showToast('匯出失敗，請再試一次', 'error'); }
-  finally { btn.disabled = false; btn.textContent = '📄 匯出 PDF 甘特圖'; }
+    const pdf = new jsPDF({ orientation:'landscape', unit:'mm', format:'a4' });
+    const pw=pdf.internal.pageSize.getWidth(), ph=pdf.internal.pageSize.getHeight();
+    const ih=(canvas.height/canvas.width)*pw, sh=ih>ph?ph/ih:1, fw=pw*sh, fh=ih*sh;
+    pdf.addImage(canvas.toDataURL('image/png'),'PNG',(pw-fw)/2,0,fw,fh);
+    pdf.save(`${currentProject.name}_甘特圖.pdf`); showToast('✅ PDF 甘特圖已匯出');
+  } catch(e) { console.error(e); showToast('匯出失敗，請再試一次', 'error'); }
+  finally { btn.disabled=false; btn.textContent='📄 匯出 PDF 甘特圖'; }
 }
 
 // ══════════════════════════════════════════
-//  MEETING PDF EXPORT
+//  MEETING PDF
 // ══════════════════════════════════════════
 
 document.getElementById('meeting-export-pdf-btn').onclick = exportMeetingsPDF;
 
 async function exportMeetingsPDF() {
   if (!currentProject) return;
-  if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') { showToast('PDF 套件載入中，請稍後再試', 'error'); return; }
-  const checkedIds = [...document.querySelectorAll('.meeting-export-check:checked')].map(c => c.value);
-  if (checkedIds.length === 0) { showToast('請至少勾選一筆記錄', 'error'); return; }
-  const filtered = DB.meetings.filter(m => m.project_id === currentProject.id && checkedIds.includes(m.id));
-  if (filtered.length === 0) { showToast('找不到選取的記錄', 'error'); return; }
-  const btn = document.getElementById('meeting-export-pdf-btn');
-  btn.disabled = true; btn.textContent = '產生中...';
+  if (typeof html2canvas==='undefined'||typeof window.jspdf==='undefined') { showToast('PDF 套件載入中', 'error'); return; }
+  const ids = [...document.querySelectorAll('.meeting-export-check:checked')].map(c=>c.value);
+  if (!ids.length) { showToast('請至少勾選一筆記錄', 'error'); return; }
+  const filtered = DB.meetings.filter(m=>m.project_id===currentProject.id&&ids.includes(m.id));
+  if (!filtered.length) { showToast('找不到選取的記錄', 'error'); return; }
+  const btn = document.getElementById('meeting-export-pdf-btn'); btn.disabled=true; btn.textContent='產生中...';
   try {
     const wrap = document.createElement('div');
-    wrap.style.cssText = 'position:fixed; left:-9999px; top:0; width:794px; background:#ffffff; color:#1e293b; font-family:\'Noto Sans TC\',sans-serif; padding:40px 48px; box-sizing:border-box;';
-    wrap.innerHTML = `
-      <div style="border-bottom:3px solid #f59e0b; padding-bottom:16px; margin-bottom:24px;">
-        <h1 style="font-size:22px; font-weight:700; color:#1e293b; margin:0 0 6px;">會議記錄報告</h1>
-        <p style="font-size:13px; color:#64748b; margin:0;">匯出時間：${new Date().toLocaleString('zh-TW')} · 共 ${filtered.length} 筆記錄</p>
-      </div>
-      <div style="background:#f8fafc; border-radius:10px; padding:16px 20px; margin-bottom:28px; border:1px solid #e2e8f0;">
-        <h2 style="font-size:14px; font-weight:700; color:#f59e0b; margin:0 0 12px;">案場基本資料</h2>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-          <div><p style="font-size:11px; color:#94a3b8; margin:0 0 2px;">案場名稱</p><p style="font-size:13px; font-weight:600; margin:0;">${currentProject.name}</p></div>
-          <div><p style="font-size:11px; color:#94a3b8; margin:0 0 2px;">狀態</p><p style="font-size:13px; font-weight:600; margin:0;">${currentProject.status}</p></div>
-          <div><p style="font-size:11px; color:#94a3b8; margin:0 0 2px;">地點</p><p style="font-size:13px; margin:0;">${currentProject.location || '—'}</p></div>
-          <div><p style="font-size:11px; color:#94a3b8; margin:0 0 2px;">負責人</p><p style="font-size:13px; margin:0;">${currentProject.manager || '—'}</p></div>
-        </div>
-      </div>
-      <h2 style="font-size:15px; font-weight:700; color:#1e293b; margin:0 0 16px;">會議記錄 <span style="font-size:12px; font-weight:400; color:#94a3b8;">（共 ${filtered.length} 筆）</span></h2>
-    `;
-    [...filtered].sort((a, b) => a.meeting_date.localeCompare(b.meeting_date)).forEach((m, i, arr) => {
-      wrap.innerHTML += `
-        <div style="margin-bottom:${i === arr.length-1 ? 0 : 28}px; border:1px solid #e2e8f0; border-radius:10px; border-left:4px solid #f59e0b; background:#ffffff; overflow:hidden;">
-          <div style="padding:16px 20px 12px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-              <span style="font-size:13px; font-weight:700; color:#1e293b;">📅 ${m.meeting_date.replace(/-/g,'/')}</span>
-              <span style="font-size:11px; color:#94a3b8;">第 ${i+1} 次會議</span>
-            </div>
-            <div style="margin-bottom:8px;"><p style="font-size:11px; color:#94a3b8; margin:0 0 3px;">出席人員</p><p style="font-size:13px; font-weight:600; margin:0; color:#334155;">${m.attendees}</p></div>
-            <div><p style="font-size:11px; color:#94a3b8; margin:0 0 3px;">會議內容</p><p style="font-size:13px; margin:0; color:#475569; line-height:1.7; white-space:pre-wrap;">${m.content}</p></div>
-          </div>
-          <div style="border-top:1px dashed #e2e8f0; padding:16px 20px; background:#f8fafc;">
-            <p style="font-size:11px; color:#94a3b8; margin:0 0 10px; font-weight:600;">出席人員簽名</p>
-            <div style="height:80px; border:1px solid #e2e8f0; border-radius:6px; background:#fff;"></div>
-          </div>
-        </div>`;
+    wrap.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;background:#ffffff;color:#1e293b;font-family:\'Noto Sans TC\',sans-serif;padding:40px 48px;box-sizing:border-box;';
+    wrap.innerHTML = `<div style="border-bottom:3px solid #f59e0b;padding-bottom:16px;margin-bottom:24px;"><h1 style="font-size:22px;font-weight:700;color:#1e293b;margin:0 0 6px;">會議記錄報告</h1><p style="font-size:13px;color:#64748b;margin:0;">匯出時間：${new Date().toLocaleString('zh-TW')} · 共 ${filtered.length} 筆記錄</p></div><div style="background:#f8fafc;border-radius:10px;padding:16px 20px;margin-bottom:28px;border:1px solid #e2e8f0;"><h2 style="font-size:14px;font-weight:700;color:#f59e0b;margin:0 0 12px;">案場基本資料</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><div><p style="font-size:11px;color:#94a3b8;margin:0 0 2px;">案場名稱</p><p style="font-size:13px;font-weight:600;margin:0;">${currentProject.name}</p></div><div><p style="font-size:11px;color:#94a3b8;margin:0 0 2px;">狀態</p><p style="font-size:13px;font-weight:600;margin:0;">${currentProject.status}</p></div><div><p style="font-size:11px;color:#94a3b8;margin:0 0 2px;">地點</p><p style="font-size:13px;margin:0;">${currentProject.location||'—'}</p></div><div><p style="font-size:11px;color:#94a3b8;margin:0 0 2px;">負責人</p><p style="font-size:13px;margin:0;">${currentProject.manager||'—'}</p></div></div></div><h2 style="font-size:15px;font-weight:700;color:#1e293b;margin:0 0 16px;">會議記錄 <span style="font-size:12px;font-weight:400;color:#94a3b8;">（共 ${filtered.length} 筆）</span></h2>`;
+    [...filtered].sort((a,b)=>a.meeting_date.localeCompare(b.meeting_date)).forEach((m,i,arr) => {
+      wrap.innerHTML += `<div style="margin-bottom:${i===arr.length-1?0:28}px;border:1px solid #e2e8f0;border-radius:10px;border-left:4px solid #f59e0b;background:#ffffff;overflow:hidden;"><div style="padding:16px 20px 12px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-size:13px;font-weight:700;color:#1e293b;">📅 ${m.meeting_date.replace(/-/g,'/')}</span><span style="font-size:11px;color:#94a3b8;">第 ${i+1} 次會議</span></div><div style="margin-bottom:8px;"><p style="font-size:11px;color:#94a3b8;margin:0 0 3px;">出席人員</p><p style="font-size:13px;font-weight:600;margin:0;color:#334155;">${m.attendees}</p></div><div><p style="font-size:11px;color:#94a3b8;margin:0 0 3px;">會議內容</p><p style="font-size:13px;margin:0;color:#475569;line-height:1.7;white-space:pre-wrap;">${m.content}</p></div></div><div style="border-top:1px dashed #e2e8f0;padding:16px 20px;background:#f8fafc;"><p style="font-size:11px;color:#94a3b8;margin:0 0 10px;font-weight:600;">出席人員簽名</p><div style="height:80px;border:1px solid #e2e8f0;border-radius:6px;background:#fff;"></div></div></div>`;
     });
-    wrap.innerHTML += `<div style="margin-top:24px; padding-top:12px; border-top:1px solid #e2e8f0; display:flex; justify-content:space-between;"><span style="font-size:11px; color:#94a3b8;">工程案場管理系統</span><span style="font-size:11px; color:#94a3b8;">${new Date().toLocaleDateString('zh-TW')}</span></div>`;
+    wrap.innerHTML += `<div style="margin-top:24px;padding-top:12px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;"><span style="font-size:11px;color:#94a3b8;">工程案場管理系統</span><span style="font-size:11px;color:#94a3b8;">${new Date().toLocaleDateString('zh-TW')}</span></div>`;
     document.body.appendChild(wrap);
-    const canvas = await html2canvas(wrap, { scale: 2, useCORS: true, backgroundColor: '#ffffff', width: 794, logging: false });
+    const canvas = await html2canvas(wrap, { scale:2, useCORS:true, backgroundColor:'#ffffff', width:794, logging:false });
     document.body.removeChild(wrap);
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const pdfW = pdf.internal.pageSize.getWidth(), pdfH = pdf.internal.pageSize.getHeight();
-    const imgW = canvas.width, imgH = canvas.height;
-    const pageHeightPx = Math.round(imgW * (pdfH / pdfW));
-    const totalPages = Math.ceil(imgH / pageHeightPx);
-    for (let page = 0; page < totalPages; page++) {
-      if (page > 0) pdf.addPage();
-      const srcY = page * pageHeightPx;
-      const srcH = Math.min(pageHeightPx, imgH - srcY);
-      const pageCanvas = document.createElement('canvas');
-      pageCanvas.width = imgW; pageCanvas.height = srcH;
-      pageCanvas.getContext('2d').drawImage(canvas, 0, srcY, imgW, srcH, 0, 0, imgW, srcH);
-      pdf.addImage(pageCanvas.toDataURL('image/png'), 'PNG', 0, 0, pdfW, (srcH / imgW) * pdfW);
+    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const pw=pdf.internal.pageSize.getWidth(), ph=pdf.internal.pageSize.getHeight();
+    const iw=canvas.width, ih=canvas.height, pph=Math.round(iw*(ph/pw)), tp=Math.ceil(ih/pph);
+    for (let p=0;p<tp;p++) {
+      if (p>0) pdf.addPage();
+      const sy=p*pph, sh=Math.min(pph,ih-sy);
+      const pc=document.createElement('canvas'); pc.width=iw; pc.height=sh;
+      pc.getContext('2d').drawImage(canvas,0,sy,iw,sh,0,0,iw,sh);
+      pdf.addImage(pc.toDataURL('image/png'),'PNG',0,0,pw,(sh/iw)*pw);
     }
-    pdf.save(`${currentProject.name}_會議記錄.pdf`);
-    showToast(`✅ 已匯出 ${filtered.length} 筆會議記錄`);
-  } catch(err) { console.error(err); showToast('匯出失敗，請再試一次', 'error'); }
-  finally { btn.disabled = false; btn.textContent = '📄 匯出已選記錄 PDF'; }
+    pdf.save(`${currentProject.name}_會議記錄.pdf`); showToast(`✅ 已匯出 ${filtered.length} 筆會議記錄`);
+  } catch(e) { console.error(e); showToast('匯出失敗，請再試一次', 'error'); }
+  finally { btn.disabled=false; btn.textContent='📄 匯出已選記錄 PDF'; }
 }
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+
+loadBrandConfig();
+applyAppConfig();
+loadOrgFromURL();
+document.getElementById('page-login').classList.add('active');
 </script>
 </body>
 </html>
