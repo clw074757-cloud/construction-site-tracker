@@ -65,7 +65,7 @@
     .tab-bar { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 20px; overflow-x: auto; }
     .tab-btn { padding: 8px 16px; font-size: 14px; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all .2s; background: none; border-left: none; border-right: none; border-top: none; }
     .tab-btn.active { color: var(--amber); border-bottom-color: var(--amber); font-weight: 600; }
-    .notif-dot { position: absolute; top: 2px; right: 2px; width: 8px; height: 8px; background: var(--red); border-radius: 50%; border: 2px solid var(--surface2); }
+    .notif-dot { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; background: var(--red); border-radius: 999px; border: 2px solid var(--surface2); font-size: 11px; font-weight: 700; color: #fff; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
     .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
     .photo-item { position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; background: #0f172a; }
     .photo-item img { width: 100%; height: 100%; object-fit: cover; }
@@ -485,7 +485,7 @@ const SUPABASE_URL = 'https://oubipbyskqaagxfdpvmi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YmlwYnlza3FhYWd4ZmRwdm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ1MTksImV4cCI6MjA5NDI2MDUxOX0.-3oWqtjM--FnCXOpxkdt71p4xVdxdpMqO1SGaIU_f2I';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const APP_VERSION = 'v1.1';
+const APP_VERSION = 'v1.2';
 const APP_CONFIG = { logo_url: '', app_name: '工程管理系統', app_subtitle: '施工管理平台' };
 
 let DB = { users: [], projects: [], photos: [], meetings: [], notifications: [], gantt_segments: [] };
@@ -771,6 +771,29 @@ function enterApp() {
   applyAppConfig();
   navigateTo(currentUser.role === 'worker' && !currentUser.is_super_admin ? 'worker' : 'dashboard');
   updateNotifBadge();
+  // 登入後彈出未讀通知提示
+  const unreadCnt = DB.notifications.filter(n => !n.read_by.includes(currentUser.id)).length;
+  if (unreadCnt > 0) {
+    setTimeout(() => {
+      const popup = document.createElement('div');
+      popup.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--surface);border:1px solid rgba(245,158,11,.5);border-radius:16px;padding:28px 32px;z-index:300;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.5);min-width:260px;';
+      popup.innerHTML =
+        '<div style="font-size:36px;margin-bottom:12px;">🔔</div>' +
+        '<p style="font-size:16px;font-weight:700;margin-bottom:6px;">你有 ' + unreadCnt + ' 則未讀通知</p>' +
+        '<p style="font-size:13px;color:var(--text-muted);margin-bottom:20px;">點擊下方按鈕查看</p>' +
+        '<div style="display:flex;gap:10px;justify-content:center;">' +
+          '<button onclick="navigateTo(\'notifications\');this.closest(\'[data-popup]\').remove();" class="btn btn-primary">查看通知</button>' +
+          '<button onclick="this.closest(\'[data-popup]\').remove();" class="btn btn-ghost">稍後再看</button>' +
+        '</div>';
+      popup.dataset.popup = '1';
+      // 半透明遮罩
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:299;';
+      overlay.onclick = () => { popup.remove(); overlay.remove(); };
+      document.body.appendChild(overlay);
+      document.body.appendChild(popup);
+    }, 600);
+  }
 }
 
 // ══════════════════════════════════════════
@@ -1379,7 +1402,13 @@ document.getElementById('mark-all-read-btn').onclick = async () => {
 function updateNotifBadge() {
   if (!currentUser) return;
   const cnt = DB.notifications.filter(n => !n.read_by.includes(currentUser.id)).length;
-  document.getElementById('notif-badge').classList.toggle('hidden', cnt===0);
+  const badge = document.getElementById('notif-badge');
+  if (cnt === 0) {
+    badge.classList.add('hidden');
+  } else {
+    badge.classList.remove('hidden');
+    badge.textContent = cnt > 99 ? '99+' : cnt;
+  }
 }
 
 // ══════════════════════════════════════════
