@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>工程案場管理系統</title>
+  <title>全技工程行</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -87,6 +87,9 @@
     h1, h2, h3 { font-weight: 700; }
     .admin-org-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 16px; }
     .admin-member-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #0f172a; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 6px; flex-wrap: wrap; gap: 8px; }
+    .reg-type-badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; margin-bottom: 16px; }
+    .reg-type-designer { background: rgba(245,158,11,.15); color: #fbbf24; }
+    .reg-type-worker { background: rgba(16,185,129,.15); color: #34d399; }
   </style>
 </head>
 <body>
@@ -100,7 +103,7 @@
           <img id="login-logo-img" src="" alt="logo" style="height:48px; width:auto; object-fit:contain; display:none;">
           <span id="login-logo-fallback" style="font-size:40px;">🏗️</span>
         </div>
-        <h1 id="login-app-name" style="font-size:22px; color:var(--amber); margin-bottom:4px;">工程案場管理系統</h1>
+        <h1 id="login-app-name" style="font-size:22px; color:var(--amber); margin-bottom:4px;">全技工程行</h1>
         <p id="login-app-subtitle" style="font-size:13px; color:var(--text-muted);">請登入以繼續</p>
       </div>
 
@@ -123,6 +126,14 @@
 
       <!-- 註冊表單 -->
       <div id="form-register" style="display:none;">
+        <div style="text-align:center; margin-bottom:16px;">
+          <span id="reg-type-badge" class="reg-type-badge reg-type-designer">設計師註冊</span>
+        </div>
+        <!-- 公司名稱（設計師專用） -->
+        <div id="reg-company-wrap" style="margin-bottom:14px;">
+          <label>公司／工作室名稱</label>
+          <input id="reg-company" class="input" placeholder="例：全技工程行">
+        </div>
         <div style="margin-bottom:14px;">
           <label>姓名</label>
           <input id="reg-name" class="input" placeholder="輸入你的姓名">
@@ -154,7 +165,7 @@
       <img id="header-logo-img" src="" alt="logo" style="height:36px; width:auto; object-fit:contain; display:none; border-radius:6px;">
       <span id="header-logo-fallback" style="font-size:22px;">🏗️</span>
       <div>
-        <h1 id="header-app-name" style="font-size:16px; color:var(--amber); line-height:1.2;">工程案場管理</h1>
+        <h1 id="header-app-name" style="font-size:16px; color:var(--amber); line-height:1.2;">全技工程行</h1>
         <p id="user-role-label" style="font-size:11px; color:var(--text-muted); line-height:1.2;"></p>
       </div>
     </div>
@@ -207,11 +218,17 @@
         <button onclick="renderAdminPanel()" class="btn btn-ghost btn-sm">🔄 重新整理</button>
       </div>
       <p style="font-size:12px; color:var(--text-muted); margin-bottom:20px;">僅開發者可見 · 管理所有組織與使用者</p>
-
-      <!-- 統計列 -->
       <div id="admin-stats" style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px;"></div>
 
-      <!-- 組織列表 -->
+      <!-- 新增組織 -->
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:20px;">
+        <h3 style="font-size:14px; margin-bottom:12px;">＋ 新增組織</h3>
+        <div style="display:flex; gap:8px;">
+          <input id="admin-new-org-name" class="input" placeholder="公司／工作室名稱" style="flex:1;">
+          <button onclick="adminCreateOrg()" class="btn btn-primary btn-sm" style="white-space:nowrap;">建立</button>
+        </div>
+      </div>
+
       <div id="admin-orgs-list"></div>
     </section>
 
@@ -442,7 +459,7 @@ const SUPABASE_URL = 'https://oubipbyskqaagxfdpvmi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YmlwYnlza3FhYWd4ZmRwdm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ1MTksImV4cCI6MjA5NDI2MDUxOX0.-3oWqtjM--FnCXOpxkdt71p4xVdxdpMqO1SGaIU_f2I';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const APP_CONFIG = { logo_url: '', app_name: '工程案場管理系統', app_subtitle: '施工管理平台' };
+const APP_CONFIG = { logo_url: '', app_name: '全技工程行', app_subtitle: '施工管理平台' };
 
 let DB = { users: [], projects: [], photos: [], meetings: [], notifications: [], gantt_segments: [] };
 let currentUser = null;
@@ -473,7 +490,22 @@ function getUserName(uid) { const u = DB.users.find(u => u.id === uid); return u
 async function loadOrgFromURL() {
   const params = new URLSearchParams(window.location.search);
   const orgId = params.get('org');
-  if (!orgId) return;
+  const badge = document.getElementById('reg-type-badge');
+  const companyWrap = document.getElementById('reg-company-wrap');
+
+  if (!orgId) {
+    // 設計師註冊模式
+    badge.textContent = '設計師註冊';
+    badge.className = 'reg-type-badge reg-type-designer';
+    companyWrap.style.display = '';
+    return;
+  }
+
+  // 工班註冊模式
+  badge.textContent = '工班註冊';
+  badge.className = 'reg-type-badge reg-type-worker';
+  companyWrap.style.display = 'none';
+
   try {
     const { data: org } = await sb.from('organizations').select('id, name, brand_config').eq('id', orgId).single();
     if (org) {
@@ -502,29 +534,52 @@ document.getElementById('goto-login').onclick = () => {
 document.getElementById('register-btn').onclick = doRegister;
 
 async function doRegister() {
-  const name  = document.getElementById('reg-name').value.trim();
-  const email = document.getElementById('reg-email').value.trim();
-  const pw    = document.getElementById('reg-password').value;
+  const name    = document.getElementById('reg-name').value.trim();
+  const email   = document.getElementById('reg-email').value.trim();
+  const pw      = document.getElementById('reg-password').value;
+  const company = document.getElementById('reg-company').value.trim();
+
   if (!name || !email || !pw) { showToast('請填寫所有欄位', 'error'); return; }
   if (pw.length < 6) { showToast('密碼至少需要 6 碼', 'error'); return; }
-  if (!urlOrgId) { showToast('請使用組織專屬連結進行註冊', 'error'); return; }
+
+  const isDesigner = !urlOrgId;
+  if (isDesigner && !company) { showToast('請輸入公司名稱', 'error'); return; }
+  if (!isDesigner && !urlOrgId) { showToast('請使用組織專屬連結進行註冊', 'error'); return; }
 
   const btn = document.getElementById('register-btn');
   btn.disabled = true; btn.textContent = '註冊中...';
+
   try {
     const { data, error } = await sb.auth.signUp({ email, password: pw });
     if (error) { showToast(error.message, 'error'); return; }
-    const { error: pe } = await sb.from('profiles').insert({
-      id: data.user.id, org_id: urlOrgId, role: 'worker', display_name: name, account: email,
-    });
-    if (pe) { showToast('建立資料失敗：' + pe.message, 'error'); return; }
-    showToast('註冊成功！請登入');
+
+    if (isDesigner) {
+      // 建立新組織
+      const { data: org, error: oe } = await sb.from('organizations').insert({ name: company }).select().single();
+      if (oe) { showToast('建立組織失敗：' + oe.message, 'error'); return; }
+      // 建立設計師 profile
+      const { error: pe } = await sb.from('profiles').insert({
+        id: data.user.id, org_id: org.id, role: 'designer', display_name: name, account: email,
+      });
+      if (pe) { showToast('建立資料失敗：' + pe.message, 'error'); return; }
+      showToast('設計師帳號建立成功！請登入');
+    } else {
+      // 建立工班 profile
+      const { error: pe } = await sb.from('profiles').insert({
+        id: data.user.id, org_id: urlOrgId, role: 'worker', display_name: name, account: email,
+      });
+      if (pe) { showToast('建立資料失敗：' + pe.message, 'error'); return; }
+      showToast('註冊成功！請登入');
+    }
+
     document.getElementById('form-register').style.display = 'none';
     document.getElementById('form-login').style.display = '';
     document.getElementById('login-email').value = email;
     document.getElementById('reg-name').value = '';
     document.getElementById('reg-email').value = '';
     document.getElementById('reg-password').value = '';
+    document.getElementById('reg-company').value = '';
+
   } catch(e) {
     showToast('註冊失敗：' + e.message, 'error');
   } finally { btn.disabled = false; btn.textContent = '註冊'; }
@@ -542,12 +597,8 @@ async function doLogin() {
     const { data: profile, error: pe } = await sb.from('profiles').select('*, organizations(id, name, brand_config)').eq('id', data.user.id).single();
     if (pe || !profile) { showToast('找不到使用者資料', 'error'); return; }
     currentUser = {
-      id: data.user.id,
-      email: data.user.email,
-      role: profile.role,
-      name: profile.display_name,
-      org_id: profile.org_id,
-      org: profile.organizations,
+      id: data.user.id, email: data.user.email, role: profile.role,
+      name: profile.display_name, org_id: profile.org_id, org: profile.organizations,
       is_super_admin: profile.is_super_admin || false,
     };
     if (profile.organizations?.brand_config) Object.assign(APP_CONFIG, profile.organizations.brand_config);
@@ -676,7 +727,6 @@ function enterApp() {
   ['designer-add-btn','designer-add-worker-btn','tab-notify-btn','designer-actions','meeting-form-wrap','brand-settings-btn'].forEach(id => {
     document.getElementById(id).style.display = isDesigner ? '' : 'none';
   });
-  // 顯示超管導覽
   document.getElementById('nav-admin').style.display = currentUser.is_super_admin ? '' : 'none';
   applyAppConfig();
   navigateTo(currentUser.role === 'worker' && !currentUser.is_super_admin ? 'worker' : 'dashboard');
@@ -704,42 +754,39 @@ function navigateTo(section) {
 //  ADMIN PANEL
 // ══════════════════════════════════════════
 
+async function adminCreateOrg() {
+  const name = document.getElementById('admin-new-org-name').value.trim();
+  if (!name) { showToast('請輸入組織名稱', 'error'); return; }
+  try {
+    await sb.from('organizations').insert({ name });
+    document.getElementById('admin-new-org-name').value = '';
+    showToast('組織已建立');
+    renderAdminPanel();
+  } catch(e) { showToast('建立失敗：' + e.message, 'error'); }
+}
+
 async function renderAdminPanel() {
   if (!currentUser?.is_super_admin) return;
-
   const statsEl = document.getElementById('admin-stats');
   const listEl  = document.getElementById('admin-orgs-list');
   statsEl.innerHTML = '<div class="stat-card" style="grid-column:span 3;"><p style="font-size:12px;color:var(--text-muted);">載入中...</p></div>';
   listEl.innerHTML = '';
-
   try {
-    const { data: orgs, error: orgsErr } = await sb.from('organizations').select('*').order('created_at');
-    const { data: allProfiles, error: profErr } = await sb.from('profiles').select('*');
-
-    if (orgsErr || profErr) { showToast('載入失敗', 'error'); return; }
-
-    const orgsData    = orgs || [];
-    const profileData = allProfiles || [];
-
-    // 統計
+    const { data: orgs } = await sb.from('organizations').select('*').order('created_at');
+    const { data: allProfiles } = await sb.from('profiles').select('*');
+    const orgsData = orgs || [], profileData = allProfiles || [];
     const totalDesigners = profileData.filter(p => p.role === 'designer').length;
     const totalWorkers   = profileData.filter(p => p.role === 'worker').length;
     statsEl.innerHTML = `
       <div class="stat-card"><p style="font-size:12px;color:var(--text-muted);">組織數</p><p style="font-size:24px;font-weight:700;color:var(--amber);">${orgsData.length}</p></div>
       <div class="stat-card"><p style="font-size:12px;color:var(--text-muted);">設計師</p><p style="font-size:24px;font-weight:700;color:var(--emerald);">${totalDesigners}</p></div>
       <div class="stat-card"><p style="font-size:12px;color:var(--text-muted);">工班帳號</p><p style="font-size:24px;font-weight:700;color:var(--blue);">${totalWorkers}</p></div>`;
-
-    if (orgsData.length === 0) {
-      listEl.innerHTML = '<div class="empty-state"><div class="empty-icon">🏢</div><p>尚無組織</p></div>';
-      return;
-    }
-
+    if (orgsData.length === 0) { listEl.innerHTML = '<div class="empty-state"><div class="empty-icon">🏢</div><p>尚無組織</p></div>'; return; }
     listEl.innerHTML = orgsData.map(org => {
       const members   = profileData.filter(p => p.org_id === org.id);
       const designers = members.filter(p => p.role === 'designer');
       const workers   = members.filter(p => p.role === 'worker');
       const inviteLink = `${location.origin}${location.pathname}?org=${org.id}`;
-
       return `
         <div class="admin-org-card">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
@@ -753,7 +800,6 @@ async function renderAdminPanel() {
               <button class="btn btn-ghost btn-sm" onclick="copyText('${inviteLink}')">📋 複製邀請連結</button>
             </div>
           </div>
-
           ${members.length === 0
             ? '<p style="font-size:12px;color:var(--text-muted);padding:8px 0;">尚無成員</p>'
             : members.map(m => `
@@ -766,29 +812,38 @@ async function renderAdminPanel() {
                   <span class="badge ${m.role === 'designer' ? 'badge-active' : 'badge-pending'}">${m.role === 'designer' ? '設計師' : '工班'}</span>
                   ${m.is_super_admin ? '<span class="badge" style="background:rgba(239,68,68,.15);color:#f87171;">超管</span>' : ''}
                   ${!m.is_super_admin ? `
-                    <button class="btn btn-ghost btn-sm" onclick="changeUserRole('${m.id}', '${m.role === 'designer' ? 'worker' : 'designer'}')">
+                    <button class="btn btn-ghost btn-sm" onclick="adminChangeRole('${m.id}', '${m.role === 'designer' ? 'worker' : 'designer'}')">
                       ${m.role === 'designer' ? '降為工班' : '升為設計師'}
                     </button>
+                    <select class="input btn-sm" style="width:auto;padding:4px 8px;" onchange="adminMoveUser('${m.id}', this.value, '${org.id}')">
+                      <option value="">移轉組織...</option>
+                      ${orgsData.filter(o => o.id !== org.id).map(o => `<option value="${o.id}">${o.name}</option>`).join('')}
+                    </select>
                     <button class="btn btn-danger btn-sm" onclick="adminRemoveUser('${m.id}', '${(m.display_name||'').replace(/'/g,'')}')">移除</button>
                   ` : ''}
                 </div>
               </div>`).join('')}
         </div>`;
     }).join('');
-
-  } catch(e) {
-    listEl.innerHTML = `<p style="color:var(--red);font-size:13px;">載入失敗：${e.message}</p>`;
-  }
+  } catch(e) { listEl.innerHTML = `<p style="color:var(--red);font-size:13px;">載入失敗：${e.message}</p>`; }
 }
 
-async function changeUserRole(uid, newRole) {
+async function adminChangeRole(uid, newRole) {
   try {
     await sb.from('profiles').update({ role: newRole }).eq('id', uid);
     showToast(`已更新為${newRole === 'designer' ? '設計師' : '工班'}`);
     renderAdminPanel();
-  } catch(e) {
-    showToast('更新失敗：' + e.message, 'error');
-  }
+  } catch(e) { showToast('更新失敗：' + e.message, 'error'); }
+}
+
+async function adminMoveUser(uid, newOrgId, oldOrgId) {
+  if (!newOrgId || newOrgId === oldOrgId) return;
+  try {
+    await sb.from('profiles').update({ org_id: newOrgId }).eq('id', uid);
+    await sb.from('project_members').delete().eq('user_id', uid);
+    showToast('帳號已移轉組織');
+    renderAdminPanel();
+  } catch(e) { showToast('移轉失敗：' + e.message, 'error'); }
 }
 
 async function adminRemoveUser(uid, name) {
@@ -798,9 +853,7 @@ async function adminRemoveUser(uid, name) {
     await sb.from('profiles').delete().eq('id', uid);
     showToast('使用者已移除');
     renderAdminPanel();
-  } catch(e) {
-    showToast('移除失敗：' + e.message, 'error');
-  }
+  } catch(e) { showToast('移除失敗：' + e.message, 'error'); }
 }
 
 function copyText(text) {
@@ -1183,7 +1236,6 @@ function renderWorkersModal() {
         </div>
         <button class="btn btn-danger btn-sm" onclick="deleteWorker('${w.id}')">移除</button>
       </div>`).join('');
-
   const link = `${location.origin}${location.pathname}?org=${currentUser.org_id}`;
   document.getElementById('org-invite-link').textContent = link;
   document.getElementById('copy-invite-link-btn').onclick = () => {
@@ -1407,8 +1459,9 @@ async function exportMeetingsPDF() {
     const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
     const pw=pdf.internal.pageSize.getWidth(), ph=pdf.internal.pageSize.getHeight();
     const iw=canvas.width, ih=canvas.height, pph=Math.round(iw*(ph/pw)), tp=Math.ceil(ih/pph);
-    for (let p=0;p<tp;p++) {
-      if (p>0) pdf.addPage();
+    for (let p=0;
+
+            if (p>0) pdf.addPage();
       const sy=p*pph, sh=Math.min(pph,ih-sy);
       const pc=document.createElement('canvas'); pc.width=iw; pc.height=sh;
       pc.getContext('2d').drawImage(canvas,0,sy,iw,sh,0,0,iw,sh);
