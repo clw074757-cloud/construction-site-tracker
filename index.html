@@ -85,6 +85,8 @@
     .notif-item.unread { border-color: rgba(245,158,11,.3); background: rgba(245,158,11,.05); }
     label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px; }
     h1, h2, h3 { font-weight: 700; }
+    .admin-org-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 16px; }
+    .admin-member-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #0f172a; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 6px; flex-wrap: wrap; gap: 8px; }
   </style>
 </head>
 <body>
@@ -198,6 +200,21 @@
       <div id="notif-empty" class="empty-state hidden"><div class="empty-icon">🔔</div><p>目前沒有通知</p></div>
     </section>
 
+    <!-- ===================== ADMIN SECTION ===================== -->
+    <section id="section-admin" class="section fade-in" style="padding:20px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+        <h2 style="font-size:16px;">🛠 系統管理後台</h2>
+        <button onclick="renderAdminPanel()" class="btn btn-ghost btn-sm">🔄 重新整理</button>
+      </div>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:20px;">僅開發者可見 · 管理所有組織與使用者</p>
+
+      <!-- 統計列 -->
+      <div id="admin-stats" style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px;"></div>
+
+      <!-- 組織列表 -->
+      <div id="admin-orgs-list"></div>
+    </section>
+
   </main>
 
   <nav style="position:fixed; bottom:0; left:0; right:0; background:var(--surface); border-top:1px solid var(--border); display:flex; justify-content:space-around; padding:8px 0; z-index:50;">
@@ -209,6 +226,10 @@
       <span class="nav-icon">🔔</span>
       <span>通知</span>
       <span id="notif-badge" class="notif-dot hidden"></span>
+    </button>
+    <button class="nav-link" data-section="admin" id="nav-admin" style="display:none;">
+      <span class="nav-icon">🛠️</span>
+      <span>系統管理</span>
     </button>
   </nav>
 </div>
@@ -520,7 +541,15 @@ async function doLogin() {
     if (error) { showToast('帳號或密碼錯誤', 'error'); return; }
     const { data: profile, error: pe } = await sb.from('profiles').select('*, organizations(id, name, brand_config)').eq('id', data.user.id).single();
     if (pe || !profile) { showToast('找不到使用者資料', 'error'); return; }
-    currentUser = { id: data.user.id, email: data.user.email, role: profile.role, name: profile.display_name, org_id: profile.org_id, org: profile.organizations };
+    currentUser = {
+      id: data.user.id,
+      email: data.user.email,
+      role: profile.role,
+      name: profile.display_name,
+      org_id: profile.org_id,
+      org: profile.organizations,
+      is_super_admin: profile.is_super_admin || false,
+    };
     if (profile.organizations?.brand_config) Object.assign(APP_CONFIG, profile.organizations.brand_config);
     await loadOrgData();
     enterApp();
@@ -632,17 +661,25 @@ function enterApp() {
   document.getElementById('page-login').classList.remove('active');
   document.getElementById('page-app').classList.add('active');
   const roleLabel = { designer:'設計師（管理員）', worker:'工班' };
-  document.getElementById('user-role-label').textContent = roleLabel[currentUser.role] + ' · ' + currentUser.name;
+  const adminLabel = currentUser.is_super_admin ? ' · 🛠 系統管理員' : '';
+  document.getElementById('user-role-label').textContent = (roleLabel[currentUser.role] || currentUser.role) + ' · ' + currentUser.name + adminLabel;
   document.getElementById('user-avatar').textContent = currentUser.name[0];
   const nav = document.getElementById('nav-dashboard');
-  if (currentUser.role === 'worker') { document.getElementById('nav-dashboard-label').textContent = '我的案場'; nav.dataset.section = 'worker'; }
-  else { document.getElementById('nav-dashboard-label').textContent = '儀表板'; nav.dataset.section = 'dashboard'; }
+  if (currentUser.role === 'worker' && !currentUser.is_super_admin) {
+    document.getElementById('nav-dashboard-label').textContent = '我的案場';
+    nav.dataset.section = 'worker';
+  } else {
+    document.getElementById('nav-dashboard-label').textContent = '儀表板';
+    nav.dataset.section = 'dashboard';
+  }
   const isDesigner = currentUser.role === 'designer';
   ['designer-add-btn','designer-add-worker-btn','tab-notify-btn','designer-actions','meeting-form-wrap','brand-settings-btn'].forEach(id => {
     document.getElementById(id).style.display = isDesigner ? '' : 'none';
   });
+  // 顯示超管導覽
+  document.getElementById('nav-admin').style.display = currentUser.is_super_admin ? '' : 'none';
   applyAppConfig();
-  navigateTo(currentUser.role === 'worker' ? 'worker' : 'dashboard');
+  navigateTo(currentUser.role === 'worker' && !currentUser.is_super_admin ? 'worker' : 'dashboard');
   updateNotifBadge();
 }
 
@@ -660,6 +697,114 @@ function navigateTo(section) {
   if (section === 'dashboard') renderDashboard();
   if (section === 'worker') renderWorkerView();
   if (section === 'notifications') renderNotifications();
+  if (section === 'admin') renderAdminPanel();
+}
+
+// ══════════════════════════════════════════
+//  ADMIN PANEL
+// ══════════════════════════════════════════
+
+async function renderAdminPanel() {
+  if (!currentUser?.is_super_admin) return;
+
+  const statsEl = document.getElementById('admin-stats');
+  const listEl  = document.getElementById('admin-orgs-list');
+  statsEl.innerHTML = '<div class="stat-card" style="grid-column:span 3;"><p style="font-size:12px;color:var(--text-muted);">載入中...</p></div>';
+  listEl.innerHTML = '';
+
+  try {
+    const { data: orgs, error: orgsErr } = await sb.from('organizations').select('*').order('created_at');
+    const { data: allProfiles, error: profErr } = await sb.from('profiles').select('*');
+
+    if (orgsErr || profErr) { showToast('載入失敗', 'error'); return; }
+
+    const orgsData    = orgs || [];
+    const profileData = allProfiles || [];
+
+    // 統計
+    const totalDesigners = profileData.filter(p => p.role === 'designer').length;
+    const totalWorkers   = profileData.filter(p => p.role === 'worker').length;
+    statsEl.innerHTML = `
+      <div class="stat-card"><p style="font-size:12px;color:var(--text-muted);">組織數</p><p style="font-size:24px;font-weight:700;color:var(--amber);">${orgsData.length}</p></div>
+      <div class="stat-card"><p style="font-size:12px;color:var(--text-muted);">設計師</p><p style="font-size:24px;font-weight:700;color:var(--emerald);">${totalDesigners}</p></div>
+      <div class="stat-card"><p style="font-size:12px;color:var(--text-muted);">工班帳號</p><p style="font-size:24px;font-weight:700;color:var(--blue);">${totalWorkers}</p></div>`;
+
+    if (orgsData.length === 0) {
+      listEl.innerHTML = '<div class="empty-state"><div class="empty-icon">🏢</div><p>尚無組織</p></div>';
+      return;
+    }
+
+    listEl.innerHTML = orgsData.map(org => {
+      const members   = profileData.filter(p => p.org_id === org.id);
+      const designers = members.filter(p => p.role === 'designer');
+      const workers   = members.filter(p => p.role === 'worker');
+      const inviteLink = `${location.origin}${location.pathname}?org=${org.id}`;
+
+      return `
+        <div class="admin-org-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+            <div>
+              <h3 style="font-size:15px;margin-bottom:2px;">${org.name || '未命名組織'}</h3>
+              <p style="font-size:11px;color:var(--text-muted);margin:0;">ID: ${org.id}</p>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+              <span class="badge badge-active">設計師 ${designers.length}</span>
+              <span class="badge badge-pending">工班 ${workers.length}</span>
+              <button class="btn btn-ghost btn-sm" onclick="copyText('${inviteLink}')">📋 複製邀請連結</button>
+            </div>
+          </div>
+
+          ${members.length === 0
+            ? '<p style="font-size:12px;color:var(--text-muted);padding:8px 0;">尚無成員</p>'
+            : members.map(m => `
+              <div class="admin-member-row">
+                <div>
+                  <p style="font-size:13px;font-weight:600;margin:0;">${m.display_name || '—'}</p>
+                  <p style="font-size:11px;color:var(--text-muted);margin:2px 0 0;">${m.account || ''}</p>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                  <span class="badge ${m.role === 'designer' ? 'badge-active' : 'badge-pending'}">${m.role === 'designer' ? '設計師' : '工班'}</span>
+                  ${m.is_super_admin ? '<span class="badge" style="background:rgba(239,68,68,.15);color:#f87171;">超管</span>' : ''}
+                  ${!m.is_super_admin ? `
+                    <button class="btn btn-ghost btn-sm" onclick="changeUserRole('${m.id}', '${m.role === 'designer' ? 'worker' : 'designer'}')">
+                      ${m.role === 'designer' ? '降為工班' : '升為設計師'}
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="adminRemoveUser('${m.id}', '${(m.display_name||'').replace(/'/g,'')}')">移除</button>
+                  ` : ''}
+                </div>
+              </div>`).join('')}
+        </div>`;
+    }).join('');
+
+  } catch(e) {
+    listEl.innerHTML = `<p style="color:var(--red);font-size:13px;">載入失敗：${e.message}</p>`;
+  }
+}
+
+async function changeUserRole(uid, newRole) {
+  try {
+    await sb.from('profiles').update({ role: newRole }).eq('id', uid);
+    showToast(`已更新為${newRole === 'designer' ? '設計師' : '工班'}`);
+    renderAdminPanel();
+  } catch(e) {
+    showToast('更新失敗：' + e.message, 'error');
+  }
+}
+
+async function adminRemoveUser(uid, name) {
+  if (!confirm(`確定要移除「${name}」？此操作無法復原。`)) return;
+  try {
+    await sb.from('project_members').delete().eq('user_id', uid);
+    await sb.from('profiles').delete().eq('id', uid);
+    showToast('使用者已移除');
+    renderAdminPanel();
+  } catch(e) {
+    showToast('移除失敗：' + e.message, 'error');
+  }
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => showToast('已複製！'));
 }
 
 // ══════════════════════════════════════════
@@ -1039,7 +1184,6 @@ function renderWorkersModal() {
         <button class="btn btn-danger btn-sm" onclick="deleteWorker('${w.id}')">移除</button>
       </div>`).join('');
 
-  // 顯示邀請連結
   const link = `${location.origin}${location.pathname}?org=${currentUser.org_id}`;
   document.getElementById('org-invite-link').textContent = link;
   document.getElementById('copy-invite-link-btn').onclick = () => {
