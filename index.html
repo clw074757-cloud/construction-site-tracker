@@ -772,9 +772,10 @@ async function renderAdminPanel() {
   statsEl.innerHTML = '<div class="stat-card" style="grid-column:span 3;"><p style="font-size:12px;color:var(--text-muted);">載入中...</p></div>';
   listEl.innerHTML = '';
   try {
-    const { data: orgs } = await sb.from('organizations').select('*').order('created_at');
+    const { data: orgs }        = await sb.from('organizations').select('*').order('created_at');
     const { data: allProfiles } = await sb.from('profiles').select('*');
-    const orgsData = orgs || [], profileData = allProfiles || [];
+    const { data: allProjects } = await sb.from('projects').select('*').order('created_at');
+    const orgsData = orgs || [], profileData = allProfiles || [], projectData = allProjects || [];
     const totalDesigners = profileData.filter(p => p.role === 'designer').length;
     const totalWorkers   = profileData.filter(p => p.role === 'worker').length;
     statsEl.innerHTML = `
@@ -782,11 +783,14 @@ async function renderAdminPanel() {
       <div class="stat-card"><p style="font-size:12px;color:var(--text-muted);">設計師</p><p style="font-size:24px;font-weight:700;color:var(--emerald);">${totalDesigners}</p></div>
       <div class="stat-card"><p style="font-size:12px;color:var(--text-muted);">工班帳號</p><p style="font-size:24px;font-weight:700;color:var(--blue);">${totalWorkers}</p></div>`;
     if (orgsData.length === 0) { listEl.innerHTML = '<div class="empty-state"><div class="empty-icon">🏢</div><p>尚無組織</p></div>'; return; }
+    const statusLabel = { active:'進行中', completed:'已完成', paused:'暫停', planning:'規劃中' };
     listEl.innerHTML = orgsData.map(org => {
       const members   = profileData.filter(p => p.org_id === org.id);
       const designers = members.filter(p => p.role === 'designer');
       const workers   = members.filter(p => p.role === 'worker');
+      const projects  = projectData.filter(p => p.org_id === org.id);
       const inviteLink = `${location.origin}${location.pathname}?org=${org.id}`;
+      const safeName = (org.name || '').replace(/'/g, '');
       return `
         <div class="admin-org-card">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
@@ -798,34 +802,118 @@ async function renderAdminPanel() {
               <span class="badge badge-active">設計師 ${designers.length}</span>
               <span class="badge badge-pending">工班 ${workers.length}</span>
               <button class="btn btn-ghost btn-sm" onclick="copyText('${inviteLink}')">📋 複製邀請連結</button>
+              <button class="btn btn-ghost btn-sm" onclick="adminEditOrgName('${org.id}','${safeName}')">✏️ 編輯名稱</button>
+              <button class="btn btn-danger btn-sm" onclick="adminDeleteOrg('${org.id}','${safeName}')">🗑️ 刪除組織</button>
             </div>
           </div>
+          <p style="font-size:12px;color:var(--text-muted);margin-bottom:6px;font-weight:600;">成員 (${members.length})</p>
           ${members.length === 0
-            ? '<p style="font-size:12px;color:var(--text-muted);padding:8px 0;">尚無成員</p>'
-            : members.map(m => `
-              <div class="admin-member-row">
-                <div>
-                  <p style="font-size:13px;font-weight:600;margin:0;">${m.display_name || '—'}</p>
-                  <p style="font-size:11px;color:var(--text-muted);margin:2px 0 0;">${m.account || ''}</p>
-                </div>
-                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                  <span class="badge ${m.role === 'designer' ? 'badge-active' : 'badge-pending'}">${m.role === 'designer' ? '設計師' : '工班'}</span>
-                  ${m.is_super_admin ? '<span class="badge" style="background:rgba(239,68,68,.15);color:#f87171;">超管</span>' : ''}
-                  ${!m.is_super_admin ? `
-                    <button class="btn btn-ghost btn-sm" onclick="adminChangeRole('${m.id}', '${m.role === 'designer' ? 'worker' : 'designer'}')">
-                      ${m.role === 'designer' ? '降為工班' : '升為設計師'}
-                    </button>
-                    <select class="input btn-sm" style="width:auto;padding:4px 8px;" onchange="adminMoveUser('${m.id}', this.value, '${org.id}')">
-                      <option value="">移轉組織...</option>
-                      ${orgsData.filter(o => o.id !== org.id).map(o => `<option value="${o.id}">${o.name}</option>`).join('')}
-                    </select>
-                    <button class="btn btn-danger btn-sm" onclick="adminRemoveUser('${m.id}', '${(m.display_name||'').replace(/'/g,'')}')">移除</button>
-                  ` : ''}
-                </div>
-              </div>`).join('')}
+            ? '<p style="font-size:12px;color:var(--text-muted);padding:4px 0;">尚無成員</p>'
+            : members.map(m => {
+                const isSelf = m.id === currentUser.id;
+                const safeMName = (m.display_name || '').replace(/'/g,'');
+                return `
+                <div class="admin-member-row">
+                  <div>
+                    <p style="font-size:13px;font-weight:600;margin:0;">${m.display_name || '—'}${isSelf ? ' <span style="color:var(--amber);font-size:11px;">(你)</span>' : ''}</p>
+                    <p style="font-size:11px;color:var(--text-muted);margin:2px 0 0;">${m.account || ''}</p>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                    <span class="badge ${m.role === 'designer' ? 'badge-active' : 'badge-pending'}">${m.role === 'designer' ? '設計師' : '工班'}</span>
+                    ${m.is_super_admin ? '<span class="badge" style="background:rgba(239,68,68,.15);color:#f87171;">超管</span>' : ''}
+                    ${!m.is_super_admin ? `
+                      <button class="btn btn-ghost btn-sm" onclick="adminChangeRole('${m.id}','${m.role === 'designer' ? 'worker' : 'designer'}')">
+                        ${m.role === 'designer' ? '降為工班' : '升為設計師'}
+                      </button>
+                      <select class="input btn-sm" style="width:auto;padding:4px 8px;" onchange="adminMoveUser('${m.id}',this.value,'${org.id}')">
+                        <option value="">移轉組織...</option>
+                        ${orgsData.filter(o => o.id !== org.id).map(o => `<option value="${o.id}">${o.name}</option>`).join('')}
+                      </select>
+                      <button class="btn btn-danger btn-sm" onclick="adminRemoveUser('${m.id}','${safeMName}')">移除</button>
+                    ` : ''}
+                  </div>
+                </div>`;
+              }).join('')}
+          <p style="font-size:12px;color:var(--text-muted);margin:12px 0 6px;font-weight:600;">案場 (${projects.length})</p>
+          ${projects.length === 0
+            ? '<p style="font-size:12px;color:var(--text-muted);padding:4px 0;">尚無案場</p>'
+            : projects.map(proj => {
+                const safePName = (proj.name || '').replace(/'/g,'');
+                return `
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);">
+                  <div>
+                    <p style="font-size:13px;font-weight:600;margin:0 0 2px;">${proj.name || '未命名'}</p>
+                    <span class="badge ${proj.status === 'active' ? 'badge-active' : 'badge-pending'}" style="font-size:10px;">${statusLabel[proj.status] || proj.status || '—'}</span>
+                  </div>
+                  <button class="btn btn-danger btn-sm" onclick="adminDeleteProject('${proj.id}','${safePName}')">🗑️ 刪除</button>
+                </div>`;
+              }).join('')}
         </div>`;
     }).join('');
   } catch(e) { listEl.innerHTML = `<p style="color:var(--red);font-size:13px;">載入失敗：${e.message}</p>`; }
+}
+
+async function adminCreateOrg() {
+  const name = document.getElementById('admin-new-org-name').value.trim();
+  if (!name) { showToast('請輸入組織名稱', 'error'); return; }
+  try {
+    await sb.from('organizations').insert({ name });
+    document.getElementById('admin-new-org-name').value = '';
+    showToast('組織已建立');
+    renderAdminPanel();
+  } catch(e) { showToast('建立失敗：' + e.message, 'error'); }
+}
+
+async function adminEditOrgName(orgId, currentName) {
+  const newName = prompt('請輸入新的組織名稱：', currentName);
+  if (!newName || newName.trim() === currentName) return;
+  try {
+    await sb.from('organizations').update({ name: newName.trim() }).eq('id', orgId);
+    showToast('組織名稱已更新');
+    renderAdminPanel();
+  } catch(e) { showToast('更新失敗：' + e.message, 'error'); }
+}
+
+async function adminDeleteOrg(orgId, name) {
+  if (!confirm(`確定要刪除組織「${name}」？\n所有成員、案場及相關資料將一併刪除，此操作無法復原。`)) return;
+  try {
+    const { data: projects } = await sb.from('projects').select('id').eq('org_id', orgId);
+    const projectIds = (projects || []).map(p => p.id);
+    if (projectIds.length > 0) {
+      await sb.from('photos').delete().in('project_id', projectIds);
+      await sb.from('meetings').delete().in('project_id', projectIds);
+      try { await sb.from('gantt_segments').delete().in('project_id', projectIds); } catch(_) {}
+      await sb.from('project_members').delete().in('project_id', projectIds);
+      try {
+        const { data: notifs } = await sb.from('notifications').select('id').in('project_id', projectIds);
+        if (notifs?.length) await sb.from('notification_reads').delete().in('notification_id', notifs.map(n => n.id));
+        await sb.from('notifications').delete().in('project_id', projectIds);
+      } catch(_) {}
+    }
+    await sb.from('projects').delete().eq('org_id', orgId);
+    await sb.from('profiles').delete().eq('org_id', orgId);
+    await sb.from('organizations').delete().eq('id', orgId);
+    showToast('組織及所有資料已刪除');
+    renderAdminPanel();
+  } catch(e) { showToast('刪除失敗：' + e.message, 'error'); }
+}
+
+async function adminDeleteProject(projectId, name) {
+  if (!confirm(`確定要刪除案場「${name}」？此操作無法復原。`)) return;
+  try {
+    await sb.from('photos').delete().eq('project_id', projectId);
+    await sb.from('meetings').delete().eq('project_id', projectId);
+    try { await sb.from('gantt_segments').delete().eq('project_id', projectId); } catch(_) {}
+    await sb.from('project_members').delete().eq('project_id', projectId);
+    try {
+      const { data: notifs } = await sb.from('notifications').select('id').eq('project_id', projectId);
+      if (notifs?.length) await sb.from('notification_reads').delete().in('notification_id', notifs.map(n => n.id));
+      await sb.from('notifications').delete().eq('project_id', projectId);
+    } catch(_) {}
+    await sb.from('projects').delete().eq('id', projectId);
+    showToast('案場已刪除');
+    renderAdminPanel();
+  } catch(e) { showToast('刪除失敗：' + e.message, 'error'); }
 }
 
 async function adminChangeRole(uid, newRole) {
@@ -858,6 +946,7 @@ async function adminRemoveUser(uid, name) {
 
 function copyText(text) {
   navigator.clipboard.writeText(text).then(() => showToast('已複製！'));
+}
 }
 
 // ══════════════════════════════════════════
