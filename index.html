@@ -456,8 +456,19 @@
     </div>
     <div class="modal-body">
       <div id="workers-list-modal"></div>
-      <div style="margin-top:16px; padding:14px; background:#0f172a; border-radius:10px; border:1px solid var(--border);">
-        <p style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">📋 工班專屬註冊連結</p>
+
+      <!-- 直接新增工班帳號 -->
+      <div style="margin-top:16px; padding:16px; background:#0f172a; border-radius:12px; border:1px solid var(--border);">
+        <p style="font-size:13px; font-weight:600; margin-bottom:12px;">＋ 直接新增工班帳號</p>
+        <div style="margin-bottom:10px;"><label>姓名</label><input id="new-worker-name" class="input" placeholder="工班姓名"></div>
+        <div style="margin-bottom:10px;"><label>Email</label><input id="new-worker-email" class="input" type="email" placeholder="登入用 Email"></div>
+        <div style="margin-bottom:12px;"><label>密碼</label><input id="new-worker-password" class="input" type="password" placeholder="至少 6 碼"></div>
+        <button id="create-worker-btn" class="btn btn-primary" style="width:100%; justify-content:center;">建立工班帳號</button>
+      </div>
+
+      <!-- 邀請連結 -->
+      <div style="margin-top:12px; padding:14px; background:#0f172a; border-radius:10px; border:1px solid var(--border);">
+        <p style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">📋 或分享工班專屬註冊連結</p>
         <p id="org-invite-link" style="font-size:11px; color:var(--amber); word-break:break-all;"></p>
         <button id="copy-invite-link-btn" class="btn btn-ghost btn-sm" style="margin-top:8px;">複製連結</button>
       </div>
@@ -485,7 +496,7 @@ const SUPABASE_URL = 'https://oubipbyskqaagxfdpvmi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YmlwYnlza3FhYWd4ZmRwdm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ1MTksImV4cCI6MjA5NDI2MDUxOX0.-3oWqtjM--FnCXOpxkdt71p4xVdxdpMqO1SGaIU_f2I';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const APP_VERSION = 'v1.2';
+const APP_VERSION = 'v1.4';
 const APP_CONFIG = { logo_url: '', app_name: '工程管理系統', app_subtitle: '施工管理平台' };
 
 let DB = { users: [], projects: [], photos: [], meetings: [], notifications: [], gantt_segments: [] };
@@ -1487,6 +1498,31 @@ function renderWorkersModal() {
     navigator.clipboard.writeText(link).then(() => showToast('連結已複製！'));
   };
 }
+
+document.getElementById('create-worker-btn').onclick = async () => {
+  const name  = document.getElementById('new-worker-name').value.trim();
+  const email = document.getElementById('new-worker-email').value.trim();
+  const pw    = document.getElementById('new-worker-password').value;
+  if (!name || !email || !pw) { showToast('請填寫所有欄位', 'error'); return; }
+  if (pw.length < 6) { showToast('密碼至少 6 碼', 'error'); return; }
+  const btn = document.getElementById('create-worker-btn');
+  btn.disabled = true; btn.textContent = '建立中...';
+  try {
+    const { data, error } = await sb.rpc('designer_create_worker', {
+      p_email: email, p_password: pw, p_display_name: name
+    });
+    if (error) throw error;
+    showToast('工班帳號已建立：' + name);
+    document.getElementById('new-worker-name').value = '';
+    document.getElementById('new-worker-email').value = '';
+    document.getElementById('new-worker-password').value = '';
+    // 重新載入成員列表
+    const { data: users } = await sb.from('profiles').select('*').eq('org_id', currentUser.org_id);
+    DB.users = users || [];
+    renderWorkersModal();
+  } catch(e) { showToast('建立失敗：' + e.message, 'error'); }
+  finally { btn.disabled = false; btn.textContent = '建立工班帳號'; }
+};
 
 async function deleteWorker(uid) {
   try {
