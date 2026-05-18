@@ -414,6 +414,9 @@
           <input id="photo-desc" class="input" placeholder="照片說明（選填）" style="margin-bottom:10px;">
           <button id="photo-upload-btn" class="btn btn-primary btn-sm" style="margin-bottom:16px;">上傳</button>
         </div>
+        <div id="photo-dl-bar" class="hidden" style="display:none;justify-content:flex-end;margin-bottom:10px;">
+          <button onclick="downloadAllPhotos()" class="btn btn-ghost btn-sm" style="gap:6px;">⬇️ 一鍵下載全部</button>
+        </div>
         <div id="photo-grid" class="photo-grid"></div>
         <div id="photo-empty" class="empty-state hidden"><div class="empty-icon">🖼️</div><p>尚無照片</p></div>
       </div>
@@ -515,7 +518,10 @@
   <button class="lb-nav lb-prev" id="lb-prev" onclick="lbNav(-1)">‹</button>
   <img id="lb-img" src="" alt="">
   <button class="lb-nav lb-next" id="lb-next" onclick="lbNav(1)">›</button>
-  <div class="lb-info" id="lb-info"></div>
+  <div id="lb-bottom" style="display:flex;align-items:center;gap:16px;margin-top:12px;">
+    <div class="lb-info" id="lb-info"></div>
+    <button id="lb-dl-btn" onclick="lbDownload()" style="display:none;background:rgba(245,158,11,.2);border:1px solid rgba(245,158,11,.5);color:#f59e0b;border-radius:8px;padding:6px 14px;font-size:13px;cursor:pointer;white-space:nowrap;">⬇ 下載</button>
+  </div>
 </div>
 
 <script>
@@ -523,7 +529,7 @@ const SUPABASE_URL = 'https://oubipbyskqaagxfdpvmi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YmlwYnlza3FhYWd4ZmRwdm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ1MTksImV4cCI6MjA5NDI2MDUxOX0.-3oWqtjM--FnCXOpxkdt71p4xVdxdpMqO1SGaIU_f2I';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const APP_VERSION = 'v2.0';
+const APP_VERSION = 'v2.1';
 const VAPID_PUBLIC_KEY = 'BAIHZfwNTWLQm4H1m0vCBCgGoqV5GQpdiF-lLmsURg0hkmA38LzQ_0kqTioztkoUmMqlGZ98MJan2Wxg2JQdEdM';
 
 function urlBase64ToUint8Array(base64) {
@@ -1322,10 +1328,16 @@ function renderPhotos() {
   if (!currentProject) return;
   const photos = DB.photos.filter(p => p.project_id===currentProject.id);
   const grid = document.getElementById('photo-grid'), empty = document.getElementById('photo-empty');
+  const dlBar = document.getElementById('photo-dl-bar');
+  const isDesigner = currentUser.role==='designer';
+  // 顯示/隱藏一鍵下載列
+  if (isDesigner && photos.length>0) { dlBar.style.display='flex'; dlBar.classList.remove('hidden'); }
+  else { dlBar.style.display='none'; }
   if (photos.length===0) { grid.innerHTML=''; empty.classList.remove('hidden'); return; }
   empty.classList.add('hidden');
   grid.innerHTML = photos.map((ph, idx) => {
-    const canDel = currentUser.role==='designer' || ph.uploader_id===currentUser.id;
+    const canDel = isDesigner || ph.uploader_id===currentUser.id;
+    const fname = (ph.description||'photo').replace(/[^\w一-鿿]/g,'_') + '_' + (ph.created_at?.slice(0,10)||'') + '.jpg';
     return `<div style="display:flex; flex-direction:column; gap:4px;">
       <div class="photo-item" onclick="openLightbox(${idx})">
         <img src="${ph.storage_url||''}" alt="${ph.description||''}">
@@ -1334,6 +1346,7 @@ function renderPhotos() {
       <div style="padding:0 2px;">
         ${ph.description ? `<p style="font-size:11px; font-weight:600; color:var(--text); margin:0;">${ph.description}</p>` : ''}
         <p style="font-size:10px; color:var(--text-muted); margin:0;">📅 ${ph.created_at?.slice(0,10)||''}</p>
+        ${isDesigner ? `<button onclick="downloadPhoto('${ph.storage_url}','${fname}')" style="margin-top:3px;width:100%;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);color:var(--amber);border-radius:6px;padding:3px 0;font-size:11px;cursor:pointer;">⬇ 下載</button>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -1353,6 +1366,7 @@ function _showLightbox() {
   document.getElementById('lb-counter').textContent = `${_lbIdx+1} / ${_lbPhotos.length}`;
   document.getElementById('lb-prev').style.display = _lbPhotos.length>1?'flex':'none';
   document.getElementById('lb-next').style.display = _lbPhotos.length>1?'flex':'none';
+  document.getElementById('lb-dl-btn').style.display = currentUser?.role==='designer' ? 'block' : 'none';
   document.getElementById('lightbox').classList.add('lb-open');
 }
 function lbNav(dir) {
@@ -1361,6 +1375,36 @@ function lbNav(dir) {
 }
 function closeLightbox() {
   document.getElementById('lightbox').classList.remove('lb-open');
+}
+// ── 下載功能 ──────────────────────────────
+async function downloadPhoto(url, filename) {
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename || 'photo.jpg';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  } catch(e) { showToast('下載失敗', 'error'); }
+}
+function lbDownload() {
+  const ph = _lbPhotos[_lbIdx];
+  if (!ph) return;
+  const fname = (ph.description||'photo').replace(/[^\w一-鿿]/g,'_') + '_' + (ph.created_at?.slice(0,10)||'') + '.jpg';
+  downloadPhoto(ph.storage_url, fname);
+}
+async function downloadAllPhotos() {
+  const photos = DB.photos.filter(p => p.project_id===currentProject.id);
+  if (!photos.length) return;
+  showToast(`開始下載 ${photos.length} 張照片...`);
+  for (let i=0; i<photos.length; i++) {
+    const ph = photos[i];
+    const fname = (currentProject.name||'project').replace(/[^\w一-鿿]/g,'_') + '_' + String(i+1).padStart(3,'0') + '_' + (ph.description||'').replace(/[^\w一-鿿]/g,'_') + '_' + (ph.created_at?.slice(0,10)||'') + '.jpg';
+    await downloadPhoto(ph.storage_url, fname);
+    await new Promise(r => setTimeout(r, 300)); // 避免瀏覽器封鎖連續下載
+  }
+  showToast(`✅ 共 ${photos.length} 張下載完成`);
 }
 document.getElementById('lightbox').addEventListener('click', e => {
   if (e.target === document.getElementById('lightbox') || e.target === document.getElementById('lb-img')) {
