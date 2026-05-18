@@ -79,14 +79,14 @@
     .photo-view-btn { position:absolute; inset:0; width:100%; height:100%; border:none; background:none; padding:0; cursor:pointer; display:block; }
     .photo-item .del-overlay { position: absolute; inset: 0; background: rgba(0,0,0,.6); display: none; align-items: center; justify-content: center; }
     .photo-item:hover .del-overlay { display: flex; }
-    #lightbox { display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.92); align-items:center; justify-content:center; flex-direction:column; }
-    #lightbox.active { display:flex; }
+    #lightbox { display:none; position:fixed; inset:0; z-index:99999; background:rgba(0,0,0,.92); align-items:center; justify-content:center; flex-direction:column; }
+    #lightbox.lb-open { display:flex !important; }
     #lightbox img { max-width:92vw; max-height:78vh; border-radius:10px; object-fit:contain; box-shadow:0 8px 40px rgba(0,0,0,.6); }
-    #lightbox .lb-close { position:absolute; top:16px; right:20px; font-size:32px; color:white; cursor:pointer; background:none; border:none; line-height:1; }
-    #lightbox .lb-nav { position:absolute; top:50%; transform:translateY(-50%); font-size:36px; color:white; cursor:pointer; background:rgba(255,255,255,.1); border:none; border-radius:50%; width:48px; height:48px; display:flex; align-items:center; justify-content:center; }
+    #lightbox .lb-close { position:absolute; top:16px; right:20px; font-size:36px; color:white; cursor:pointer; background:none; border:none; line-height:1; z-index:1; }
+    #lightbox .lb-nav { position:absolute; top:50%; transform:translateY(-50%); font-size:36px; color:white; cursor:pointer; background:rgba(255,255,255,.15); border:none; border-radius:50%; width:52px; height:52px; display:flex; align-items:center; justify-content:center; }
     #lightbox .lb-prev { left:12px; }
     #lightbox .lb-next { right:12px; }
-    #lightbox .lb-info { color:#cbd5e1; font-size:13px; margin-top:12px; text-align:center; }
+    #lightbox .lb-info { color:#cbd5e1; font-size:13px; margin-top:12px; text-align:center; max-width:80vw; }
     #lightbox .lb-counter { position:absolute; top:20px; left:50%; transform:translateX(-50%); color:#94a3b8; font-size:13px; }
     .drop-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 28px; text-align: center; cursor: pointer; transition: all .2s; }
     .drop-zone:hover, .drop-zone.drag-over { border-color: var(--amber); background: rgba(245,158,11,.05); }
@@ -508,12 +508,22 @@
   </div>
 </div>
 
+<!-- Lightbox -->
+<div id="lightbox">
+  <button class="lb-close" onclick="closeLightbox()">✕</button>
+  <span class="lb-counter" id="lb-counter"></span>
+  <button class="lb-nav lb-prev" id="lb-prev" onclick="lbNav(-1)">‹</button>
+  <img id="lb-img" src="" alt="">
+  <button class="lb-nav lb-next" id="lb-next" onclick="lbNav(1)">›</button>
+  <div class="lb-info" id="lb-info"></div>
+</div>
+
 <script>
 const SUPABASE_URL = 'https://oubipbyskqaagxfdpvmi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YmlwYnlza3FhYWd4ZmRwdm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ1MTksImV4cCI6MjA5NDI2MDUxOX0.-3oWqtjM--FnCXOpxkdt71p4xVdxdpMqO1SGaIU_f2I';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const APP_VERSION = 'v1.8';
+const APP_VERSION = 'v1.9';
 const VAPID_PUBLIC_KEY = 'BAIHZfwNTWLQm4H1m0vCBCgGoqV5GQpdiF-lLmsURg0hkmA38LzQ_0kqTioztkoUmMqlGZ98MJan2Wxg2JQdEdM';
 
 function urlBase64ToUint8Array(base64) {
@@ -1340,41 +1350,31 @@ function openLightbox(idx) {
 function _showLightbox() {
   const ph = _lbPhotos[_lbIdx];
   if (!ph) return;
-  let lb = document.getElementById('lightbox');
-  if (!lb) {
-    lb = document.createElement('div');
-    lb.id = 'lightbox';
-    lb.innerHTML = `
-      <button class="lb-close" onclick="closeLightbox()">✕</button>
-      <span class="lb-counter" id="lb-counter"></span>
-      <button class="lb-nav lb-prev" onclick="lbNav(-1)">‹</button>
-      <img id="lb-img" src="" alt="">
-      <button class="lb-nav lb-next" onclick="lbNav(1)">›</button>
-      <div class="lb-info" id="lb-info"></div>`;
-    lb.onclick = e => { if (e.target===lb) closeLightbox(); };
-    document.body.appendChild(lb);
-    document.addEventListener('keydown', e => {
-      if (!lb.classList.contains('active')) return;
-      if (e.key==='ArrowLeft') lbNav(-1);
-      if (e.key==='ArrowRight') lbNav(1);
-      if (e.key==='Escape') closeLightbox();
-    });
-  }
   document.getElementById('lb-img').src = ph.storage_url||'';
   document.getElementById('lb-info').textContent = (ph.description||'') + (ph.description&&ph.created_at?' · ':'') + (ph.created_at?.slice(0,10)||'');
   document.getElementById('lb-counter').textContent = `${_lbIdx+1} / ${_lbPhotos.length}`;
-  document.querySelector('.lb-prev').style.display = _lbPhotos.length>1?'flex':'none';
-  document.querySelector('.lb-next').style.display = _lbPhotos.length>1?'flex':'none';
-  lb.classList.add('active');
+  document.getElementById('lb-prev').style.display = _lbPhotos.length>1?'flex':'none';
+  document.getElementById('lb-next').style.display = _lbPhotos.length>1?'flex':'none';
+  document.getElementById('lightbox').classList.add('lb-open');
 }
 function lbNav(dir) {
   _lbIdx = (_lbIdx + dir + _lbPhotos.length) % _lbPhotos.length;
   _showLightbox();
 }
 function closeLightbox() {
-  const lb = document.getElementById('lightbox');
-  if (lb) lb.classList.remove('active');
+  document.getElementById('lightbox').classList.remove('lb-open');
 }
+document.getElementById('lightbox').addEventListener('click', e => {
+  if (e.target === document.getElementById('lightbox') || e.target === document.getElementById('lb-img')) {
+    if (e.target === document.getElementById('lightbox')) closeLightbox();
+  }
+});
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('lightbox').classList.contains('lb-open')) return;
+  if (e.key==='ArrowLeft') lbNav(-1);
+  if (e.key==='ArrowRight') lbNav(1);
+  if (e.key==='Escape') closeLightbox();
+});
 
 async function deletePhoto(id) {
   const ph = DB.photos.find(p => p.id===id); if (!ph) return;
