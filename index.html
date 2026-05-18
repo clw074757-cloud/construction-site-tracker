@@ -231,7 +231,10 @@
     <section id="section-notifications" class="section fade-in" style="padding:20px;">
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
         <h2 style="font-size:16px;">通知</h2>
-        <button id="mark-all-read-btn" class="btn btn-ghost btn-sm">全部已讀</button>
+        <div style="display:flex;gap:8px;">
+          <button id="mark-all-read-btn" class="btn btn-ghost btn-sm">全部已讀</button>
+          <button id="delete-read-btn" class="btn btn-ghost btn-sm" style="color:#ef4444;">🗑 刪除已讀</button>
+        </div>
       </div>
       <div id="notif-list"></div>
       <div id="notif-empty" class="empty-state hidden"><div class="empty-icon">🔔</div><p>目前沒有通知</p></div>
@@ -539,7 +542,7 @@ const SUPABASE_URL = 'https://oubipbyskqaagxfdpvmi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YmlwYnlza3FhYWd4ZmRwdm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ1MTksImV4cCI6MjA5NDI2MDUxOX0.-3oWqtjM--FnCXOpxkdt71p4xVdxdpMqO1SGaIU_f2I';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const APP_VERSION = 'v2.4';
+const APP_VERSION = 'v2.5';
 const VAPID_PUBLIC_KEY = 'BAIHZfwNTWLQm4H1m0vCBCgGoqV5GQpdiF-lLmsURg0hkmA38LzQ_0kqTioztkoUmMqlGZ98MJan2Wxg2JQdEdM';
 
 function urlBase64ToUint8Array(base64) {
@@ -1586,6 +1589,18 @@ document.getElementById('mark-all-read-btn').onclick = async () => {
     unread.forEach(n => n.read_by.push(currentUser.id));
     renderNotifications(); updateNotifBadge(); showToast('全部已標記已讀');
   } catch(e) { showToast('操作失敗', 'error'); }
+};
+
+document.getElementById('delete-read-btn').onclick = async () => {
+  const readNotifs = DB.notifications.filter(n => n.read_by.includes(currentUser.id));
+  if (!readNotifs.length) { showToast('沒有已讀通知', 'error'); return; }
+  const ids = readNotifs.map(n => n.id);
+  try {
+    await sb.from('notification_reads').delete().in('notification_id', ids).eq('user_id', currentUser.id);
+    await sb.from('notifications').delete().in('id', ids);
+    DB.notifications = DB.notifications.filter(n => !ids.includes(n.id));
+    renderNotifications(); updateNotifBadge(); showToast(`已刪除 ${ids.length} 則已讀通知`);
+  } catch(e) { showToast('刪除失敗：' + e.message, 'error'); }
 };
 
 function updateNotifBadge() {
