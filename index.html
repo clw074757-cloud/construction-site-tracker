@@ -1316,9 +1316,9 @@ function renderPhotos() {
   grid.innerHTML = photos.map((ph, idx) => {
     const canDel = currentUser.role==='designer' || ph.uploader_id===currentUser.id;
     return `<div style="display:flex; flex-direction:column; gap:4px;">
-      <div class="photo-item">
-        <img src="${ph.storage_url||''}" alt="${ph.description||''}" onclick="openLightbox(${idx})">
-        ${canDel ? `<div class="del-overlay"><button onclick="deletePhoto('${ph.id}')" style="background:var(--red);border:none;color:white;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;">🗑 刪除</button></div>` : ''}
+      <div class="photo-item" onclick="openLightbox(${idx})" style="cursor:pointer;">
+        <img src="${ph.storage_url||''}" alt="${ph.description||''}">
+        ${canDel ? `<div class="del-overlay" onclick="event.stopPropagation()"><button onclick="deletePhoto('${ph.id}')" style="background:var(--red);border:none;color:white;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;">🗑 刪除</button></div>` : ''}
       </div>
       <div style="padding:0 2px;">
         ${ph.description ? `<p style="font-size:11px; font-weight:600; color:var(--text); margin:0;">${ph.description}</p>` : ''}
