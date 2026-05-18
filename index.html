@@ -482,20 +482,14 @@
         <p style="font-size:13px; font-weight:600; margin-bottom:12px;">＋ 直接新增工班帳號</p>
         <div style="margin-bottom:10px;"><label>姓名</label><input id="new-worker-name" class="input" placeholder="工班姓名"></div>
         <div style="margin-bottom:10px;"><label>工種</label>
-          <select id="new-worker-specialty" class="input">
-            <option value="">— 選擇工種 —</option>
-            <option value="水電">💧 水電</option>
-            <option value="泥作">🧱 泥作</option>
-            <option value="木工">🪚 木工</option>
-            <option value="鋁窗">🪟 鋁窗</option>
-            <option value="油漆">🎨 油漆</option>
-            <option value="鐵工">⚙️ 鐵工</option>
-            <option value="貼磚">🔲 貼磚</option>
-            <option value="板模">📦 板模</option>
-            <option value="景觀">🌿 景觀</option>
-            <option value="空調">❄️ 空調</option>
-            <option value="其他">🔧 其他</option>
-          </select>
+          <input id="new-worker-specialty" class="input" list="specialty-options" placeholder="選擇或自行輸入工種" autocomplete="off">
+          <datalist id="specialty-options">
+            <option value="水電"><option value="泥作"><option value="木工">
+            <option value="鋁窗"><option value="油漆"><option value="鐵工">
+            <option value="貼磚"><option value="板模"><option value="景觀">
+            <option value="空調"><option value="消防"><option value="弱電">
+            <option value="防水"><option value="隔間"><option value="玻璃">
+          </datalist>
         </div>
         <div style="margin-bottom:10px;"><label>Email</label><input id="new-worker-email" class="input" type="email" placeholder="登入用 Email"></div>
         <div style="margin-bottom:12px;"><label>密碼</label><input id="new-worker-password" class="input" type="password" placeholder="至少 6 碼"></div>
@@ -545,7 +539,7 @@ const SUPABASE_URL = 'https://oubipbyskqaagxfdpvmi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YmlwYnlza3FhYWd4ZmRwdm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ1MTksImV4cCI6MjA5NDI2MDUxOX0.-3oWqtjM--FnCXOpxkdt71p4xVdxdpMqO1SGaIU_f2I';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const APP_VERSION = 'v2.2';
+const APP_VERSION = 'v2.3';
 const VAPID_PUBLIC_KEY = 'BAIHZfwNTWLQm4H1m0vCBCgGoqV5GQpdiF-lLmsURg0hkmA38LzQ_0kqTioztkoUmMqlGZ98MJan2Wxg2JQdEdM';
 
 function urlBase64ToUint8Array(base64) {
@@ -1687,10 +1681,10 @@ function renderWorkersModal() {
             ${specialtyBadge(w.specialty)}
           </div>
           <p style="font-size:11px; color:var(--text-muted); margin:2px 0 4px;">${w.account||''}</p>
-          <select onchange="updateWorkerSpecialty('${w.id}',this.value)" style="font-size:11px;padding:2px 6px;border-radius:6px;background:#1e293b;color:var(--text);border:1px solid var(--border);cursor:pointer;">
-            <option value="">— 修改工種 —</option>
-            ${['水電','泥作','木工','鋁窗','油漆','鐵工','貼磚','板模','景觀','空調','其他'].map(s=>`<option value="${s}" ${w.specialty===s?'selected':''}>${s}</option>`).join('')}
-          </select>
+          <div style="display:flex;gap:4px;margin-top:4px;">
+            <input id="sp-${w.id}" list="specialty-options" value="${w.specialty||''}" placeholder="輸入或選擇工種" style="flex:1;font-size:11px;padding:3px 7px;border-radius:6px;background:#1e293b;color:var(--text);border:1px solid var(--border);" autocomplete="off">
+            <button onclick="updateWorkerSpecialty('${w.id}',document.getElementById('sp-${w.id}').value)" style="font-size:11px;padding:3px 8px;border-radius:6px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:var(--amber);cursor:pointer;">儲存</button>
+          </div>
         </div>
         <button class="btn btn-danger btn-sm" style="margin-left:8px; flex-shrink:0;" onclick="deleteWorker('${w.id}')">移除</button>
       </div>`).join('');
