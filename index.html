@@ -542,7 +542,7 @@ const SUPABASE_URL = 'https://oubipbyskqaagxfdpvmi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YmlwYnlza3FhYWd4ZmRwdm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ1MTksImV4cCI6MjA5NDI2MDUxOX0.-3oWqtjM--FnCXOpxkdt71p4xVdxdpMqO1SGaIU_f2I';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const APP_VERSION = 'v2.6';
+const APP_VERSION = 'v2.7';
 const VAPID_PUBLIC_KEY = 'BAIHZfwNTWLQm4H1m0vCBCgGoqV5GQpdiF-lLmsURg0hkmA38LzQ_0kqTioztkoUmMqlGZ98MJan2Wxg2JQdEdM';
 
 function urlBase64ToUint8Array(base64) {
@@ -1774,15 +1774,7 @@ document.getElementById('delete-confirm-btn').onclick = async () => {
   const btn = document.getElementById('delete-confirm-btn'); btn.disabled=true; btn.textContent='刪除中...';
   const pid = pendingDeleteId;
   try {
-    await sb.from('photos').delete().eq('project_id', pid);
-    await sb.from('meetings').delete().eq('project_id', pid);
-    try { await sb.from('gantt_segments').delete().eq('project_id', pid); } catch(_) {}
-    await sb.from('project_members').delete().eq('project_id', pid);
-    try {
-      const { data: notifs } = await sb.from('notifications').select('id').eq('project_id', pid);
-      if (notifs?.length) await sb.from('notification_reads').delete().in('notification_id', notifs.map(n => n.id));
-      await sb.from('notifications').delete().eq('project_id', pid);
-    } catch(_) {}
+    // ON DELETE CASCADE 已設定，刪 projects 會自動清除所有子資料
     const { error } = await sb.from('projects').delete().eq('id', pid);
     if (error) throw error;
     pendingDeleteId=null; await loadOrgData(); hideModal('delete-modal'); renderDashboard(); showToast('案場已刪除');
