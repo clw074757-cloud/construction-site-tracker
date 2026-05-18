@@ -1570,15 +1570,15 @@ document.getElementById('create-worker-btn').onclick = async () => {
   const btn = document.getElementById('create-worker-btn');
   btn.disabled = true; btn.textContent = '建立中...';
   try {
-    const { data, error } = await sb.rpc('designer_create_worker', {
-      p_email: email, p_password: pw, p_display_name: name
+    const { data, error } = await sb.functions.invoke('create-worker', {
+      body: { email, password: pw, display_name: name, org_id: currentUser.org_id }
     });
     if (error) throw error;
+    if (data?.error) throw new Error(data.error);
     showToast('工班帳號已建立：' + name);
     document.getElementById('new-worker-name').value = '';
     document.getElementById('new-worker-email').value = '';
     document.getElementById('new-worker-password').value = '';
-    // 重新載入成員列表
     const { data: users } = await sb.from('profiles').select('*').eq('org_id', currentUser.org_id);
     DB.users = users || [];
     renderWorkersModal();
