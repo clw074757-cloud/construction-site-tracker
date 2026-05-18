@@ -481,6 +481,22 @@
       <div style="margin-top:16px; padding:16px; background:#0f172a; border-radius:12px; border:1px solid var(--border);">
         <p style="font-size:13px; font-weight:600; margin-bottom:12px;">＋ 直接新增工班帳號</p>
         <div style="margin-bottom:10px;"><label>姓名</label><input id="new-worker-name" class="input" placeholder="工班姓名"></div>
+        <div style="margin-bottom:10px;"><label>工種</label>
+          <select id="new-worker-specialty" class="input">
+            <option value="">— 選擇工種 —</option>
+            <option value="水電">💧 水電</option>
+            <option value="泥作">🧱 泥作</option>
+            <option value="木工">🪚 木工</option>
+            <option value="鋁窗">🪟 鋁窗</option>
+            <option value="油漆">🎨 油漆</option>
+            <option value="鐵工">⚙️ 鐵工</option>
+            <option value="貼磚">🔲 貼磚</option>
+            <option value="板模">📦 板模</option>
+            <option value="景觀">🌿 景觀</option>
+            <option value="空調">❄️ 空調</option>
+            <option value="其他">🔧 其他</option>
+          </select>
+        </div>
         <div style="margin-bottom:10px;"><label>Email</label><input id="new-worker-email" class="input" type="email" placeholder="登入用 Email"></div>
         <div style="margin-bottom:12px;"><label>密碼</label><input id="new-worker-password" class="input" type="password" placeholder="至少 6 碼"></div>
         <button id="create-worker-btn" class="btn btn-primary" style="width:100%; justify-content:center;">建立工班帳號</button>
@@ -529,7 +545,7 @@ const SUPABASE_URL = 'https://oubipbyskqaagxfdpvmi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YmlwYnlza3FhYWd4ZmRwdm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ1MTksImV4cCI6MjA5NDI2MDUxOX0.-3oWqtjM--FnCXOpxkdt71p4xVdxdpMqO1SGaIU_f2I';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const APP_VERSION = 'v2.1';
+const APP_VERSION = 'v2.2';
 const VAPID_PUBLIC_KEY = 'BAIHZfwNTWLQm4H1m0vCBCgGoqV5GQpdiF-lLmsURg0hkmA38LzQ_0kqTioztkoUmMqlGZ98MJan2Wxg2JQdEdM';
 
 function urlBase64ToUint8Array(base64) {
@@ -597,6 +613,13 @@ function showToast(msg, type='success') {
 function showModal(id) { document.getElementById(id).classList.remove('hidden'); }
 function hideModal(id) { document.getElementById(id).classList.add('hidden'); }
 function getUserName(uid) { const u = DB.users.find(u => u.id === uid); return u ? (u.display_name || '未知') : '未知'; }
+function getWorkerTag(uid) {
+  const u = DB.users.find(u => u.id === uid);
+  if (!u) return '<span style="font-size:11px;background:rgba(255,255,255,.07);padding:2px 8px;border-radius:6px;color:var(--text-muted);">未知</span>';
+  const c = SPECIALTY_COLOR[u.specialty] || '#64748b';
+  const spTag = u.specialty ? `<span style="font-size:10px;padding:1px 6px;border-radius:99px;background:${c}22;color:${c};border:1px solid ${c}44;">${u.specialty}</span>` : '';
+  return `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;background:rgba(255,255,255,.07);padding:2px 8px;border-radius:6px;color:var(--text-muted);">👷 ${u.display_name||'未知'}${spTag}</span>`;
+}
 
 // ══════════════════════════════════════════
 //  URL ORG 載入
@@ -1207,7 +1230,7 @@ function renderDashboard() {
         <div class="progress-track"><div class="progress-fill" style="width:${x.progress}%"></div></div>
       </div>
       <div style="display:flex; gap:6px; flex-wrap:wrap;">
-        ${x.workers.map(w=>`<span style="font-size:11px; background:rgba(255,255,255,.07); padding:2px 8px; border-radius:6px; color:var(--text-muted);">${getUserName(w)}</span>`).join('')}
+        ${x.workers.map(w=>getWorkerTag(w)).join('')}
         ${x.workers.length===0?'<span style="font-size:11px; color:#475569;">尚無工班</span>':''}
       </div>
     </div>`).join('');
@@ -1255,7 +1278,7 @@ async function openDetail(projectId) {
   document.getElementById('d-progress-pct').textContent = currentProject.progress+'%';
   document.getElementById('d-notes').textContent = currentProject.notes||'—';
   document.getElementById('d-workers').innerHTML = currentProject.workers.length
-    ? currentProject.workers.map(w=>`<span class="badge" style="background:rgba(255,255,255,.08); color:var(--text-muted);">👷 ${getUserName(w)}</span>`).join('')
+    ? currentProject.workers.map(w=>getWorkerTag(w)).join('')
     : '<span style="font-size:12px; color:#475569;">尚無指定工班</span>';
   document.getElementById('notify-team').innerHTML = '<option value="">— 選擇工班 —</option>' +
     currentProject.workers.map(w=>`<option value="${w}">${getUserName(w)}</option>`).join('');
@@ -1606,7 +1629,7 @@ function openProjectModal(project) {
   const sel = project?.workers||[];
   document.getElementById('pm-workers-list').innerHTML = workers.length===0
     ? '<span style="font-size:12px; color:#475569;">尚無工班帳號</span>'
-    : workers.map(w => `<label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:var(--text); margin:0; font-size:13px;"><input type="checkbox" value="${w.id}" ${sel.includes(w.id)?'checked':''} style="accent-color:var(--amber);">${w.display_name||w.name}</label>`).join('');
+    : workers.map(w => `<label style="display:flex; align-items:center; gap:6px; cursor:pointer; color:var(--text); margin:0; font-size:13px; padding:4px 0;"><input type="checkbox" value="${w.id}" ${sel.includes(w.id)?'checked':''} style="accent-color:var(--amber); flex-shrink:0;">${w.display_name||w.name}${specialtyBadge(w.specialty)}</label>`).join('');
   showModal('project-modal');
 }
 
@@ -1641,17 +1664,35 @@ document.getElementById('designer-add-worker-btn').onclick = async () => {
   showModal('worker-modal');
 };
 
+const SPECIALTY_COLOR = {
+  '水電':'#38bdf8','泥作':'#a78bfa','木工':'#fb923c','鋁窗':'#34d399',
+  '油漆':'#f472b6','鐵工':'#94a3b8','貼磚':'#fbbf24','板模':'#c084fc',
+  '景觀':'#4ade80','空調':'#67e8f9','其他':'#64748b'
+};
+function specialtyBadge(sp) {
+  if (!sp) return '';
+  const c = SPECIALTY_COLOR[sp] || '#64748b';
+  return `<span style="display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;background:${c}22;color:${c};border:1px solid ${c}44;margin-left:6px;">${sp}</span>`;
+}
+
 function renderWorkersModal() {
   const workers = DB.users.filter(u => u.role==='worker' && u.org_id===currentUser.org_id);
   document.getElementById('workers-list-modal').innerHTML = workers.length===0
     ? '<p style="font-size:13px; color:var(--text-muted); text-align:center; margin-bottom:12px;">尚無工班帳號</p>'
     : workers.map(w => `
       <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 12px; background:#0f172a; border-radius:10px; margin-bottom:6px; border:1px solid var(--border);">
-        <div>
-          <p style="font-size:13px; font-weight:600;">${w.display_name||'—'}</p>
-          <p style="font-size:11px; color:var(--text-muted);">${w.account||''}</p>
+        <div style="flex:1; min-width:0;">
+          <div style="display:flex; align-items:center; flex-wrap:wrap; gap:2px;">
+            <p style="font-size:13px; font-weight:600; margin:0;">${w.display_name||'—'}</p>
+            ${specialtyBadge(w.specialty)}
+          </div>
+          <p style="font-size:11px; color:var(--text-muted); margin:2px 0 4px;">${w.account||''}</p>
+          <select onchange="updateWorkerSpecialty('${w.id}',this.value)" style="font-size:11px;padding:2px 6px;border-radius:6px;background:#1e293b;color:var(--text);border:1px solid var(--border);cursor:pointer;">
+            <option value="">— 修改工種 —</option>
+            ${['水電','泥作','木工','鋁窗','油漆','鐵工','貼磚','板模','景觀','空調','其他'].map(s=>`<option value="${s}" ${w.specialty===s?'selected':''}>${s}</option>`).join('')}
+          </select>
         </div>
-        <button class="btn btn-danger btn-sm" onclick="deleteWorker('${w.id}')">移除</button>
+        <button class="btn btn-danger btn-sm" style="margin-left:8px; flex-shrink:0;" onclick="deleteWorker('${w.id}')">移除</button>
       </div>`).join('');
   const link = `${location.origin}${location.pathname}?org=${currentUser.org_id}`;
   document.getElementById('org-invite-link').textContent = link;
@@ -1661,9 +1702,10 @@ function renderWorkersModal() {
 }
 
 document.getElementById('create-worker-btn').onclick = async () => {
-  const name  = document.getElementById('new-worker-name').value.trim();
-  const email = document.getElementById('new-worker-email').value.trim();
-  const pw    = document.getElementById('new-worker-password').value;
+  const name      = document.getElementById('new-worker-name').value.trim();
+  const specialty = document.getElementById('new-worker-specialty').value;
+  const email     = document.getElementById('new-worker-email').value.trim();
+  const pw        = document.getElementById('new-worker-password').value;
   if (!name || !email || !pw) { showToast('請填寫所有欄位', 'error'); return; }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('Email 格式需包含網域，例如：worker@gmail.com', 'error'); return; }
   if (pw.length < 6) { showToast('密碼至少 6 碼', 'error'); return; }
@@ -1671,20 +1713,38 @@ document.getElementById('create-worker-btn').onclick = async () => {
   btn.disabled = true; btn.textContent = '建立中...';
   try {
     const { data, error } = await sb.functions.invoke('create-worker', {
-      body: { email, password: pw, display_name: name, org_id: currentUser.org_id }
+      body: { email, password: pw, display_name: name, org_id: currentUser.org_id, specialty }
     });
     if (error) throw error;
     if (data?.error) throw new Error(data.error);
     showToast('工班帳號已建立：' + name);
     document.getElementById('new-worker-name').value = '';
+    document.getElementById('new-worker-specialty').value = '';
     document.getElementById('new-worker-email').value = '';
     document.getElementById('new-worker-password').value = '';
     const { data: users } = await sb.from('profiles').select('*').eq('org_id', currentUser.org_id);
     DB.users = users || [];
+    // 建立後補寫工種（Edge Function 不一定有帶）
+    if (specialty) {
+      const newU = (DB.users).find(u => u.account===email);
+      if (newU && !newU.specialty) {
+        await sb.from('profiles').update({ specialty }).eq('id', newU.id);
+        newU.specialty = specialty;
+      }
+    }
     renderWorkersModal();
   } catch(e) { showToast('建立失敗：' + e.message, 'error'); }
   finally { btn.disabled = false; btn.textContent = '建立工班帳號'; }
 };
+
+async function updateWorkerSpecialty(uid, specialty) {
+  const { error } = await sb.from('profiles').update({ specialty }).eq('id', uid);
+  if (error) { showToast('更新失敗', 'error'); return; }
+  const u = DB.users.find(u => u.id===uid);
+  if (u) u.specialty = specialty;
+  renderWorkersModal();
+  showToast('工種已更新');
+}
 
 async function deleteWorker(uid) {
   try {
