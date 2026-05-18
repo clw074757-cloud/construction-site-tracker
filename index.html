@@ -1588,8 +1588,8 @@ document.getElementById('create-worker-btn').onclick = async () => {
 
 async function deleteWorker(uid) {
   try {
-    await sb.from('project_members').delete().eq('user_id', uid);
-    await sb.from('profiles').delete().eq('id', uid);
+    const { error } = await sb.rpc('admin_remove_user', { p_uid: uid });
+    if (error) throw error;
     DB.users = DB.users.filter(u => u.id!==uid);
     DB.projects.forEach(p => { p.workers = p.workers.filter(w => w!==uid); });
     renderWorkersModal(); showToast('工班已移除');
