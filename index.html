@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>工程案場管理系統</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#f59e0b">
+  <meta name="theme-color" content="#a855f7">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -26,7 +26,7 @@
   <style>
     * { font-family: 'Noto Sans TC', sans-serif; box-sizing: border-box; }
     :root {
-      --amber: #f59e0b; --amber-dark: #d97706;
+      --amber: #a855f7; --amber-dark: #9333ea;
       --surface: #1e293b; --surface2: #0f172a;
       --border: #334155; --text: #f1f5f9; --text-muted: #94a3b8;
       --emerald: #10b981; --blue: #3b82f6; --red: #ef4444;
@@ -36,19 +36,19 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     .nav-link { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 16px; border-radius: 10px; color: var(--text-muted); font-size: 11px; cursor: pointer; transition: all .2s; }
     .nav-link:hover { color: var(--text); background: rgba(255,255,255,.05); }
-    .nav-link.active { color: var(--amber); background: rgba(245,158,11,.1); }
+    .nav-link.active { color: var(--amber); background: rgba(168,85,247,.1); }
     .nav-icon { font-size: 20px; }
     .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; transition: border-color .2s; }
-    .card:hover { border-color: rgba(245,158,11,.4); }
+    .card:hover { border-color: rgba(168,85,247,.4); }
     .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; }
-    .badge-pending { background: rgba(245,158,11,.15); color: #fbbf24; }
+    .badge-pending { background: rgba(168,85,247,.15); color: #c084fc; }
     .badge-active { background: rgba(16,185,129,.15); color: #34d399; }
     .badge-done { background: rgba(59,130,246,.15); color: #60a5fa; }
     .badge-paused { background: rgba(239,68,68,.15); color: #f87171; }
     .progress-track { height: 6px; background: #334155; border-radius: 999px; overflow: hidden; }
-    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--amber), #fbbf24); border-radius: 999px; transition: width .4s ease; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--amber), #c084fc); border-radius: 999px; transition: width .4s ease; }
     .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; transition: all .15s; }
-    .btn-primary { background: var(--amber); color: #0f172a; }
+    .btn-primary { background: var(--amber); color: #ffffff; }
     .btn-primary:hover { background: var(--amber-dark); }
     .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
     .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
@@ -68,7 +68,7 @@
     .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 12px 22px; border-radius: 10px; font-size: 14px; font-weight: 500; z-index: 200; white-space: nowrap; animation: fadeIn .2s ease; }
     .toast-success { background: rgba(16,185,129,.2); border: 1px solid rgba(16,185,129,.4); color: #34d399; }
     .toast-error { background: rgba(239,68,68,.2); border: 1px solid rgba(239,68,68,.4); color: #f87171; }
-    .toast-info { background: rgba(245,158,11,.2); border: 1px solid rgba(245,158,11,.4); color: #fbbf24; }
+    .toast-info { background: rgba(168,85,247,.2); border: 1px solid rgba(168,85,247,.4); color: #c084fc; }
     .tab-bar { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 20px; overflow-x: auto; }
     .tab-btn { padding: 8px 16px; font-size: 14px; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all .2s; background: none; border-left: none; border-right: none; border-top: none; }
     .tab-btn.active { color: var(--amber); border-bottom-color: var(--amber); font-weight: 600; }
@@ -89,7 +89,7 @@
     #lightbox .lb-info { color:#cbd5e1; font-size:13px; margin-top:12px; text-align:center; max-width:80vw; }
     #lightbox .lb-counter { position:absolute; top:20px; left:50%; transform:translateX(-50%); color:#94a3b8; font-size:13px; }
     .drop-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 28px; text-align: center; cursor: pointer; transition: all .2s; }
-    .drop-zone:hover, .drop-zone.drag-over { border-color: var(--amber); background: rgba(245,158,11,.05); }
+    .drop-zone:hover, .drop-zone.drag-over { border-color: var(--amber); background: rgba(168,85,247,.05); }
     .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
     .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
     .login-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 36px 32px; width: 100%; max-width: 400px; }
@@ -103,13 +103,13 @@
     .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
     .empty-icon { font-size: 48px; margin-bottom: 12px; }
     .notif-item { padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); margin-bottom: 8px; }
-    .notif-item.unread { border-color: rgba(245,158,11,.3); background: rgba(245,158,11,.05); }
+    .notif-item.unread { border-color: rgba(168,85,247,.3); background: rgba(168,85,247,.05); }
     label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px; }
     h1, h2, h3 { font-weight: 700; }
     .admin-org-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 16px; }
     .admin-member-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #0f172a; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 6px; flex-wrap: wrap; gap: 8px; }
     .reg-type-badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; margin-bottom: 16px; }
-    .reg-type-designer { background: rgba(245,158,11,.15); color: #fbbf24; }
+    .reg-type-designer { background: rgba(168,85,247,.15); color: #c084fc; }
     .reg-type-worker { background: rgba(16,185,129,.15); color: #34d399; }
   </style>
 </head>
@@ -196,7 +196,7 @@
       </div>
     </div>
     <div style="display:flex; align-items:center; gap:8px;">
-      <div id="user-avatar" style="width:36px; height:36px; border-radius:50%; background:rgba(245,158,11,.2); border:1px solid rgba(245,158,11,.4); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:var(--amber); cursor:pointer;"></div>
+      <div id="user-avatar" style="width:36px; height:36px; border-radius:50%; background:rgba(168,85,247,.2); border:1px solid rgba(168,85,247,.4); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:var(--amber); cursor:pointer;"></div>
       <button id="brand-settings-btn" class="btn btn-ghost btn-sm" style="display:none;">⚙️ 品牌設定</button>
       <button id="logout-btn" class="btn btn-ghost btn-sm">登出</button>
     </div>
@@ -533,7 +533,7 @@
   <button class="lb-nav lb-next" id="lb-next" onclick="lbNav(1)">›</button>
   <div id="lb-bottom" style="display:flex;align-items:center;gap:16px;margin-top:12px;">
     <div class="lb-info" id="lb-info"></div>
-    <button id="lb-dl-btn" onclick="lbDownload()" style="display:none;background:rgba(245,158,11,.2);border:1px solid rgba(245,158,11,.5);color:#f59e0b;border-radius:8px;padding:6px 14px;font-size:13px;cursor:pointer;white-space:nowrap;">⬇ 下載</button>
+    <button id="lb-dl-btn" onclick="lbDownload()" style="display:none;background:rgba(168,85,247,.2);border:1px solid rgba(168,85,247,.5);color:#a855f7;border-radius:8px;padding:6px 14px;font-size:13px;cursor:pointer;white-space:nowrap;">⬇ 下載</button>
   </div>
 </div>
 
@@ -542,7 +542,7 @@ const SUPABASE_URL = 'https://oubipbyskqaagxfdpvmi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YmlwYnlza3FhYWd4ZmRwdm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ1MTksImV4cCI6MjA5NDI2MDUxOX0.-3oWqtjM--FnCXOpxkdt71p4xVdxdpMqO1SGaIU_f2I';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const APP_VERSION = 'v2.8';
+const APP_VERSION = 'v2.9';
 const VAPID_PUBLIC_KEY = 'BAIHZfwNTWLQm4H1m0vCBCgGoqV5GQpdiF-lLmsURg0hkmA38LzQ_0kqTioztkoUmMqlGZ98MJan2Wxg2JQdEdM';
 
 function urlBase64ToUint8Array(base64) {
@@ -885,7 +885,7 @@ function enterApp() {
   if (unreadCnt > 0) {
     setTimeout(() => {
       const popup = document.createElement('div');
-      popup.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--surface);border:1px solid rgba(245,158,11,.5);border-radius:16px;padding:28px 32px;z-index:300;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.5);min-width:260px;';
+      popup.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--surface);border:1px solid rgba(168,85,247,.5);border-radius:16px;padding:28px 32px;z-index:300;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.5);min-width:260px;';
       popup.innerHTML =
         '<div style="font-size:36px;margin-bottom:12px;">🔔</div>' +
         '<p style="font-size:16px;font-weight:700;margin-bottom:6px;">你有 ' + unreadCnt + ' 則未讀通知</p>' +
@@ -1366,7 +1366,7 @@ function renderPhotos() {
       <div style="padding:0 2px;">
         ${ph.description ? `<p style="font-size:11px; font-weight:600; color:var(--text); margin:0;">${ph.description}</p>` : ''}
         <p style="font-size:10px; color:var(--text-muted); margin:0;">📅 ${ph.created_at?.slice(0,10)||''}</p>
-        ${isDesigner ? `<button onclick="downloadPhoto('${ph.storage_url}','${fname}')" style="margin-top:3px;width:100%;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);color:var(--amber);border-radius:6px;padding:3px 0;font-size:11px;cursor:pointer;">⬇ 下載</button>` : ''}
+        ${isDesigner ? `<button onclick="downloadPhoto('${ph.storage_url}','${fname}')" style="margin-top:3px;width:100%;background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.3);color:var(--amber);border-radius:6px;padding:3px 0;font-size:11px;cursor:pointer;">⬇ 下載</button>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -1675,7 +1675,7 @@ document.getElementById('designer-add-worker-btn').onclick = async () => {
 
 const SPECIALTY_COLOR = {
   '水電':'#38bdf8','泥作':'#a78bfa','木工':'#fb923c','鋁窗':'#34d399',
-  '油漆':'#f472b6','鐵工':'#94a3b8','貼磚':'#fbbf24','板模':'#c084fc',
+  '油漆':'#f472b6','鐵工':'#94a3b8','貼磚':'#c084fc','板模':'#c084fc',
   '景觀':'#4ade80','空調':'#67e8f9','其他':'#64748b'
 };
 function specialtyBadge(sp) {
@@ -1698,7 +1698,7 @@ function renderWorkersModal() {
           <p style="font-size:11px; color:var(--text-muted); margin:2px 0 4px;">${w.account||''}</p>
           <div style="display:flex;gap:4px;margin-top:4px;">
             <input id="sp-${w.id}" list="specialty-options" value="${w.specialty||''}" placeholder="輸入或選擇工種" style="flex:1;font-size:11px;padding:3px 7px;border-radius:6px;background:#1e293b;color:var(--text);border:1px solid var(--border);" autocomplete="off">
-            <button onclick="updateWorkerSpecialty('${w.id}',document.getElementById('sp-${w.id}').value)" style="font-size:11px;padding:3px 8px;border-radius:6px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:var(--amber);cursor:pointer;">儲存</button>
+            <button onclick="updateWorkerSpecialty('${w.id}',document.getElementById('sp-${w.id}').value)" style="font-size:11px;padding:3px 8px;border-radius:6px;background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);color:var(--amber);cursor:pointer;">儲存</button>
           </div>
         </div>
         <button class="btn btn-danger btn-sm" style="margin-left:8px; flex-shrink:0;" onclick="deleteWorker('${w.id}')">移除</button>
@@ -1791,7 +1791,7 @@ document.querySelectorAll('.modal-overlay').forEach(o => { o.onclick = e => { if
 // ══════════════════════════════════════════
 
 let ganttChart=null, ganttWorkerOrder=[], dragSrcWorkerId=null;
-const GANTT_COLORS = ['#f59e0b','#10b981','#3b82f6','#a855f7','#ef4444','#06b6d4','#84cc16','#f97316'];
+const GANTT_COLORS = ['#a855f7','#10b981','#3b82f6','#a855f7','#ef4444','#06b6d4','#84cc16','#f97316'];
 
 function openGanttTab() {
   if (!currentProject) return;
@@ -1913,7 +1913,7 @@ async function exportGanttPDF() {
     const totalDays = Math.ceil((maxD-minD)/86400000)+6;
     const wrap = document.createElement('div');
     wrap.style.cssText = 'position:fixed;left:-9999px;top:0;width:900px;background:#ffffff;color:#1e293b;font-family:\'Noto Sans TC\',sans-serif;padding:32px;box-sizing:border-box;';
-    wrap.innerHTML = `<div style="margin-bottom:20px;border-bottom:3px solid #f59e0b;padding-bottom:12px;"><h1 style="font-size:20px;font-weight:700;color:#1e293b;margin:0 0 4px;">施工甘特圖</h1><p style="font-size:13px;color:#64748b;margin:0;">${currentProject.name} · 匯出時間：${new Date().toLocaleString('zh-TW')}</p></div><div style="margin-bottom:16px;">${wids.map(w=>`<span style="display:inline-flex;align-items:center;gap:5px;margin-right:16px;font-size:12px;"><span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:${cmap[w]};"></span>${getUserName(w)}</span>`).join('')}</div>`;
+    wrap.innerHTML = `<div style="margin-bottom:20px;border-bottom:3px solid #a855f7;padding-bottom:12px;"><h1 style="font-size:20px;font-weight:700;color:#1e293b;margin:0 0 4px;">施工甘特圖</h1><p style="font-size:13px;color:#64748b;margin:0;">${currentProject.name} · 匯出時間：${new Date().toLocaleString('zh-TW')}</p></div><div style="margin-bottom:16px;">${wids.map(w=>`<span style="display:inline-flex;align-items:center;gap:5px;margin-right:16px;font-size:12px;"><span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:${cmap[w]};"></span>${getUserName(w)}</span>`).join('')}</div>`;
     const LW=180, BW=836-LW, RH=48, step=Math.max(1,Math.round(totalDays/10));
     let ax='<div style="position:relative;min-height:20px;">';
     for (let d=0;d<=totalDays;d+=step) { const dt=new Date(minD.getTime()+d*86400000); ax+=`<span style="position:absolute;left:${LW+(d/totalDays)*BW}px;font-size:10px;color:#94a3b8;white-space:nowrap;">${dt.getMonth()+1}/${dt.getDate()}</span>`; }
@@ -1962,9 +1962,9 @@ async function exportMeetingsPDF() {
   try {
     const wrap = document.createElement('div');
     wrap.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;background:#ffffff;color:#1e293b;font-family:\'Noto Sans TC\',sans-serif;padding:40px 48px;box-sizing:border-box;';
-    wrap.innerHTML = `<div style="border-bottom:3px solid #f59e0b;padding-bottom:16px;margin-bottom:24px;"><h1 style="font-size:22px;font-weight:700;color:#1e293b;margin:0 0 6px;">會議記錄報告</h1><p style="font-size:13px;color:#64748b;margin:0;">匯出時間：${new Date().toLocaleString('zh-TW')} · 共 ${filtered.length} 筆記錄</p></div><div style="background:#f8fafc;border-radius:10px;padding:16px 20px;margin-bottom:28px;border:1px solid #e2e8f0;"><h2 style="font-size:14px;font-weight:700;color:#f59e0b;margin:0 0 12px;">案場基本資料</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><div><p style="font-size:11px;color:#94a3b8;margin:0 0 2px;">案場名稱</p><p style="font-size:13px;font-weight:600;margin:0;">${currentProject.name}</p></div><div><p style="font-size:11px;color:#94a3b8;margin:0 0 2px;">狀態</p><p style="font-size:13px;font-weight:600;margin:0;">${currentProject.status}</p></div><div><p style="font-size:11px;color:#94a3b8;margin:0 0 2px;">地點</p><p style="font-size:13px;margin:0;">${currentProject.location||'—'}</p></div><div><p style="font-size:11px;color:#94a3b8;margin:0 0 2px;">負責人</p><p style="font-size:13px;margin:0;">${currentProject.manager||'—'}</p></div></div></div><h2 style="font-size:15px;font-weight:700;color:#1e293b;margin:0 0 16px;">會議記錄 <span style="font-size:12px;font-weight:400;color:#94a3b8;">（共 ${filtered.length} 筆）</span></h2>`;
+    wrap.innerHTML = `<div style="border-bottom:3px solid #a855f7;padding-bottom:16px;margin-bottom:24px;"><h1 style="font-size:22px;font-weight:700;color:#1e293b;margin:0 0 6px;">會議記錄報告</h1><p style="font-size:13px;color:#64748b;margin:0;">匯出時間：${new Date().toLocaleString('zh-TW')} · 共 ${filtered.length} 筆記錄</p></div><div style="background:#f8fafc;border-radius:10px;padding:16px 20px;margin-bottom:28px;border:1px solid #e2e8f0;"><h2 style="font-size:14px;font-weight:700;color:#a855f7;margin:0 0 12px;">案場基本資料</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><div><p style="font-size:11px;color:#94a3b8;margin:0 0 2px;">案場名稱</p><p style="font-size:13px;font-weight:600;margin:0;">${currentProject.name}</p></div><div><p style="font-size:11px;color:#94a3b8;margin:0 0 2px;">狀態</p><p style="font-size:13px;font-weight:600;margin:0;">${currentProject.status}</p></div><div><p style="font-size:11px;color:#94a3b8;margin:0 0 2px;">地點</p><p style="font-size:13px;margin:0;">${currentProject.location||'—'}</p></div><div><p style="font-size:11px;color:#94a3b8;margin:0 0 2px;">負責人</p><p style="font-size:13px;margin:0;">${currentProject.manager||'—'}</p></div></div></div><h2 style="font-size:15px;font-weight:700;color:#1e293b;margin:0 0 16px;">會議記錄 <span style="font-size:12px;font-weight:400;color:#94a3b8;">（共 ${filtered.length} 筆）</span></h2>`;
     [...filtered].sort((a,b)=>a.meeting_date.localeCompare(b.meeting_date)).forEach((m,i,arr) => {
-      wrap.innerHTML += `<div style="margin-bottom:${i===arr.length-1?0:28}px;border:1px solid #e2e8f0;border-radius:10px;border-left:4px solid #f59e0b;background:#ffffff;overflow:hidden;"><div style="padding:16px 20px 12px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-size:13px;font-weight:700;color:#1e293b;">📅 ${m.meeting_date.replace(/-/g,'/')}</span><span style="font-size:11px;color:#94a3b8;">第 ${i+1} 次會議</span></div><div style="margin-bottom:8px;"><p style="font-size:11px;color:#94a3b8;margin:0 0 3px;">出席人員</p><p style="font-size:13px;font-weight:600;margin:0;color:#334155;">${m.attendees}</p></div><div><p style="font-size:11px;color:#94a3b8;margin:0 0 3px;">會議內容</p><p style="font-size:13px;margin:0;color:#475569;line-height:1.7;white-space:pre-wrap;">${m.content}</p></div></div><div style="border-top:1px dashed #e2e8f0;padding:16px 20px;background:#f8fafc;"><p style="font-size:11px;color:#94a3b8;margin:0 0 10px;font-weight:600;">出席人員簽名</p><div style="height:80px;border:1px solid #e2e8f0;border-radius:6px;background:#fff;"></div></div></div>`;
+      wrap.innerHTML += `<div style="margin-bottom:${i===arr.length-1?0:28}px;border:1px solid #e2e8f0;border-radius:10px;border-left:4px solid #a855f7;background:#ffffff;overflow:hidden;"><div style="padding:16px 20px 12px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-size:13px;font-weight:700;color:#1e293b;">📅 ${m.meeting_date.replace(/-/g,'/')}</span><span style="font-size:11px;color:#94a3b8;">第 ${i+1} 次會議</span></div><div style="margin-bottom:8px;"><p style="font-size:11px;color:#94a3b8;margin:0 0 3px;">出席人員</p><p style="font-size:13px;font-weight:600;margin:0;color:#334155;">${m.attendees}</p></div><div><p style="font-size:11px;color:#94a3b8;margin:0 0 3px;">會議內容</p><p style="font-size:13px;margin:0;color:#475569;line-height:1.7;white-space:pre-wrap;">${m.content}</p></div></div><div style="border-top:1px dashed #e2e8f0;padding:16px 20px;background:#f8fafc;"><p style="font-size:11px;color:#94a3b8;margin:0 0 10px;font-weight:600;">出席人員簽名</p><div style="height:80px;border:1px solid #e2e8f0;border-radius:6px;background:#fff;"></div></div></div>`;
     });
     wrap.innerHTML += `<div style="margin-top:24px;padding-top:12px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;"><span style="font-size:11px;color:#94a3b8;">工程案場管理系統</span><span style="font-size:11px;color:#94a3b8;">${new Date().toLocaleDateString('zh-TW')}</span></div>`;
     document.body.appendChild(wrap);
