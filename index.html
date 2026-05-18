@@ -542,7 +542,7 @@ const SUPABASE_URL = 'https://oubipbyskqaagxfdpvmi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YmlwYnlza3FhYWd4ZmRwdm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ1MTksImV4cCI6MjA5NDI2MDUxOX0.-3oWqtjM--FnCXOpxkdt71p4xVdxdpMqO1SGaIU_f2I';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const APP_VERSION = 'v2.7';
+const APP_VERSION = 'v2.8';
 const VAPID_PUBLIC_KEY = 'BAIHZfwNTWLQm4H1m0vCBCgGoqV5GQpdiF-lLmsURg0hkmA38LzQ_0kqTioztkoUmMqlGZ98MJan2Wxg2JQdEdM';
 
 function urlBase64ToUint8Array(base64) {
@@ -1747,8 +1747,9 @@ document.getElementById('create-worker-btn').onclick = async () => {
 };
 
 async function updateWorkerSpecialty(uid, specialty) {
-  const { error } = await sb.from('profiles').update({ specialty }).eq('id', uid);
-  if (error) { showToast('更新失敗', 'error'); return; }
+  const { error, count } = await sb.from('profiles').update({ specialty }, { count: 'exact' }).eq('id', uid);
+  if (error) { showToast('更新失敗：' + error.message, 'error'); return; }
+  if (count === 0) { showToast('更新失敗：權限不足，請確認 RLS 政策', 'error'); return; }
   const u = DB.users.find(u => u.id===uid);
   if (u) u.specialty = specialty;
   renderWorkersModal();
