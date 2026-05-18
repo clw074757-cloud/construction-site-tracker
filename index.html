@@ -503,7 +503,51 @@ const SUPABASE_URL = 'https://oubipbyskqaagxfdpvmi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YmlwYnlza3FhYWd4ZmRwdm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ1MTksImV4cCI6MjA5NDI2MDUxOX0.-3oWqtjM--FnCXOpxkdt71p4xVdxdpMqO1SGaIU_f2I';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const APP_VERSION = 'v1.5';
+const APP_VERSION = 'v1.6';
+const VAPID_PUBLIC_KEY = 'BAIHZfwNTWLQm4H1m0vCBCgGoqV5GQpdiF-lLmsURg0hkmA38LzQ_0kqTioztkoUmMqlGZ98MJan2Wxg2JQdEdM';
+
+function urlBase64ToUint8Array(base64) {
+  const pad = '='.repeat((4 - base64.length % 4) % 4);
+  const b64 = (base64 + pad).replace(/-/g,'+').replace(/_/g,'/');
+  const raw = atob(b64); const out = new Uint8Array(raw.length);
+  for (let i=0;i<raw.length;i++) out[i]=raw.charCodeAt(i); return out;
+}
+
+async function registerSW() {
+  if (!('serviceWorker' in navigator)) return null;
+  try {
+    return await navigator.serviceWorker.register('/construction-site-tracker/sw.js', { scope: '/construction-site-tracker/' });
+  } catch(e) { console.warn('SW 註冊失敗', e); return null; }
+}
+
+async function subscribePush() {
+  if (!('PushManager' in window) || !currentUser) return;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') return;
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+    }
+    await sb.from('push_subscriptions').upsert(
+      { user_id: currentUser.id, subscription: sub.toJSON() },
+      { onConflict: 'user_id' }
+    );
+  } catch(e) { console.warn('Push 訂閱失敗', e); }
+}
+
+async function sendPush(userIds, title, body) {
+  if (!userIds?.length) return;
+  try {
+    await sb.functions.invoke('send-push', {
+      body: { user_ids: userIds, title, body, url: location.href }
+    });
+  } catch(e) { console.warn('推播失敗', e); }
+}
 const APP_CONFIG = { logo_url: '', app_name: '工程管理系統', app_subtitle: '施工管理平台' };
 
 let DB = { users: [], projects: [], photos: [], meetings: [], notifications: [], gantt_segments: [] };
@@ -789,6 +833,7 @@ function enterApp() {
   applyAppConfig();
   navigateTo(currentUser.role === 'worker' && !currentUser.is_super_admin ? 'worker' : 'dashboard');
   updateNotifBadge();
+  registerSW().then(() => subscribePush());
   // 登入後彈出未讀通知提示
   const unreadCnt = DB.notifications.filter(n => !n.read_by.includes(currentUser.id)).length;
   if (unreadCnt > 0) {
@@ -1238,7 +1283,13 @@ async function handlePhotoFiles(files) {
   photoInput.value=''; document.getElementById('photo-desc').value='';
   await loadProjectPhotos(currentProject.id); renderPhotos();
   if (errors.length) showToast(`上傳部分失敗：${errors[0]}`, 'error');
-  else showToast(`已上傳 ${done} 張照片`);
+  else {
+    showToast(`已上傳 ${done} 張照片`);
+    if (currentUser.role === 'worker') {
+      const designers = DB.users.filter(u => u.role === 'designer' && u.org_id === currentUser.org_id).map(u => u.id);
+      sendPush(designers, '📷 ' + currentProject.name, currentUser.name + ' 上傳了 ' + done + ' 張照片');
+    }
+  }
   btn.disabled=false; btn.textContent='上傳';
 }
 
@@ -1379,6 +1430,10 @@ async function sendNotification() {
     DB.notifications = (data||[]).map(n => ({ ...n, read_by:(n.notification_reads||[]).map(r=>r.user_id) }));
     document.getElementById('notify-message').value=''; document.getElementById('notify-team').value='';
     updateNotifBadge(); showToast('通知已發送 📣'); hideModal('detail-modal');
+    const pushTargets = team
+      ? [team]
+      : DB.users.filter(u => u.role === 'worker' && u.org_id === currentUser.org_id).map(u => u.id);
+    sendPush(pushTargets, '📣 ' + currentProject.name, fullMsg);
   } catch(e) { showToast('發送失敗：'+e.message, 'error'); }
 }
 
