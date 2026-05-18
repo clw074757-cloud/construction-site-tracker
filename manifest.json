@@ -1,0 +1,16 @@
+{
+  "name": "工程案場管理系統",
+  "short_name": "工程管理",
+  "description": "案場進度、照片、會議記錄、甘特圖一站管理",
+  "start_url": "/construction-site-tracker/",
+  "scope": "/construction-site-tracker/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#f59e0b",
+  "lang": "zh-TW",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
