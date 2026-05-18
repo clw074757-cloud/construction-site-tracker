@@ -75,7 +75,8 @@
     .notif-dot { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; background: var(--red); border-radius: 999px; border: 2px solid var(--surface2); font-size: 11px; font-weight: 700; color: #fff; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
     .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
     .photo-item { position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; background: #0f172a; }
-    .photo-item img { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
+    .photo-item img { width: 100%; height: 100%; object-fit: cover; }
+    .photo-view-btn { position:absolute; inset:0; width:100%; height:100%; border:none; background:none; padding:0; cursor:pointer; display:block; }
     .photo-item .del-overlay { position: absolute; inset: 0; background: rgba(0,0,0,.6); display: none; align-items: center; justify-content: center; }
     .photo-item:hover .del-overlay { display: flex; }
     #lightbox { display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.92); align-items:center; justify-content:center; flex-direction:column; }
@@ -1316,9 +1317,11 @@ function renderPhotos() {
   grid.innerHTML = photos.map((ph, idx) => {
     const canDel = currentUser.role==='designer' || ph.uploader_id===currentUser.id;
     return `<div style="display:flex; flex-direction:column; gap:4px;">
-      <div class="photo-item" onclick="openLightbox(${idx})" style="cursor:pointer;">
-        <img src="${ph.storage_url||''}" alt="${ph.description||''}">
-        ${canDel ? `<div class="del-overlay" onclick="event.stopPropagation()"><button onclick="deletePhoto('${ph.id}')" style="background:var(--red);border:none;color:white;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;">🗑 刪除</button></div>` : ''}
+      <div class="photo-item">
+        <button class="photo-view-btn" onclick="openLightbox(${idx})">
+          <img src="${ph.storage_url||''}" alt="${ph.description||''}" style="width:100%;height:100%;object-fit:cover;">
+        </button>
+        ${canDel ? `<div class="del-overlay"><button onclick="deletePhoto('${ph.id}')" style="background:var(--red);border:none;color:white;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;">🗑 刪除</button></div>` : ''}
       </div>
       <div style="padding:0 2px;">
         ${ph.description ? `<p style="font-size:11px; font-weight:600; color:var(--text); margin:0;">${ph.description}</p>` : ''}
