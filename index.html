@@ -286,6 +286,16 @@
         <div id="admin-codes-list"><p style="font-size:12px;color:var(--text-muted);">載入中...</p></div>
       </div>
 
+      <!-- 系統公告 -->
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:20px;">
+        <h3 style="font-size:14px; margin-bottom:12px;">📢 發送系統公告</h3>
+        <select id="admin-announce-target" class="input" style="margin-bottom:8px;">
+          <option value="all">全體用戶</option>
+        </select>
+        <textarea id="admin-announce-msg" class="input" rows="3" placeholder="公告內容…" style="resize:vertical; min-height:80px; margin-bottom:8px;"></textarea>
+        <button onclick="adminSendAnnouncement(this)" class="btn btn-primary btn-sm" style="width:100%; justify-content:center;">📢 發送公告</button>
+      </div>
+
       <div id="admin-orgs-list"></div>
     </section>
 
@@ -1045,6 +1055,9 @@ async function renderAdminPanel() {
       <div class="stat-card"><p style="font-size:12px;color:var(--text-muted);">組織數</p><p style="font-size:24px;font-weight:700;color:var(--amber);">${orgsData.length}</p></div>
       <div class="stat-card"><p style="font-size:12px;color:var(--text-muted);">設計師</p><p style="font-size:24px;font-weight:700;color:var(--emerald);">${totalDesigners}</p></div>
       <div class="stat-card"><p style="font-size:12px;color:var(--text-muted);">工班帳號</p><p style="font-size:24px;font-weight:700;color:var(--blue);">${totalWorkers}</p></div>`;
+    // 公告目標選單
+    const sel = document.getElementById('admin-announce-target');
+    if (sel) sel.innerHTML = '<option value="all">全體用戶</option>' + orgsData.map(o => `<option value="${o.id}">${o.name||'未命名'}</option>`).join('');
     if (orgsData.length === 0) { listEl.innerHTML = '<div class="empty-state"><div class="empty-icon">🏢</div><p>尚無組織</p></div>'; return; }
     listEl.innerHTML = orgsData.map(org => {
       const members  = profileData.filter(p => p.org_id === org.id);
@@ -1102,6 +1115,29 @@ async function adminEditOrgName(orgId, currentName) {
     showToast('組織名稱已更新');
     renderAdminPanel();
   } catch(e) { showToast('更新失敗：' + e.message, 'error'); }
+}
+
+async function adminSendAnnouncement(btn) {
+  const msg = document.getElementById('admin-announce-msg').value.trim();
+  const target = document.getElementById('admin-announce-target').value;
+  if (!msg) { showToast('請輸入公告內容', 'error'); return; }
+  btn.disabled = true; btn.textContent = '發送中...';
+  try {
+    let orgIds;
+    if (target === 'all') {
+      const { data: orgs } = await sb.from('organizations').select('id');
+      orgIds = (orgs || []).map(o => o.id);
+    } else {
+      orgIds = [target];
+    }
+    if (!orgIds.length) { showToast('找不到目標組織', 'error'); return; }
+    const rows = orgIds.map(id => ({ org_id: id, project_id: null, sender_id: currentUser.id, message: `【系統公告】${msg}` }));
+    const { error } = await sb.from('notifications').insert(rows);
+    if (error) throw error;
+    document.getElementById('admin-announce-msg').value = '';
+    showToast(`公告已發送至 ${orgIds.length} 個組織`);
+  } catch(e) { showToast('發送失敗：' + e.message, 'error'); }
+  finally { btn.disabled = false; btn.textContent = '📢 發送公告'; }
 }
 
 async function adminDeleteOrg(orgId, name) {
