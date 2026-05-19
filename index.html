@@ -565,7 +565,7 @@ const SUPABASE_URL = 'https://oubipbyskqaagxfdpvmi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YmlwYnlza3FhYWd4ZmRwdm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ1MTksImV4cCI6MjA5NDI2MDUxOX0.-3oWqtjM--FnCXOpxkdt71p4xVdxdpMqO1SGaIU_f2I';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const APP_VERSION = 'v3.5';
+const APP_VERSION = 'v3.6';
 const VAPID_PUBLIC_KEY = 'BAIHZfwNTWLQm4H1m0vCBCgGoqV5GQpdiF-lLmsURg0hkmA38LzQ_0kqTioztkoUmMqlGZ98MJan2Wxg2JQdEdM';
 
 function urlBase64ToUint8Array(base64) {
@@ -1673,7 +1673,7 @@ function openProjectModal(project) {
   document.getElementById('pm-progress').value = project?.progress||0;
   document.getElementById('pm-progress-val').textContent = project?.progress||0;
   document.getElementById('pm-notes').value = project?.notes||'';
-  const workers = DB.users.filter(u => u.role==='worker' && u.org_id===currentUser.org_id);
+  const workers = DB.users.filter(u => u.role==='worker');
   const sel = project?.workers||[];
   document.getElementById('pm-workers-list').innerHTML = workers.length===0
     ? '<span style="font-size:12px; color:#475569;">尚無工班帳號</span>'
@@ -1732,7 +1732,7 @@ function specialtyBadge(sp) {
 }
 
 function renderWorkersModal() {
-  const workers = DB.users.filter(u => u.role==='worker' && u.org_id===currentUser.org_id);
+  const workers = DB.users.filter(u => u.role==='worker');
   document.getElementById('workers-list-modal').innerHTML = workers.length===0
     ? '<p style="font-size:13px; color:var(--text-muted); text-align:center; margin-bottom:12px;">尚無工班帳號</p>'
     : workers.map(w => `
