@@ -919,7 +919,7 @@ function enterApp() {
   document.getElementById('page-app').classList.add('active');
   const roleLabel = { designer:'設計師（管理員）', worker:'工班' };
   const adminLabel = currentUser.is_super_admin ? ' · 🛠 系統管理員' : '';
-  document.getElementById('user-role-label').textContent = (roleLabel[currentUser.role] || currentUser.role) + ' · ' + currentUser.name + adminLabel;
+  document.getElementById('user-role-label').innerHTML = (roleLabel[currentUser.role] || currentUser.role) + ' · ' + currentUser.name + adminLabel + ' <span style="opacity:0.4;">' + APP_VERSION + '</span>';
   document.getElementById('user-avatar').textContent = currentUser.name[0];
   const nav = document.getElementById('nav-dashboard');
   if (currentUser.role === 'worker' && !currentUser.is_super_admin) {
