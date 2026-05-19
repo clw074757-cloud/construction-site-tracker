@@ -565,7 +565,7 @@ const SUPABASE_URL = 'https://oubipbyskqaagxfdpvmi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YmlwYnlza3FhYWd4ZmRwdm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ1MTksImV4cCI6MjA5NDI2MDUxOX0.-3oWqtjM--FnCXOpxkdt71p4xVdxdpMqO1SGaIU_f2I';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const APP_VERSION = 'v3.6';
+const APP_VERSION = 'v3.7';
 const VAPID_PUBLIC_KEY = 'BAIHZfwNTWLQm4H1m0vCBCgGoqV5GQpdiF-lLmsURg0hkmA38LzQ_0kqTioztkoUmMqlGZ98MJan2Wxg2JQdEdM';
 
 function urlBase64ToUint8Array(base64) {
@@ -786,9 +786,27 @@ async function doLogin() {
 }
 
 async function loadOrgData() {
-  if (!currentUser?.org_id) return;
+  if (!currentUser) return;
+
+  // ── 獨立工班（org_id = null）─────────────────────────
+  if (currentUser.role === 'worker' && !currentUser.org_id) {
+    const { data: mp } = await sb.from('project_members').select('project_id').eq('user_id', currentUser.id);
+    const ids = (mp || []).map(m => m.project_id);
+    if (!ids.length) { DB.projects = []; DB.notifications = []; return; }
+    const { data: projects } = await sb.from('projects').select('*, project_members(user_id)').in('id', ids).order('created_at', { ascending: false });
+    DB.projects = (projects || []).map(p => ({ ...p, workers: (p.project_members || []).map(m => m.user_id) }));
+    // 通知：撈所有相關案場的通知
+    const { data: notifs } = await sb.from('notifications').select('*, notification_reads(user_id)').in('project_id', ids).order('created_at', { ascending: false });
+    DB.notifications = (notifs || []).map(n => ({ ...n, read_by: (n.notification_reads || []).map(r => r.user_id) }));
+    // 補撈案場成員的 profile（顯示姓名用）
+    const allUids = [...new Set(DB.projects.flatMap(p => p.workers))];
+    const { data: members } = await sb.from('profiles').select('*').in('id', allUids);
+    DB.users = members || [];
+    return;
+  }
+
+  // ── 設計師 / 有 org 的工班 ────────────────────────────
   const org = currentUser.org_id;
-  // 載入同 org 的成員
   const { data: users } = await sb.from('profiles').select('*').eq('org_id', org);
   DB.users = users || [];
   let q = sb.from('projects').select('*, project_members(user_id)').eq('org_id', org).order('created_at', { ascending: false });
