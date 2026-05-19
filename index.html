@@ -162,6 +162,10 @@
           <input id="reg-invite-code" class="input" placeholder="請聯絡開發者索取邀請碼" style="text-transform:uppercase;letter-spacing:1px;">
         </div>
         <!-- 工班專用 -->
+        <div id="reg-company-worker-wrap" style="margin-bottom:14px;display:none;">
+          <label>公司名稱（選填）</label>
+          <input id="reg-company-worker" class="input" placeholder="例：○○水電工程行">
+        </div>
         <div id="reg-specialty-wrap" style="margin-bottom:14px;display:none;">
           <label>工種</label>
           <input id="reg-specialty" class="input" list="specialty-options" placeholder="選擇或輸入工種" autocomplete="off">
@@ -549,7 +553,7 @@ const SUPABASE_URL = 'https://oubipbyskqaagxfdpvmi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YmlwYnlza3FhYWd4ZmRwdm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ1MTksImV4cCI6MjA5NDI2MDUxOX0.-3oWqtjM--FnCXOpxkdt71p4xVdxdpMqO1SGaIU_f2I';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const APP_VERSION = 'v3.0';
+const APP_VERSION = 'v3.1';
 const VAPID_PUBLIC_KEY = 'BAIHZfwNTWLQm4H1m0vCBCgGoqV5GQpdiF-lLmsURg0hkmA38LzQ_0kqTioztkoUmMqlGZ98MJan2Wxg2JQdEdM';
 
 function urlBase64ToUint8Array(base64) {
@@ -622,7 +626,8 @@ function getWorkerTag(uid) {
   if (!u) return '<span style="font-size:11px;background:rgba(255,255,255,.07);padding:2px 8px;border-radius:6px;color:var(--text-muted);">未知</span>';
   const c = SPECIALTY_COLOR[u.specialty] || '#64748b';
   const spTag = u.specialty ? `<span style="font-size:10px;padding:1px 6px;border-radius:99px;background:${c}22;color:${c};border:1px solid ${c}44;">${u.specialty}</span>` : '';
-  return `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;background:rgba(255,255,255,.07);padding:2px 8px;border-radius:6px;color:var(--text-muted);">👷 ${u.display_name||'未知'}${spTag}</span>`;
+  const coTag = u.company ? `<span style="font-size:10px;color:#94a3b8;">🏢${u.company}</span>` : '';
+  return `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;background:rgba(255,255,255,.07);padding:2px 8px;border-radius:6px;color:var(--text-muted);">👷 ${u.display_name||'未知'}${spTag}${coTag}</span>`;
 }
 
 // ══════════════════════════════════════════
@@ -641,6 +646,7 @@ function setRegType(type) {
     : 'flex:1;padding:8px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:2px solid var(--border);background:transparent;color:var(--text-muted);';
   document.getElementById('reg-company-wrap').style.display = isDesigner ? '' : 'none';
   document.getElementById('reg-invite-wrap').style.display = isDesigner ? '' : 'none';
+  document.getElementById('reg-company-worker-wrap').style.display = isDesigner ? 'none' : '';
   document.getElementById('reg-specialty-wrap').style.display = isDesigner ? 'none' : '';
 }
 
@@ -685,7 +691,8 @@ async function doRegister() {
   const email     = document.getElementById('reg-email').value.trim();
   const pw        = document.getElementById('reg-password').value;
   const company   = document.getElementById('reg-company').value.trim();
-  const specialty = document.getElementById('reg-specialty').value.trim();
+  const specialty      = document.getElementById('reg-specialty').value.trim();
+  const workerCompany  = document.getElementById('reg-company-worker').value.trim();
   const isDesigner = _regType === 'designer';
 
   if (!name || !email || !pw) { showToast('請填寫所有欄位', 'error'); return; }
@@ -723,7 +730,8 @@ async function doRegister() {
     } else {
       // 建立工班 profile（org_id 為 null，工班獨立帳號）
       const { error: pe } = await sb.from('profiles').insert({
-        id: data.user.id, org_id: null, role: 'worker', display_name: name, account: email, specialty: specialty||null,
+        id: data.user.id, org_id: null, role: 'worker', display_name: name, account: email,
+        specialty: specialty||null, company: workerCompany||null,
       });
       if (pe) { showToast('建立資料失敗：' + pe.message, 'error'); return; }
       showToast('工班帳號建立成功！請登入');
@@ -732,7 +740,7 @@ async function doRegister() {
     document.getElementById('form-register').style.display = 'none';
     document.getElementById('form-login').style.display = '';
     document.getElementById('login-email').value = email;
-    ['reg-name','reg-email','reg-password','reg-company','reg-invite-code','reg-specialty'].forEach(id => {
+    ['reg-name','reg-email','reg-password','reg-company','reg-invite-code','reg-specialty','reg-company-worker'].forEach(id => {
       document.getElementById(id).value = '';
     });
 
@@ -1646,7 +1654,7 @@ function openProjectModal(project) {
   const sel = project?.workers||[];
   document.getElementById('pm-workers-list').innerHTML = workers.length===0
     ? '<span style="font-size:12px; color:#475569;">尚無工班帳號</span>'
-    : workers.map(w => `<label style="display:flex; align-items:center; gap:6px; cursor:pointer; color:var(--text); margin:0; font-size:13px; padding:4px 0;"><input type="checkbox" value="${w.id}" ${sel.includes(w.id)?'checked':''} style="accent-color:var(--amber); flex-shrink:0;">${w.display_name||w.name}${specialtyBadge(w.specialty)}</label>`).join('');
+    : workers.map(w => `<label style="display:flex; align-items:center; gap:6px; cursor:pointer; color:var(--text); margin:0; font-size:13px; padding:4px 0;"><input type="checkbox" value="${w.id}" ${sel.includes(w.id)?'checked':''} style="accent-color:var(--amber); flex-shrink:0;">${w.display_name||w.name}${specialtyBadge(w.specialty)}${w.company?`<span style="font-size:10px;color:#64748b;">🏢${w.company}</span>`:''}</label>`).join('');
   showModal('project-modal');
 }
 
@@ -1703,6 +1711,7 @@ function renderWorkersModal() {
             <p style="font-size:13px; font-weight:600; margin:0;">${w.display_name||'—'}</p>
             ${specialtyBadge(w.specialty)}
           </div>
+          ${w.company ? `<p style="font-size:11px; color:var(--amber); margin:1px 0 0; font-weight:500;">🏢 ${w.company}</p>` : ''}
           <p style="font-size:11px; color:var(--text-muted); margin:2px 0 4px;">${w.account||''}</p>
           <div style="display:flex;gap:4px;margin-top:4px;">
             <input id="sp-${w.id}" list="specialty-options" value="${w.specialty||''}" placeholder="輸入或選擇工種" style="flex:1;font-size:11px;padding:3px 7px;border-radius:6px;background:#1e293b;color:var(--text);border:1px solid var(--border);" autocomplete="off">
