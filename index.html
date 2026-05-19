@@ -316,8 +316,6 @@
       <button class="modal-close btn btn-ghost btn-sm" data-modal="brand-modal">✕</button>
     </div>
     <div class="modal-body">
-      <div style="margin-bottom:16px;"><label>系統名稱</label><input id="brand-name" class="input" placeholder="例：○○工程管理系統"></div>
-      <div style="margin-bottom:16px;"><label>登入頁副標題</label><input id="brand-subtitle" class="input" placeholder="例：施工管理平台"></div>
       <div style="margin-bottom:8px;">
         <label>Logo 圖片</label>
         <div style="margin-bottom:10px; height:64px; display:flex; align-items:center; justify-content:center; background:#0f172a; border-radius:10px; border:1px solid var(--border);">
@@ -848,8 +846,6 @@ function loadBrandConfig() { try { const s = localStorage.getItem('app_brand_con
 function saveBrandConfig() { try { localStorage.setItem('app_brand_config', JSON.stringify(APP_CONFIG)); } catch(e) {} }
 
 document.getElementById('brand-settings-btn').onclick = () => {
-  document.getElementById('brand-name').value = APP_CONFIG.app_name;
-  document.getElementById('brand-subtitle').value = APP_CONFIG.app_subtitle;
   const pi = document.getElementById('brand-logo-preview-img');
   const pf = document.getElementById('brand-logo-preview-fallback');
   const cb = document.getElementById('brand-logo-clear-btn');
@@ -888,14 +884,10 @@ document.getElementById('brand-logo-clear-btn').onclick = () => {
 };
 
 document.getElementById('brand-save-btn').onclick = async () => {
-  const name = document.getElementById('brand-name').value.trim();
-  const subtitle = document.getElementById('brand-subtitle').value.trim();
-  if (!name) { showToast('請輸入系統名稱', 'error'); return; }
-  APP_CONFIG.app_name = name; APP_CONFIG.app_subtitle = subtitle;
   if (APP_CONFIG._pending_logo !== undefined) { APP_CONFIG.logo_url = APP_CONFIG._pending_logo; delete APP_CONFIG._pending_logo; }
   saveBrandConfig();
   try { await sb.from('organizations').update({ brand_config: { app_name: APP_CONFIG.app_name, app_subtitle: APP_CONFIG.app_subtitle, logo_url: APP_CONFIG.logo_url } }).eq('id', currentUser.org_id); } catch(e) {}
-  applyAppConfig(); hideModal('brand-modal'); showToast('品牌設定已儲存');
+  applyAppConfig(); hideModal('brand-modal'); showToast('Logo 已儲存');
 };
 
 function applyAppConfig() {
