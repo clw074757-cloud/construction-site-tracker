@@ -795,10 +795,8 @@ async function loadOrgData() {
     if (!ids.length) { DB.projects = []; DB.notifications = []; return; }
     const { data: projects } = await sb.from('projects').select('*, project_members(user_id)').in('id', ids).order('created_at', { ascending: false });
     DB.projects = (projects || []).map(p => ({ ...p, workers: (p.project_members || []).map(m => m.user_id) }));
-    // 通知：撈所有相關案場的通知
     const { data: notifs } = await sb.from('notifications').select('*, notification_reads(user_id)').in('project_id', ids).order('created_at', { ascending: false });
     DB.notifications = (notifs || []).map(n => ({ ...n, read_by: (n.notification_reads || []).map(r => r.user_id) }));
-    // 補撈案場成員的 profile（顯示姓名用）
     const allUids = [...new Set(DB.projects.flatMap(p => p.workers))];
     const { data: members } = await sb.from('profiles').select('*').in('id', allUids);
     DB.users = members || [];
@@ -1894,7 +1892,15 @@ document.getElementById('delete-confirm-btn').onclick = async () => {
   const btn = document.getElementById('delete-confirm-btn'); btn.disabled=true; btn.textContent='刪除中...';
   const pid = pendingDeleteId;
   try {
-    // ON DELETE CASCADE 已設定，刪 projects 會自動清除所有子資料
+    await sb.from('photos').delete().eq('project_id', pid);
+    await sb.from('meetings').delete().eq('project_id', pid);
+    try { await sb.from('gantt_segments').delete().eq('project_id', pid); } catch(_) {}
+    await sb.from('project_members').delete().eq('project_id', pid);
+    try {
+      const { data: notifs } = await sb.from('notifications').select('id').eq('project_id', pid);
+      if (notifs?.length) await sb.from('notification_reads').delete().in('notification_id', notifs.map(n => n.id));
+      await sb.from('notifications').delete().eq('project_id', pid);
+    } catch(_) {}
     const { error } = await sb.from('projects').delete().eq('id', pid);
     if (error) throw error;
     pendingDeleteId=null; await loadOrgData(); hideModal('delete-modal'); renderDashboard(); showToast('案場已刪除');
