@@ -565,7 +565,7 @@ const SUPABASE_URL = 'https://oubipbyskqaagxfdpvmi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YmlwYnlza3FhYWd4ZmRwdm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ1MTksImV4cCI6MjA5NDI2MDUxOX0.-3oWqtjM--FnCXOpxkdt71p4xVdxdpMqO1SGaIU_f2I';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const APP_VERSION = 'v3.3';
+const APP_VERSION = 'v3.4';
 const VAPID_PUBLIC_KEY = 'BAIHZfwNTWLQm4H1m0vCBCgGoqV5GQpdiF-lLmsURg0hkmA38LzQ_0kqTioztkoUmMqlGZ98MJan2Wxg2JQdEdM';
 
 function urlBase64ToUint8Array(base64) {
@@ -800,13 +800,14 @@ async function loadOrgData() {
   }
   const { data: projects } = await q;
   DB.projects = (projects || []).map(p => ({ ...p, workers: (p.project_members || []).map(m => m.user_id) }));
-  // 補撈跨 org 工班（org_id=null 的獨立工班，透過 project_members 關聯）
-  if (currentUser.role === 'designer' && DB.projects.length) {
-    const allWorkerIds = [...new Set(DB.projects.flatMap(p => p.workers))];
-    const missingIds = allWorkerIds.filter(id => !DB.users.find(u => u.id === id));
+  // 補撈設計師已加入的獨立工班（designer_workers 關聯表）
+  if (currentUser.role === 'designer') {
+    const { data: dw } = await sb.from('designer_workers').select('worker_id').eq('designer_id', currentUser.id);
+    const linkedIds = (dw || []).map(r => r.worker_id);
+    const missingIds = linkedIds.filter(id => !DB.users.find(u => u.id === id));
     if (missingIds.length) {
-      const { data: crossWorkers } = await sb.from('profiles').select('*').in('id', missingIds);
-      if (crossWorkers) DB.users = [...DB.users, ...crossWorkers];
+      const { data: linkedWorkers } = await sb.from('profiles').select('*').in('id', missingIds);
+      if (linkedWorkers) DB.users = [...DB.users, ...linkedWorkers];
     }
   }
   const { data: notifs } = await sb.from('notifications').select('*, notification_reads(user_id)').eq('org_id', org).order('created_at', { ascending: false });
@@ -1831,10 +1832,12 @@ function renderWorkerDirectory() {
 async function addWorkerToList(uid) {
   const w = _allWorkers.find(u => u.id === uid);
   if (!w) return;
+  const { error } = await sb.from('designer_workers').upsert({ designer_id: currentUser.id, worker_id: uid });
+  if (error) { showToast('加入失敗：' + error.message, 'error'); return; }
   if (!DB.users.find(u => u.id === uid)) DB.users.push(w);
   renderWorkersModal();
   renderWorkerDirectory();
-  showToast(`${w.display_name} 已加入，可到案場指派`);
+  showToast(`${w.display_name} 已加入工班清單`);
 }
 
 async function updateWorkerSpecialty(uid, specialty) {
@@ -1849,11 +1852,11 @@ async function updateWorkerSpecialty(uid, specialty) {
 
 async function deleteWorker(uid) {
   try {
-    const { error } = await sb.rpc('admin_remove_user', { p_uid: uid });
-    if (error) throw error;
+    // 從設計師工班清單移除（不刪帳號，只解除關聯）
+    await sb.from('designer_workers').delete().eq('designer_id', currentUser.id).eq('worker_id', uid);
     DB.users = DB.users.filter(u => u.id!==uid);
     DB.projects.forEach(p => { p.workers = p.workers.filter(w => w!==uid); });
-    renderWorkersModal(); showToast('工班已移除');
+    renderWorkersModal(); renderWorkerDirectory(); showToast('工班已從清單移除');
   } catch(e) { showToast('移除失敗：'+e.message, 'error'); }
 }
 
