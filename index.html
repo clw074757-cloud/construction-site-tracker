@@ -491,14 +491,16 @@
     <div class="modal-body">
       <div id="workers-list-modal"></div>
 
-      <!-- 搜尋已有帳號的工班 -->
+      <!-- 從工班名冊挑選 -->
       <div style="margin-top:16px; padding:16px; background:#0f172a; border-radius:12px; border:1px solid var(--border);">
-        <p style="font-size:13px; font-weight:600; margin-bottom:10px;">🔍 搜尋工班帳號（Email）</p>
-        <div style="display:flex; gap:8px; margin-bottom:8px;">
-          <input id="search-worker-email" class="input" type="email" placeholder="輸入工班 Email" style="flex:1;">
-          <button onclick="searchWorkerByEmail()" class="btn btn-ghost btn-sm" style="flex-shrink:0;">搜尋</button>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+          <p style="font-size:13px; font-weight:600; margin:0;">📋 工班名冊</p>
+          <button onclick="loadAllWorkers()" class="btn btn-ghost btn-sm">重新整理</button>
         </div>
-        <div id="search-worker-result"></div>
+        <input id="worker-directory-search" class="input" placeholder="搜尋姓名、工種或公司…" oninput="filterWorkerDirectory()" style="margin-bottom:10px; font-size:13px;">
+        <div id="worker-directory-list" style="max-height:260px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;">
+          <p style="font-size:12px; color:var(--text-muted);">載入中…</p>
+        </div>
       </div>
 
       <!-- 直接新增工班帳號 -->
@@ -563,7 +565,7 @@ const SUPABASE_URL = 'https://oubipbyskqaagxfdpvmi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YmlwYnlza3FhYWd4ZmRwdm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ1MTksImV4cCI6MjA5NDI2MDUxOX0.-3oWqtjM--FnCXOpxkdt71p4xVdxdpMqO1SGaIU_f2I';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const APP_VERSION = 'v3.2';
+const APP_VERSION = 'v3.3';
 const VAPID_PUBLIC_KEY = 'BAIHZfwNTWLQm4H1m0vCBCgGoqV5GQpdiF-lLmsURg0hkmA38LzQ_0kqTioztkoUmMqlGZ98MJan2Wxg2JQdEdM';
 
 function urlBase64ToUint8Array(base64) {
@@ -1707,6 +1709,7 @@ document.getElementById('designer-add-worker-btn').onclick = async () => {
   DB.users = users || [];
   renderWorkersModal();
   showModal('worker-modal');
+  loadAllWorkers();
 };
 
 const SPECIALTY_COLOR = {
@@ -1783,42 +1786,55 @@ document.getElementById('create-worker-btn').onclick = async () => {
   finally { btn.disabled = false; btn.textContent = '建立工班帳號'; }
 };
 
-async function searchWorkerByEmail() {
-  const email = document.getElementById('search-worker-email').value.trim();
-  const result = document.getElementById('search-worker-result');
-  if (!email) { result.innerHTML = ''; return; }
-  result.innerHTML = '<p style="font-size:12px;color:var(--text-muted);">搜尋中...</p>';
-  const { data, error } = await sb.from('profiles').select('*').eq('account', email).eq('role', 'worker').single();
-  if (error || !data) {
-    result.innerHTML = '<p style="font-size:12px;color:#ef4444;">找不到此 Email 的工班帳號</p>'; return;
-  }
-  const already = DB.users.find(u => u.id === data.id);
-  const c = SPECIALTY_COLOR[data.specialty] || '#64748b';
-  const spBadge = data.specialty ? `<span style="font-size:10px;padding:1px 6px;border-radius:99px;background:${c}22;color:${c};border:1px solid ${c}44;">${data.specialty}</span>` : '';
-  const coBadge = data.company ? `<span style="font-size:11px;color:#94a3b8;">🏢 ${data.company}</span>` : '';
-  result.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#1e293b;border-radius:10px;border:1px solid var(--border);">
-      <div>
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-          <p style="font-size:13px;font-weight:600;margin:0;">👷 ${data.display_name||'—'}</p>${spBadge}
-        </div>
-        <div style="display:flex;gap:8px;margin-top:2px;">${coBadge}<p style="font-size:11px;color:var(--text-muted);margin:0;">${data.account}</p></div>
-      </div>
-      ${already
-        ? '<span style="font-size:11px;color:#34d399;">✓ 已在清單中</span>'
-        : `<button onclick="addWorkerToOrg('${data.id}')" class="btn btn-primary btn-sm">加入</button>`}
-    </div>`;
+let _allWorkers = [];
+async function loadAllWorkers() {
+  const el = document.getElementById('worker-directory-list');
+  if (el) el.innerHTML = '<p style="font-size:12px;color:var(--text-muted);">載入中…</p>';
+  const { data } = await sb.from('profiles').select('*').eq('role', 'worker').order('display_name');
+  _allWorkers = data || [];
+  renderWorkerDirectory();
 }
-
-async function addWorkerToOrg(uid) {
-  // 撈完整 profile 加進本地 DB.users（不改 org_id，保持跨設計師能力）
-  const { data: w } = await sb.from('profiles').select('*').eq('id', uid).single();
-  if (!w) { showToast('找不到工班資料', 'error'); return; }
+function filterWorkerDirectory() {
+  renderWorkerDirectory();
+}
+function renderWorkerDirectory() {
+  const el = document.getElementById('worker-directory-list');
+  if (!el) return;
+  const q = (document.getElementById('worker-directory-search')?.value || '').toLowerCase();
+  const filtered = _allWorkers.filter(w =>
+    !q ||
+    (w.display_name||'').toLowerCase().includes(q) ||
+    (w.specialty||'').toLowerCase().includes(q) ||
+    (w.company||'').toLowerCase().includes(q)
+  );
+  if (!filtered.length) { el.innerHTML = '<p style="font-size:12px;color:var(--text-muted);">找不到符合的工班</p>'; return; }
+  el.innerHTML = filtered.map(w => {
+    const already = DB.users.find(u => u.id === w.id);
+    const c = SPECIALTY_COLOR[w.specialty] || '#64748b';
+    const spBadge = w.specialty ? `<span style="font-size:10px;padding:1px 6px;border-radius:99px;background:${c}22;color:${c};border:1px solid ${c}44;white-space:nowrap;">${w.specialty}</span>` : '';
+    const co = w.company ? `<span style="font-size:11px;color:#94a3b8;">🏢 ${w.company}</span>` : '';
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:#1e293b;border-radius:10px;border:1px solid var(--border);gap:8px;">
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;"">
+          <p style="font-size:13px;font-weight:600;margin:0;white-space:nowrap;">👷 ${w.display_name||'—'}</p>${spBadge}
+        </div>
+        <div style="display:flex;gap:8px;margin-top:2px;flex-wrap:wrap;">${co}<span style="font-size:11px;color:var(--text-muted);">${w.account||''}</span></div>
+      </div>
+      <div style="flex-shrink:0;">
+        ${already
+          ? '<span style="font-size:11px;color:#34d399;">✓ 已加入</span>'
+          : `<button onclick="addWorkerToList('${w.id}')" class="btn btn-primary btn-sm">加入</button>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+async function addWorkerToList(uid) {
+  const w = _allWorkers.find(u => u.id === uid);
+  if (!w) return;
   if (!DB.users.find(u => u.id === uid)) DB.users.push(w);
-  document.getElementById('search-worker-email').value = '';
-  document.getElementById('search-worker-result').innerHTML = '';
   renderWorkersModal();
-  showToast('工班已加入清單！請到案場指派給他們。');
+  renderWorkerDirectory();
+  showToast(`${w.display_name} 已加入，可到案場指派`);
 }
 
 async function updateWorkerSpecialty(uid, specialty) {
