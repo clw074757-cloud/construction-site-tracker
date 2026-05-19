@@ -565,7 +565,7 @@ const SUPABASE_URL = 'https://oubipbyskqaagxfdpvmi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YmlwYnlza3FhYWd4ZmRwdm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ1MTksImV4cCI6MjA5NDI2MDUxOX0.-3oWqtjM--FnCXOpxkdt71p4xVdxdpMqO1SGaIU_f2I';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const APP_VERSION = 'v3.4';
+const APP_VERSION = 'v3.5';
 const VAPID_PUBLIC_KEY = 'BAIHZfwNTWLQm4H1m0vCBCgGoqV5GQpdiF-lLmsURg0hkmA38LzQ_0kqTioztkoUmMqlGZ98MJan2Wxg2JQdEdM';
 
 function urlBase64ToUint8Array(base64) {
@@ -1708,6 +1708,13 @@ document.getElementById('pm-submit').onclick = async () => {
 document.getElementById('designer-add-worker-btn').onclick = async () => {
   const { data: users } = await sb.from('profiles').select('*').eq('org_id', currentUser.org_id);
   DB.users = users || [];
+  // 補回 designer_workers 關聯的獨立工班
+  const { data: dw } = await sb.from('designer_workers').select('worker_id').eq('designer_id', currentUser.id);
+  const linkedIds = (dw || []).map(r => r.worker_id).filter(id => !DB.users.find(u => u.id === id));
+  if (linkedIds.length) {
+    const { data: linked } = await sb.from('profiles').select('*').in('id', linkedIds);
+    if (linked) DB.users = [...DB.users, ...linked];
+  }
   renderWorkersModal();
   showModal('worker-modal');
   loadAllWorkers();
