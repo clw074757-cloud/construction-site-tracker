@@ -147,19 +147,26 @@
 
       <!-- 註冊表單 -->
       <div id="form-register" style="display:none;">
-        <div style="text-align:center; margin-bottom:16px;">
-          <span id="reg-type-badge" class="reg-type-badge reg-type-designer">設計師註冊</span>
+        <!-- 身份切換 -->
+        <div style="display:flex; gap:8px; margin-bottom:18px;">
+          <button id="reg-toggle-designer" onclick="setRegType('designer')" style="flex:1;padding:8px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:2px solid var(--amber);background:var(--amber);color:#fff;">🎨 設計師</button>
+          <button id="reg-toggle-worker" onclick="setRegType('worker')" style="flex:1;padding:8px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:2px solid var(--border);background:transparent;color:var(--text-muted);">👷 工班</button>
         </div>
-        <!-- 公司名稱（設計師專用） -->
+        <!-- 設計師專用 -->
         <div id="reg-company-wrap" style="margin-bottom:14px;">
           <label>公司／工作室名稱</label>
           <input id="reg-company" class="input" placeholder="輸入公司或工作室名稱">
         </div>
-        <!-- 邀請碼（設計師專用） -->
-        <div id="reg-invite-wrap" style="margin-bottom:14px;display:none;">
+        <div id="reg-invite-wrap" style="margin-bottom:14px;">
           <label>邀請碼</label>
           <input id="reg-invite-code" class="input" placeholder="請聯絡開發者索取邀請碼" style="text-transform:uppercase;letter-spacing:1px;">
         </div>
+        <!-- 工班專用 -->
+        <div id="reg-specialty-wrap" style="margin-bottom:14px;display:none;">
+          <label>工種</label>
+          <input id="reg-specialty" class="input" list="specialty-options" placeholder="選擇或輸入工種" autocomplete="off">
+        </div>
+        <!-- 共用 -->
         <div style="margin-bottom:14px;">
           <label>姓名</label>
           <input id="reg-name" class="input" placeholder="輸入你的姓名">
@@ -542,7 +549,7 @@ const SUPABASE_URL = 'https://oubipbyskqaagxfdpvmi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YmlwYnlza3FhYWd4ZmRwdm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ1MTksImV4cCI6MjA5NDI2MDUxOX0.-3oWqtjM--FnCXOpxkdt71p4xVdxdpMqO1SGaIU_f2I';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const APP_VERSION = 'v2.9';
+const APP_VERSION = 'v3.0';
 const VAPID_PUBLIC_KEY = 'BAIHZfwNTWLQm4H1m0vCBCgGoqV5GQpdiF-lLmsURg0hkmA38LzQ_0kqTioztkoUmMqlGZ98MJan2Wxg2JQdEdM';
 
 function urlBase64ToUint8Array(base64) {
@@ -622,35 +629,37 @@ function getWorkerTag(uid) {
 //  URL ORG 載入
 // ══════════════════════════════════════════
 
+let _regType = 'designer'; // 目前註冊身份
+function setRegType(type) {
+  _regType = type;
+  const isDesigner = type === 'designer';
+  document.getElementById('reg-toggle-designer').style.cssText = isDesigner
+    ? 'flex:1;padding:8px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:2px solid var(--amber);background:var(--amber);color:#fff;'
+    : 'flex:1;padding:8px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:2px solid var(--border);background:transparent;color:var(--text-muted);';
+  document.getElementById('reg-toggle-worker').style.cssText = !isDesigner
+    ? 'flex:1;padding:8px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:2px solid var(--amber);background:var(--amber);color:#fff;'
+    : 'flex:1;padding:8px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:2px solid var(--border);background:transparent;color:var(--text-muted);';
+  document.getElementById('reg-company-wrap').style.display = isDesigner ? '' : 'none';
+  document.getElementById('reg-invite-wrap').style.display = isDesigner ? '' : 'none';
+  document.getElementById('reg-specialty-wrap').style.display = isDesigner ? 'none' : '';
+}
+
 async function loadOrgFromURL() {
   const params = new URLSearchParams(window.location.search);
   const orgId = params.get('org');
-  const badge = document.getElementById('reg-type-badge');
-  const companyWrap = document.getElementById('reg-company-wrap');
-  const inviteWrap = document.getElementById('reg-invite-wrap');
-
-  if (!orgId) {
-    // 設計師註冊模式：顯示公司名稱 + 邀請碼
-    badge.textContent = '設計師註冊';
-    badge.className = 'reg-type-badge reg-type-designer';
-    companyWrap.style.display = '';
-    inviteWrap.style.display = '';
-    return;
+  // 如果 URL 帶 ?org= 代表舊的工班邀請連結，自動切換工班模式
+  if (orgId) {
+    setRegType('worker');
+    try {
+      const { data: org } = await sb.from('organizations').select('id, name, brand_config').eq('id', orgId).single();
+      if (org) {
+        urlOrgId = org.id;
+        if (org.brand_config) { Object.assign(APP_CONFIG, org.brand_config); applyAppConfig(); }
+      }
+    } catch(e) { console.warn('無法載入組織設定', e); }
+  } else {
+    setRegType('designer'); // 預設設計師模式
   }
-
-  // 工班註冊模式：隱藏公司名稱與邀請碼
-  badge.textContent = '工班註冊';
-  badge.className = 'reg-type-badge reg-type-worker';
-  companyWrap.style.display = 'none';
-  inviteWrap.style.display = 'none';
-
-  try {
-    const { data: org } = await sb.from('organizations').select('id, name, brand_config').eq('id', orgId).single();
-    if (org) {
-      urlOrgId = org.id;
-      if (org.brand_config) { Object.assign(APP_CONFIG, org.brand_config); applyAppConfig(); }
-    }
-  } catch(e) { console.warn('無法載入組織設定', e); }
 }
 
 // ══════════════════════════════════════════
@@ -672,17 +681,16 @@ document.getElementById('goto-login').onclick = () => {
 document.getElementById('register-btn').onclick = doRegister;
 
 async function doRegister() {
-  const name    = document.getElementById('reg-name').value.trim();
-  const email   = document.getElementById('reg-email').value.trim();
-  const pw      = document.getElementById('reg-password').value;
-  const company = document.getElementById('reg-company').value.trim();
+  const name      = document.getElementById('reg-name').value.trim();
+  const email     = document.getElementById('reg-email').value.trim();
+  const pw        = document.getElementById('reg-password').value;
+  const company   = document.getElementById('reg-company').value.trim();
+  const specialty = document.getElementById('reg-specialty').value.trim();
+  const isDesigner = _regType === 'designer';
 
   if (!name || !email || !pw) { showToast('請填寫所有欄位', 'error'); return; }
   if (pw.length < 6) { showToast('密碼至少需要 6 碼', 'error'); return; }
-
-  const isDesigner = !urlOrgId;
   if (isDesigner && !company) { showToast('請輸入公司名稱', 'error'); return; }
-  if (!isDesigner && !urlOrgId) { showToast('請使用組織專屬連結進行註冊', 'error'); return; }
 
   // 設計師須驗證邀請碼
   let inviteCode = '';
@@ -713,18 +721,18 @@ async function doRegister() {
       await sb.rpc('use_invite_code', { p_code: inviteCode, p_user_id: data.user.id });
       showToast('設計師帳號建立成功！請登入');
     } else {
-      // 建立工班 profile
+      // 建立工班 profile（org_id 為 null，工班獨立帳號）
       const { error: pe } = await sb.from('profiles').insert({
-        id: data.user.id, org_id: urlOrgId, role: 'worker', display_name: name, account: email,
+        id: data.user.id, org_id: null, role: 'worker', display_name: name, account: email, specialty: specialty||null,
       });
       if (pe) { showToast('建立資料失敗：' + pe.message, 'error'); return; }
-      showToast('註冊成功！請登入');
+      showToast('工班帳號建立成功！請登入');
     }
 
     document.getElementById('form-register').style.display = 'none';
     document.getElementById('form-login').style.display = '';
     document.getElementById('login-email').value = email;
-    ['reg-name','reg-email','reg-password','reg-company','reg-invite-code'].forEach(id => {
+    ['reg-name','reg-email','reg-password','reg-company','reg-invite-code','reg-specialty'].forEach(id => {
       document.getElementById(id).value = '';
     });
 
