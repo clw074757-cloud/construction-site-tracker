@@ -491,8 +491,18 @@
     <div class="modal-body">
       <div id="workers-list-modal"></div>
 
-      <!-- 直接新增工班帳號 -->
+      <!-- 搜尋已有帳號的工班 -->
       <div style="margin-top:16px; padding:16px; background:#0f172a; border-radius:12px; border:1px solid var(--border);">
+        <p style="font-size:13px; font-weight:600; margin-bottom:10px;">🔍 搜尋工班帳號（Email）</p>
+        <div style="display:flex; gap:8px; margin-bottom:8px;">
+          <input id="search-worker-email" class="input" type="email" placeholder="輸入工班 Email" style="flex:1;">
+          <button onclick="searchWorkerByEmail()" class="btn btn-ghost btn-sm" style="flex-shrink:0;">搜尋</button>
+        </div>
+        <div id="search-worker-result"></div>
+      </div>
+
+      <!-- 直接新增工班帳號 -->
+      <div style="margin-top:12px; padding:16px; background:#0f172a; border-radius:12px; border:1px solid var(--border);">
         <p style="font-size:13px; font-weight:600; margin-bottom:12px;">＋ 直接新增工班帳號</p>
         <div style="margin-bottom:10px;"><label>姓名</label><input id="new-worker-name" class="input" placeholder="工班姓名"></div>
         <div style="margin-bottom:10px;"><label>工種</label>
@@ -553,7 +563,7 @@ const SUPABASE_URL = 'https://oubipbyskqaagxfdpvmi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YmlwYnlza3FhYWd4ZmRwdm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ1MTksImV4cCI6MjA5NDI2MDUxOX0.-3oWqtjM--FnCXOpxkdt71p4xVdxdpMqO1SGaIU_f2I';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const APP_VERSION = 'v3.1';
+const APP_VERSION = 'v3.2';
 const VAPID_PUBLIC_KEY = 'BAIHZfwNTWLQm4H1m0vCBCgGoqV5GQpdiF-lLmsURg0hkmA38LzQ_0kqTioztkoUmMqlGZ98MJan2Wxg2JQdEdM';
 
 function urlBase64ToUint8Array(base64) {
@@ -776,6 +786,7 @@ async function doLogin() {
 async function loadOrgData() {
   if (!currentUser?.org_id) return;
   const org = currentUser.org_id;
+  // 載入同 org 的成員
   const { data: users } = await sb.from('profiles').select('*').eq('org_id', org);
   DB.users = users || [];
   let q = sb.from('projects').select('*, project_members(user_id)').eq('org_id', org).order('created_at', { ascending: false });
@@ -787,6 +798,15 @@ async function loadOrgData() {
   }
   const { data: projects } = await q;
   DB.projects = (projects || []).map(p => ({ ...p, workers: (p.project_members || []).map(m => m.user_id) }));
+  // 補撈跨 org 工班（org_id=null 的獨立工班，透過 project_members 關聯）
+  if (currentUser.role === 'designer' && DB.projects.length) {
+    const allWorkerIds = [...new Set(DB.projects.flatMap(p => p.workers))];
+    const missingIds = allWorkerIds.filter(id => !DB.users.find(u => u.id === id));
+    if (missingIds.length) {
+      const { data: crossWorkers } = await sb.from('profiles').select('*').in('id', missingIds);
+      if (crossWorkers) DB.users = [...DB.users, ...crossWorkers];
+    }
+  }
   const { data: notifs } = await sb.from('notifications').select('*, notification_reads(user_id)').eq('org_id', org).order('created_at', { ascending: false });
   DB.notifications = (notifs || []).map(n => ({ ...n, read_by: (n.notification_reads || []).map(r => r.user_id) }));
 }
@@ -1762,6 +1782,44 @@ document.getElementById('create-worker-btn').onclick = async () => {
   } catch(e) { showToast('建立失敗：' + e.message, 'error'); }
   finally { btn.disabled = false; btn.textContent = '建立工班帳號'; }
 };
+
+async function searchWorkerByEmail() {
+  const email = document.getElementById('search-worker-email').value.trim();
+  const result = document.getElementById('search-worker-result');
+  if (!email) { result.innerHTML = ''; return; }
+  result.innerHTML = '<p style="font-size:12px;color:var(--text-muted);">搜尋中...</p>';
+  const { data, error } = await sb.from('profiles').select('*').eq('account', email).eq('role', 'worker').single();
+  if (error || !data) {
+    result.innerHTML = '<p style="font-size:12px;color:#ef4444;">找不到此 Email 的工班帳號</p>'; return;
+  }
+  const already = DB.users.find(u => u.id === data.id);
+  const c = SPECIALTY_COLOR[data.specialty] || '#64748b';
+  const spBadge = data.specialty ? `<span style="font-size:10px;padding:1px 6px;border-radius:99px;background:${c}22;color:${c};border:1px solid ${c}44;">${data.specialty}</span>` : '';
+  const coBadge = data.company ? `<span style="font-size:11px;color:#94a3b8;">🏢 ${data.company}</span>` : '';
+  result.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#1e293b;border-radius:10px;border:1px solid var(--border);">
+      <div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <p style="font-size:13px;font-weight:600;margin:0;">👷 ${data.display_name||'—'}</p>${spBadge}
+        </div>
+        <div style="display:flex;gap:8px;margin-top:2px;">${coBadge}<p style="font-size:11px;color:var(--text-muted);margin:0;">${data.account}</p></div>
+      </div>
+      ${already
+        ? '<span style="font-size:11px;color:#34d399;">✓ 已在清單中</span>'
+        : `<button onclick="addWorkerToOrg('${data.id}')" class="btn btn-primary btn-sm">加入</button>`}
+    </div>`;
+}
+
+async function addWorkerToOrg(uid) {
+  // 撈完整 profile 加進本地 DB.users（不改 org_id，保持跨設計師能力）
+  const { data: w } = await sb.from('profiles').select('*').eq('id', uid).single();
+  if (!w) { showToast('找不到工班資料', 'error'); return; }
+  if (!DB.users.find(u => u.id === uid)) DB.users.push(w);
+  document.getElementById('search-worker-email').value = '';
+  document.getElementById('search-worker-result').innerHTML = '';
+  renderWorkersModal();
+  showToast('工班已加入清單！請到案場指派給他們。');
+}
 
 async function updateWorkerSpecialty(uid, specialty) {
   const { error, count } = await sb.from('profiles').update({ specialty }, { count: 'exact' }).eq('id', uid);
