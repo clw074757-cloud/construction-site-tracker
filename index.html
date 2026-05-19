@@ -203,7 +203,7 @@
       <span id="header-logo-fallback" style="font-size:22px;">🏗️</span>
       <div>
         <h1 id="header-app-name" style="font-size:16px; color:var(--amber); line-height:1.2;">工程管理系統</h1>
-        <p id="user-role-label" style="font-size:11px; color:var(--text-muted); line-height:1.2;"></p>
+        <p id="user-role-label" style="font-size:11px; color:var(--text-muted); line-height:1.2;"><span style="opacity:0.4;" id="header-version"></span></p>
       </div>
     </div>
     <div style="display:flex; align-items:center; gap:8px;">
@@ -905,6 +905,7 @@ function applyAppConfig() {
   document.getElementById('login-app-name').textContent = app_name;
   document.getElementById('login-app-subtitle').innerHTML = (app_subtitle || '請登入以繼續') + ' <span style="font-size:10px;opacity:0.45;">' + APP_VERSION + '</span>';
   document.getElementById('header-app-name').textContent = app_name;
+  const hv = document.getElementById('header-version'); if (hv) hv.textContent = APP_VERSION;
   if (logo_url) {
     const li = document.getElementById('login-logo-img'), hi = document.getElementById('header-logo-img');
     li.src = logo_url; hi.src = logo_url; li.style.display=''; hi.style.display='';
