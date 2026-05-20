@@ -1091,11 +1091,25 @@ function _adminIndependentWorkerRow(m) {
 
 async function adminUpgradeWorker(uid, newRole, name) {
   const label = newRole === 'contractor' ? '升級為統包' : '降為工班';
+  let orgName = '';
+  if (newRole === 'contractor') {
+    orgName = prompt(`請輸入「${name}」的公司／工作室名稱：`, name);
+    if (!orgName) return;
+  }
   if (!confirm(`確定要將「${name}」${label}？`)) return;
   try {
-    const { error } = await sb.from('profiles').update({ role: newRole }).eq('id', uid);
+    let updateData = { role: newRole };
+    if (newRole === 'contractor') {
+      // 建立新組織並指派給統包
+      const { data: org, error: oe } = await sb.from('organizations').insert({ name: orgName.trim() }).select().single();
+      if (oe) throw oe;
+      updateData.org_id = org.id;
+    } else {
+      updateData.org_id = null;
+    }
+    const { error } = await sb.from('profiles').update(updateData).eq('id', uid);
     if (error) throw error;
-    showToast(`已${label}`);
+    showToast(`已${label}，請通知該用戶重新登入`);
     renderAdminPanel();
   } catch(e) { showToast('更新失敗：' + e.message, 'error'); }
 }
