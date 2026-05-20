@@ -110,6 +110,7 @@
     .admin-member-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #0f172a; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 6px; flex-wrap: wrap; gap: 8px; }
     .reg-type-badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; margin-bottom: 16px; }
     .reg-type-designer { background: rgba(168,85,247,.15); color: #c084fc; }
+    .reg-type-contractor { background: rgba(251,146,60,.15); color: #fb923c; }
     .reg-type-worker { background: rgba(16,185,129,.15); color: #34d399; }
   </style>
 </head>
@@ -150,6 +151,7 @@
         <!-- 身份切換 -->
         <div style="display:flex; gap:8px; margin-bottom:18px;">
           <button id="reg-toggle-designer" onclick="setRegType('designer')" style="flex:1;padding:8px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:2px solid var(--amber);background:var(--amber);color:#fff;">🎨 設計師</button>
+          <button id="reg-toggle-contractor" onclick="setRegType('contractor')" style="flex:1;padding:8px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:2px solid var(--border);background:transparent;color:var(--text-muted);">🏗 統包</button>
           <button id="reg-toggle-worker" onclick="setRegType('worker')" style="flex:1;padding:8px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:2px solid var(--border);background:transparent;color:var(--text-muted);">👷 工班</button>
         </div>
         <!-- 設計師專用 -->
@@ -237,6 +239,20 @@
       <h2 style="font-size:16px; margin-bottom:16px;">我的案場</h2>
       <div id="worker-project-grid" style="display:grid; gap:14px; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));"></div>
       <div id="worker-empty" class="empty-state hidden"><div class="empty-icon">📋</div><p>目前沒有被分配的案場</p></div>
+      <!-- 工班能見度設定 -->
+      <div id="worker-visibility-wrap" style="display:none; margin-top:24px;">
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+            <h3 style="font-size:14px;">🔒 能見度設定</h3>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span id="visibility-status-label" style="font-size:12px;"></span>
+              <button id="visibility-toggle-btn" onclick="togglePublicProfile(this)" class="btn btn-ghost btn-sm"></button>
+            </div>
+          </div>
+          <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">私人模式：只有你允許的設計師才能在名冊看到你</p>
+          <div id="designer-allow-list" style="display:none; flex-direction:column; gap:6px;"></div>
+        </div>
+      </div>
     </section>
 
     <section id="section-notifications" class="section fade-in" style="padding:20px;">
@@ -573,7 +589,8 @@ const SUPABASE_URL = 'https://oubipbyskqaagxfdpvmi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YmlwYnlza3FhYWd4ZmRwdm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ1MTksImV4cCI6MjA5NDI2MDUxOX0.-3oWqtjM--FnCXOpxkdt71p4xVdxdpMqO1SGaIU_f2I';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const APP_VERSION = 'v3.9';
+const APP_VERSION = 'v4.0';
+function isDesignerRole(r) { return r === 'designer' || r === 'contractor'; }
 const VAPID_PUBLIC_KEY = 'BAIHZfwNTWLQm4H1m0vCBCgGoqV5GQpdiF-lLmsURg0hkmA38LzQ_0kqTioztkoUmMqlGZ98MJan2Wxg2JQdEdM';
 
 function urlBase64ToUint8Array(base64) {
@@ -657,17 +674,16 @@ function getWorkerTag(uid) {
 let _regType = 'designer'; // 目前註冊身份
 function setRegType(type) {
   _regType = type;
-  const isDesigner = type === 'designer';
-  document.getElementById('reg-toggle-designer').style.cssText = isDesigner
-    ? 'flex:1;padding:8px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:2px solid var(--amber);background:var(--amber);color:#fff;'
-    : 'flex:1;padding:8px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:2px solid var(--border);background:transparent;color:var(--text-muted);';
-  document.getElementById('reg-toggle-worker').style.cssText = !isDesigner
-    ? 'flex:1;padding:8px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:2px solid var(--amber);background:var(--amber);color:#fff;'
-    : 'flex:1;padding:8px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:2px solid var(--border);background:transparent;color:var(--text-muted);';
-  document.getElementById('reg-company-wrap').style.display = isDesigner ? '' : 'none';
-  document.getElementById('reg-invite-wrap').style.display = isDesigner ? '' : 'none';
-  document.getElementById('reg-company-worker-wrap').style.display = isDesigner ? 'none' : '';
-  document.getElementById('reg-specialty-wrap').style.display = isDesigner ? 'none' : '';
+  const on  = 'flex:1;padding:8px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:2px solid var(--amber);background:var(--amber);color:#fff;';
+  const off = 'flex:1;padding:8px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:2px solid var(--border);background:transparent;color:var(--text-muted);';
+  document.getElementById('reg-toggle-designer').style.cssText   = type === 'designer'   ? on : off;
+  document.getElementById('reg-toggle-contractor').style.cssText = type === 'contractor' ? on : off;
+  document.getElementById('reg-toggle-worker').style.cssText     = type === 'worker'     ? on : off;
+  const isWorker = type === 'worker';
+  document.getElementById('reg-company-wrap').style.display        = isWorker ? 'none' : '';
+  document.getElementById('reg-invite-wrap').style.display         = isWorker ? 'none' : '';
+  document.getElementById('reg-company-worker-wrap').style.display = isWorker ? '' : 'none';
+  document.getElementById('reg-specialty-wrap').style.display      = isWorker ? '' : 'none';
 }
 
 async function loadOrgFromURL() {
@@ -713,15 +729,16 @@ async function doRegister() {
   const company   = document.getElementById('reg-company').value.trim();
   const specialty      = document.getElementById('reg-specialty').value.trim();
   const workerCompany  = document.getElementById('reg-company-worker').value.trim();
-  const isDesigner = _regType === 'designer';
+  const isWorker = _regType === 'worker';
+  const isDesignerType = isDesignerRole(_regType);
 
   if (!name || !email || !pw) { showToast('請填寫所有欄位', 'error'); return; }
   if (pw.length < 6) { showToast('密碼至少需要 6 碼', 'error'); return; }
-  if (isDesigner && !company) { showToast('請輸入公司名稱', 'error'); return; }
+  if (isDesignerType && !company) { showToast('請輸入公司名稱', 'error'); return; }
 
-  // 設計師須驗證邀請碼
+  // 設計師／統包須驗證邀請碼
   let inviteCode = '';
-  if (isDesigner) {
+  if (isDesignerType) {
     inviteCode = document.getElementById('reg-invite-code').value.trim().toUpperCase();
     if (!inviteCode) { showToast('請輸入邀請碼', 'error'); return; }
     const { data: codeOk, error: codeErr } = await sb.rpc('check_invite_code', { p_code: inviteCode });
@@ -735,18 +752,18 @@ async function doRegister() {
     const { data, error } = await sb.auth.signUp({ email, password: pw });
     if (error) { showToast(error.message, 'error'); return; }
 
-    if (isDesigner) {
+    if (isDesignerType) {
       // 建立新組織
       const { data: org, error: oe } = await sb.from('organizations').insert({ name: company }).select().single();
       if (oe) { showToast('建立組織失敗：' + oe.message, 'error'); return; }
-      // 建立設計師 profile
+      // 建立設計師／統包 profile
       const { error: pe } = await sb.from('profiles').insert({
-        id: data.user.id, org_id: org.id, role: 'designer', display_name: name, account: email,
+        id: data.user.id, org_id: org.id, role: _regType, display_name: name, account: email,
       });
       if (pe) { showToast('建立資料失敗：' + pe.message, 'error'); return; }
       // 標記邀請碼已使用
       await sb.rpc('use_invite_code', { p_code: inviteCode, p_user_id: data.user.id });
-      showToast('設計師帳號建立成功！請登入');
+      showToast((_regType === 'contractor' ? '統包' : '設計師') + '帳號建立成功！請登入');
     } else {
       // 建立工班 profile（org_id 為 null，工班獨立帳號）
       const { error: pe } = await sb.from('profiles').insert({
@@ -824,8 +841,8 @@ async function loadOrgData() {
   }
   const { data: projects } = await q;
   DB.projects = (projects || []).map(p => ({ ...p, workers: (p.project_members || []).map(m => m.user_id) }));
-  // 補撈設計師已加入的獨立工班（designer_workers 關聯表）
-  if (currentUser.role === 'designer') {
+  // 補撈設計師／統包已加入的獨立工班（designer_workers 關聯表）
+  if (isDesignerRole(currentUser.role)) {
     const { data: dw } = await sb.from('designer_workers').select('worker_id').eq('designer_id', currentUser.id);
     const linkedIds = (dw || []).map(r => r.worker_id);
     const missingIds = linkedIds.filter(id => !DB.users.find(u => u.id === id));
@@ -836,6 +853,17 @@ async function loadOrgData() {
   }
   const { data: notifs } = await sb.from('notifications').select('*, notification_reads(user_id)').eq('org_id', org).order('created_at', { ascending: false });
   DB.notifications = (notifs || []).map(n => ({ ...n, read_by: (n.notification_reads || []).map(r => r.user_id) }));
+  // 統包：額外載入跨組織被指派的案場與通知
+  if (currentUser.role === 'contractor') {
+    const { data: mp } = await sb.from('project_members').select('project_id').eq('user_id', currentUser.id);
+    const assignedIds = (mp || []).map(m => m.project_id).filter(id => !DB.projects.find(p => p.id === id));
+    if (assignedIds.length) {
+      const { data: ap } = await sb.from('projects').select('*, project_members(user_id)').in('id', assignedIds);
+      if (ap) DB.projects = [...DB.projects, ...ap.map(p => ({ ...p, workers: (p.project_members||[]).map(m => m.user_id) }))];
+      const { data: an } = await sb.from('notifications').select('*, notification_reads(user_id)').in('project_id', assignedIds);
+      if (an) DB.notifications = [...DB.notifications, ...an.map(n => ({ ...n, read_by: (n.notification_reads||[]).map(r => r.user_id) }))];
+    }
+  }
 }
 
 document.getElementById('logout-btn').onclick = async () => {
@@ -917,7 +945,7 @@ function applyAppConfig() {
 function enterApp() {
   document.getElementById('page-login').classList.remove('active');
   document.getElementById('page-app').classList.add('active');
-  const roleLabel = { designer:'設計師（管理員）', worker:'工班' };
+  const roleLabel = { designer:'設計師（管理員）', contractor:'統包（管理員）', worker:'工班' };
   const adminLabel = currentUser.is_super_admin ? ' · 🛠 系統管理員' : '';
   document.getElementById('user-role-label').innerHTML = (roleLabel[currentUser.role] || currentUser.role) + ' · ' + currentUser.name + adminLabel + ' <span style="opacity:0.4;">' + APP_VERSION + '</span>';
   document.getElementById('user-avatar').textContent = currentUser.name[0];
@@ -929,13 +957,14 @@ function enterApp() {
     document.getElementById('nav-dashboard-label').textContent = '儀表板';
     nav.dataset.section = 'dashboard';
   }
-  const isDesigner = currentUser.role === 'designer';
+  const isDesigner = isDesignerRole(currentUser.role);
   ['designer-add-btn','designer-add-worker-btn','tab-notify-btn','designer-actions','meeting-form-wrap','brand-settings-btn'].forEach(id => {
     document.getElementById(id).style.display = isDesigner ? '' : 'none';
   });
   document.getElementById('nav-admin').style.display = currentUser.is_super_admin ? '' : 'none';
   applyAppConfig();
   navigateTo(currentUser.role === 'worker' && !currentUser.is_super_admin ? 'worker' : 'dashboard');
+  if (currentUser.role === 'worker') loadWorkerVisibilitySection();
   updateNotifBadge();
   registerSW().then(() => subscribePush());
   // 登入後彈出未讀通知提示
@@ -997,12 +1026,12 @@ async function adminCreateOrg() {
 function _adminMemberRow(m, org, orgsData) {
   const isSelf = m.id === currentUser.id;
   const safeName = (m.display_name || '').replace(/'/g,'');
-  const roleLabel = m.role === 'designer' ? '設計師' : '工班';
-  const roleBadge = m.role === 'designer' ? 'badge-active' : 'badge-pending';
+  const roleLabel = m.role === 'contractor' ? '統包' : isDesignerRole(m.role) ? '設計師' : '工班';
+  const roleBadge = isDesignerRole(m.role) ? 'badge-active' : 'badge-pending';
   let controls = '';
   if (!m.is_super_admin) {
-    const toggleRole = m.role === 'designer' ? 'worker' : 'designer';
-    const toggleLabel = m.role === 'designer' ? '降為工班' : '升為設計師';
+    const toggleRole = isDesignerRole(m.role) ? 'worker' : 'designer';
+    const toggleLabel = isDesignerRole(m.role) ? '降為工班' : '升為設計師';
     const opts = orgsData.filter(o => o.id !== org.id)
       .map(o => '<option value="' + o.id + '">' + (o.name||'') + '</option>').join('');
     controls =
@@ -1315,6 +1344,78 @@ function renderDashboard() {
         ${x.workers.length===0?'<span style="font-size:11px; color:#475569;">尚無工班</span>':''}
       </div>
     </div>`).join('');
+}
+
+let _allDesigners = [];
+let _myLinkedDesignerIds = new Set();
+
+async function loadWorkerVisibilitySection() {
+  const wrap = document.getElementById('worker-visibility-wrap');
+  if (!wrap) return;
+  wrap.style.display = '';
+  const { data: profile } = await sb.from('profiles').select('public_profile').eq('id', currentUser.id).single();
+  const isPublic = profile?.public_profile !== false;
+  const { data: designers } = await sb.from('profiles').select('*').in('role', ['designer','contractor']).order('display_name');
+  _allDesigners = designers || [];
+  const { data: links } = await sb.from('designer_workers').select('designer_id').eq('worker_id', currentUser.id);
+  _myLinkedDesignerIds = new Set((links || []).map(l => l.designer_id));
+  renderVisibilitySection(isPublic);
+}
+
+function renderVisibilitySection(isPublic) {
+  const label = document.getElementById('visibility-status-label');
+  const btn   = document.getElementById('visibility-toggle-btn');
+  const list  = document.getElementById('designer-allow-list');
+  if (!label) return;
+  if (isPublic) {
+    label.textContent = '🌐 公開'; label.style.color = '#34d399';
+    btn.textContent = '切換為私人';
+    list.style.display = 'none';
+  } else {
+    label.textContent = '🔒 私人'; label.style.color = '#f472b6';
+    btn.textContent = '切換為公開';
+    list.style.display = 'flex';
+    list.innerHTML = _allDesigners.length === 0
+      ? '<p style="font-size:12px;color:var(--text-muted);">尚無設計師帳號</p>'
+      : _allDesigners.map(d => {
+          const allowed = _myLinkedDesignerIds.has(d.id);
+          const roleTag = d.role === 'contractor' ? '統包' : '設計師';
+          return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#1e293b;border-radius:10px;border:1px solid var(--border);">
+            <div>
+              <p style="font-size:13px;font-weight:600;margin:0;">🎨 ${d.display_name||'—'} <span style="font-size:10px;color:var(--text-muted);">${roleTag}</span></p>
+              <p style="font-size:11px;color:var(--text-muted);margin:2px 0 0;">${d.account||''}</p>
+            </div>
+            <button onclick="toggleDesignerAccess('${d.id}',this,${allowed})" class="btn btn-sm ${allowed?'btn-danger':'btn-primary'}">${allowed?'移除':'允許'}</button>
+          </div>`;
+        }).join('');
+  }
+}
+
+async function togglePublicProfile(btn) {
+  const isPublic = document.getElementById('visibility-status-label').textContent.includes('公開');
+  btn.disabled = true;
+  try {
+    const { error } = await sb.from('profiles').update({ public_profile: !isPublic }).eq('id', currentUser.id);
+    if (error) throw error;
+    renderVisibilitySection(!isPublic);
+  } catch(e) { showToast('更新失敗：' + e.message, 'error'); }
+  finally { btn.disabled = false; }
+}
+
+async function toggleDesignerAccess(designerId, btn, currentlyAllowed) {
+  btn.disabled = true;
+  try {
+    if (currentlyAllowed) {
+      await sb.from('designer_workers').delete().eq('worker_id', currentUser.id).eq('designer_id', designerId);
+      _myLinkedDesignerIds.delete(designerId);
+    } else {
+      await sb.from('designer_workers').upsert({ worker_id: currentUser.id, designer_id: designerId });
+      _myLinkedDesignerIds.add(designerId);
+    }
+    const isPublic = document.getElementById('visibility-status-label').textContent.includes('公開');
+    renderVisibilitySection(isPublic);
+  } catch(e) { showToast('操作失敗：' + e.message, 'error'); }
+  finally { btn.disabled = false; }
 }
 
 function renderWorkerView() {
@@ -1777,7 +1878,7 @@ function specialtyBadge(sp) {
 }
 
 function renderWorkersModal() {
-  const workers = DB.users.filter(u => u.role==='worker');
+  const workers = DB.users.filter(u => u.role==='worker' || u.role==='contractor');
   document.getElementById('workers-list-modal').innerHTML = workers.length===0
     ? '<p style="font-size:13px; color:var(--text-muted); text-align:center; margin-bottom:12px;">尚無工班帳號</p>'
     : workers.map(w => `
@@ -1843,8 +1944,12 @@ let _allWorkers = [];
 async function loadAllWorkers() {
   const el = document.getElementById('worker-directory-list');
   if (el) el.innerHTML = '<p style="font-size:12px;color:var(--text-muted);">載入中…</p>';
-  const { data } = await sb.from('profiles').select('*').eq('role', 'worker').order('display_name');
-  _allWorkers = data || [];
+  const { data } = await sb.from('profiles').select('*').in('role', ['worker','contractor']).order('display_name');
+  const all = data || [];
+  // 過濾能見度：public_profile=false 的工班只對已連結的設計師顯示
+  const { data: linked } = await sb.from('designer_workers').select('worker_id').eq('designer_id', currentUser.id);
+  const linkedIds = new Set((linked || []).map(r => r.worker_id));
+  _allWorkers = all.filter(w => w.public_profile !== false || linkedIds.has(w.id));
   renderWorkerDirectory();
 }
 function filterWorkerDirectory() {
