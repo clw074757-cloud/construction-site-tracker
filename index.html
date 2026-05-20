@@ -813,8 +813,8 @@ async function doLogin() {
 async function loadOrgData() {
   if (!currentUser) return;
 
-  // ── 獨立工班（org_id = null）─────────────────────────
-  if (currentUser.role === 'worker' && !currentUser.org_id) {
+  // ── 獨立帳號（org_id = null，包含工班與未綁定組織的統包）────
+  if (!currentUser.org_id) {
     const { data: mp } = await sb.from('project_members').select('project_id').eq('user_id', currentUser.id);
     const ids = (mp || []).map(m => m.project_id);
     if (!ids.length) { DB.projects = []; DB.notifications = []; return; }
@@ -1067,6 +1067,39 @@ function _adminProjectRow(proj) {
   '</div>';
 }
 
+function _adminIndependentWorkerRow(m) {
+  const isContractor = m.role === 'contractor';
+  const roleLabel = isContractor ? '統包' : '工班';
+  const roleBadge = isContractor ? 'badge-active' : 'badge-pending';
+  const safeName = (m.display_name||'').replace(/'/g,'');
+  const upgradeBtn = isContractor
+    ? `<button class="btn btn-ghost btn-sm" onclick="adminUpgradeWorker('${m.id}','worker','${safeName}')">降為工班</button>`
+    : `<button class="btn btn-primary btn-sm" onclick="adminUpgradeWorker('${m.id}','contractor','${safeName}')">升級為統包</button>`;
+  const sp = m.specialty ? `<span style="font-size:11px;color:#38bdf8;"> · ${m.specialty}</span>` : '';
+  const co = m.company   ? `<span style="font-size:11px;color:#94a3b8;"> · ${m.company}</span>` : '';
+  return `<div class="admin-member-row">
+    <div>
+      <p style="font-size:13px;font-weight:600;margin:0;">${m.display_name||'—'}${sp}${co}</p>
+      <p style="font-size:11px;color:var(--text-muted);margin:2px 0 0;">${m.account||''}</p>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+      <span class="badge ${roleBadge}">${roleLabel}</span>
+      ${upgradeBtn}
+    </div>
+  </div>`;
+}
+
+async function adminUpgradeWorker(uid, newRole, name) {
+  const label = newRole === 'contractor' ? '升級為統包' : '降為工班';
+  if (!confirm(`確定要將「${name}」${label}？`)) return;
+  try {
+    const { error } = await sb.from('profiles').update({ role: newRole }).eq('id', uid);
+    if (error) throw error;
+    showToast(`已${label}`);
+    renderAdminPanel();
+  } catch(e) { showToast('更新失敗：' + e.message, 'error'); }
+}
+
 async function renderAdminPanel() {
   if (!currentUser?.is_super_admin) return;
   const statsEl = document.getElementById('admin-stats');
@@ -1079,20 +1112,31 @@ async function renderAdminPanel() {
     const { data: allProfiles } = await sb.from('profiles').select('*');
     const { data: allProjects } = await sb.from('projects').select('*').order('created_at');
     const orgsData = orgs || [], profileData = allProfiles || [], projectData = allProjects || [];
-    const totalDesigners = profileData.filter(p => p.role === 'designer').length;
-    const totalWorkers   = profileData.filter(p => p.role === 'worker').length;
+    const totalDesigners   = profileData.filter(p => isDesignerRole(p.role)).length;
+    const totalWorkers     = profileData.filter(p => p.role === 'worker').length;
+    const totalContractors = profileData.filter(p => p.role === 'contractor').length;
     statsEl.innerHTML = `
       <div class="stat-card"><p style="font-size:12px;color:var(--text-muted);">組織數</p><p style="font-size:24px;font-weight:700;color:var(--amber);">${orgsData.length}</p></div>
-      <div class="stat-card"><p style="font-size:12px;color:var(--text-muted);">設計師</p><p style="font-size:24px;font-weight:700;color:var(--emerald);">${totalDesigners}</p></div>
+      <div class="stat-card"><p style="font-size:12px;color:var(--text-muted);">設計師／統包</p><p style="font-size:24px;font-weight:700;color:var(--emerald);">${totalDesigners}</p></div>
       <div class="stat-card"><p style="font-size:12px;color:var(--text-muted);">工班帳號</p><p style="font-size:24px;font-weight:700;color:var(--blue);">${totalWorkers}</p></div>`;
     // 公告目標選單
     const sel = document.getElementById('admin-announce-target');
     if (sel) sel.innerHTML = '<option value="all">全體用戶</option>' + orgsData.map(o => `<option value="${o.id}">${o.name||'未命名'}</option>`).join('');
     if (orgsData.length === 0) { listEl.innerHTML = '<div class="empty-state"><div class="empty-icon">🏢</div><p>尚無組織</p></div>'; return; }
-    listEl.innerHTML = orgsData.map(org => {
+    // 獨立帳號（org_id = null）
+    const independents = profileData.filter(p => !p.org_id);
+    const indHtml = independents.length === 0
+      ? '<p style="font-size:12px;color:var(--text-muted);padding:4px 0;">尚無獨立帳號</p>'
+      : independents.map(m => _adminIndependentWorkerRow(m)).join('');
+    listEl.innerHTML = `<div class="admin-org-card" style="margin-bottom:20px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <h3 style="font-size:15px;">👷 獨立工班／統包帳號 (${independents.length})</h3>
+      </div>${indHtml}</div>`;
+    listEl.innerHTML += orgsData.map(org => {
+
       const members  = profileData.filter(p => p.org_id === org.id);
       const projects = projectData.filter(p => p.org_id === org.id);
-      const designers = members.filter(p => p.role === 'designer').length;
+      const designers = members.filter(p => isDesignerRole(p.role)).length;
       const workers   = members.filter(p => p.role === 'worker').length;
       const inviteLink = location.origin + location.pathname + '?org=' + org.id;
       const safeName = (org.name||'').replace(/'/g,'');
