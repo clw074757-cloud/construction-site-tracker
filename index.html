@@ -1877,7 +1877,7 @@ function openProjectModal(project) {
   document.getElementById('pm-progress').value = project?.progress||0;
   document.getElementById('pm-progress-val').textContent = project?.progress||0;
   document.getElementById('pm-notes').value = project?.notes||'';
-  const workers = DB.users.filter(u => u.role==='worker');
+  const workers = DB.users.filter(u => u.role==='worker' || u.role==='contractor');
   const sel = project?.workers||[];
   document.getElementById('pm-workers-list').innerHTML = workers.length===0
     ? '<span style="font-size:12px; color:#475569;">尚無工班帳號</span>'
