@@ -233,6 +233,20 @@
       </div>
       <div id="project-grid" style="display:grid; gap:14px; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));"></div>
       <div id="project-empty" class="empty-state hidden"><div class="empty-icon">🏗️</div><p>尚無案場，點擊「新增案場」開始</p></div>
+      <!-- 統包的能見度設定 -->
+      <div id="contractor-visibility-wrap" style="display:none; margin-top:24px;">
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+            <h3 style="font-size:14px;">🔒 能見度設定</h3>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span id="contractor-visibility-status-label" style="font-size:12px;"></span>
+              <button id="contractor-visibility-toggle-btn" onclick="togglePublicProfile(this,'contractor')" class="btn btn-ghost btn-sm"></button>
+            </div>
+          </div>
+          <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">私人模式：只有你允許的設計師才能在名冊看到你</p>
+          <div id="contractor-designer-allow-list" style="display:none; flex-direction:column; gap:6px;"></div>
+        </div>
+      </div>
     </section>
 
     <section id="section-worker" class="section fade-in" style="padding:20px;">
@@ -964,7 +978,8 @@ function enterApp() {
   document.getElementById('nav-admin').style.display = currentUser.is_super_admin ? '' : 'none';
   applyAppConfig();
   navigateTo(currentUser.role === 'worker' && !currentUser.is_super_admin ? 'worker' : 'dashboard');
-  if (currentUser.role === 'worker') loadWorkerVisibilitySection();
+  if (currentUser.role === 'worker') loadWorkerVisibilitySection('worker');
+  if (currentUser.role === 'contractor') loadWorkerVisibilitySection('contractor');
   updateNotifBadge();
   registerSW().then(() => subscribePush());
   // 登入後彈出未讀通知提示
@@ -1407,23 +1422,28 @@ function renderDashboard() {
 let _allDesigners = [];
 let _myLinkedDesignerIds = new Set();
 
-async function loadWorkerVisibilitySection() {
-  const wrap = document.getElementById('worker-visibility-wrap');
+let _visibilityType = 'worker'; // 'worker' or 'contractor'
+async function loadWorkerVisibilitySection(type) {
+  _visibilityType = type || 'worker';
+  const wrapId = type === 'contractor' ? 'contractor-visibility-wrap' : 'worker-visibility-wrap';
+  const wrap = document.getElementById(wrapId);
   if (!wrap) return;
   wrap.style.display = '';
   const { data: profile } = await sb.from('profiles').select('public_profile').eq('id', currentUser.id).single();
   const isPublic = profile?.public_profile !== false;
   const { data: designers } = await sb.from('profiles').select('*').in('role', ['designer','contractor']).order('display_name');
-  _allDesigners = designers || [];
+  _allDesigners = (designers || []).filter(d => d.id !== currentUser.id);
   const { data: links } = await sb.from('designer_workers').select('designer_id').eq('worker_id', currentUser.id);
   _myLinkedDesignerIds = new Set((links || []).map(l => l.designer_id));
-  renderVisibilitySection(isPublic);
+  renderVisibilitySection(isPublic, type);
 }
 
-function renderVisibilitySection(isPublic) {
-  const label = document.getElementById('visibility-status-label');
-  const btn   = document.getElementById('visibility-toggle-btn');
-  const list  = document.getElementById('designer-allow-list');
+function renderVisibilitySection(isPublic, type) {
+  const t = type || _visibilityType;
+  const prefix = t === 'contractor' ? 'contractor-' : '';
+  const label = document.getElementById(prefix + 'visibility-status-label');
+  const btn   = document.getElementById(prefix + 'visibility-toggle-btn');
+  const list  = document.getElementById(t === 'contractor' ? 'contractor-designer-allow-list' : 'designer-allow-list');
   if (!label) return;
   if (isPublic) {
     label.textContent = '🌐 公開'; label.style.color = '#34d399';
@@ -1443,24 +1463,27 @@ function renderVisibilitySection(isPublic) {
               <p style="font-size:13px;font-weight:600;margin:0;">🎨 ${d.display_name||'—'} <span style="font-size:10px;color:var(--text-muted);">${roleTag}</span></p>
               <p style="font-size:11px;color:var(--text-muted);margin:2px 0 0;">${d.account||''}</p>
             </div>
-            <button onclick="toggleDesignerAccess('${d.id}',this,${allowed})" class="btn btn-sm ${allowed?'btn-danger':'btn-primary'}">${allowed?'移除':'允許'}</button>
+            <button onclick="toggleDesignerAccess('${d.id}',this,${allowed},'${t}')" class="btn btn-sm ${allowed?'btn-danger':'btn-primary'}">${allowed?'移除':'允許'}</button>
           </div>`;
         }).join('');
   }
 }
 
-async function togglePublicProfile(btn) {
-  const isPublic = document.getElementById('visibility-status-label').textContent.includes('公開');
+async function togglePublicProfile(btn, type) {
+  const t = type || _visibilityType;
+  const prefix = t === 'contractor' ? 'contractor-' : '';
+  const isPublic = document.getElementById(prefix + 'visibility-status-label').textContent.includes('公開');
   btn.disabled = true;
   try {
     const { error } = await sb.from('profiles').update({ public_profile: !isPublic }).eq('id', currentUser.id);
     if (error) throw error;
-    renderVisibilitySection(!isPublic);
+    renderVisibilitySection(!isPublic, t);
   } catch(e) { showToast('更新失敗：' + e.message, 'error'); }
   finally { btn.disabled = false; }
 }
 
-async function toggleDesignerAccess(designerId, btn, currentlyAllowed) {
+async function toggleDesignerAccess(designerId, btn, currentlyAllowed, type) {
+  const t = type || _visibilityType;
   btn.disabled = true;
   try {
     if (currentlyAllowed) {
@@ -1470,8 +1493,9 @@ async function toggleDesignerAccess(designerId, btn, currentlyAllowed) {
       await sb.from('designer_workers').upsert({ worker_id: currentUser.id, designer_id: designerId });
       _myLinkedDesignerIds.add(designerId);
     }
-    const isPublic = document.getElementById('visibility-status-label').textContent.includes('公開');
-    renderVisibilitySection(isPublic);
+    const prefix = t === 'contractor' ? 'contractor-' : '';
+    const isPublic = document.getElementById(prefix + 'visibility-status-label').textContent.includes('公開');
+    renderVisibilitySection(isPublic, t);
   } catch(e) { showToast('操作失敗：' + e.message, 'error'); }
   finally { btn.disabled = false; }
 }
