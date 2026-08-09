@@ -470,6 +470,9 @@
           <button onclick="downloadAllPhotos()" class="btn btn-ghost btn-sm" style="gap:6px;">⬇️ 一鍵下載全部</button>
         </div>
         <div id="photo-grid" class="photo-grid"></div>
+        <div id="photo-load-more-wrap" style="display:none;justify-content:center;margin-top:14px;">
+          <button id="photo-load-more-btn" onclick="loadMoreProjectPhotos()" class="btn btn-ghost btn-sm">載入更多照片</button>
+        </div>
         <div id="photo-empty" class="empty-state hidden"><div class="empty-icon">🖼️</div><p>尚無照片</p></div>
       </div>
 
@@ -603,7 +606,7 @@ const SUPABASE_URL = 'https://oubipbyskqaagxfdpvmi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YmlwYnlza3FhYWd4ZmRwdm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ1MTksImV4cCI6MjA5NDI2MDUxOX0.-3oWqtjM--FnCXOpxkdt71p4xVdxdpMqO1SGaIU_f2I';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const APP_VERSION = 'v4.1';
+const APP_VERSION = 'v4.2';
 function isDesignerRole(r) { return r === 'designer' || r === 'contractor'; }
 const VAPID_PUBLIC_KEY = 'BAIHZfwNTWLQm4H1m0vCBCgGoqV5GQpdiF-lLmsURg0hkmA38LzQ_0kqTioztkoUmMqlGZ98MJan2Wxg2JQdEdM';
 
@@ -1526,12 +1529,20 @@ function renderWorkerView() {
 async function openDetail(projectId) {
   currentProject = DB.projects.find(p => p.id === projectId);
   if (!currentProject) return;
-  const [pR, mR, gR] = await Promise.all([
-    sb.from('photos').select('*').eq('project_id', projectId).order('created_at', { ascending: false }),
+  // 開啟案場時不載入照片，避免使用者只看概況也消耗圖片流量
+  DB.photos = [];
+  _photosLoadedProjectId = null;
+  _photoOffset = 0;
+  _photosHasMore = false;
+  document.getElementById('photo-grid').innerHTML = '';
+  document.getElementById('photo-empty').classList.add('hidden');
+  document.getElementById('photo-dl-bar').style.display = 'none';
+  document.getElementById('photo-load-more-wrap').style.display = 'none';
+  const [mR, gR] = await Promise.all([
     sb.from('meetings').select('*').eq('project_id', projectId).order('meeting_date'),
     sb.from('gantt_segments').select('*').eq('project_id', projectId).order('sort_order'),
   ]);
-  DB.photos = pR.data||[]; DB.meetings = mR.data||[];
+  DB.meetings = mR.data||[];
   DB.gantt_segments = (gR.data||[]).map(s => ({ ...s, start: s.start_date, end: s.end_date }));
   document.getElementById('detail-title').textContent = currentProject.name;
   document.getElementById('d-status').innerHTML = statusBadge(currentProject.status);
@@ -1546,11 +1557,16 @@ async function openDetail(projectId) {
     : '<span style="font-size:12px; color:#475569;">尚無指定工班</span>';
   document.getElementById('notify-team').innerHTML = '<option value="">— 選擇工班 —</option>' +
     currentProject.workers.map(w=>`<option value="${w}">${getUserName(w)}</option>`).join('');
-  switchDetailTab('overview'); renderPhotos(); renderMeetings(); showModal('detail-modal');
+  switchDetailTab('overview'); renderMeetings(); showModal('detail-modal');
 }
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.onclick = () => { switchDetailTab(btn.dataset.tab); if (btn.dataset.tab==='gantt') openGanttTab(); };
+  btn.onclick = async () => {
+    const tab = btn.dataset.tab;
+    switchDetailTab(tab);
+    if (tab === 'photos') await ensureProjectPhotosLoaded();
+    if (tab === 'gantt') openGanttTab();
+  };
 });
 
 function switchDetailTab(tab) {
@@ -1606,9 +1622,49 @@ async function handlePhotoFiles(files) {
   btn.disabled=false; btn.textContent='上傳';
 }
 
-async function loadProjectPhotos(pid) {
-  const { data } = await sb.from('photos').select('*').eq('project_id', pid).order('created_at', { ascending: false });
-  DB.photos = data||[];
+const PHOTO_PAGE_SIZE = 30;
+let _photosLoadedProjectId = null;
+let _photoOffset = 0;
+let _photosHasMore = false;
+let _photosLoading = false;
+
+async function ensureProjectPhotosLoaded() {
+  if (!currentProject || _photosLoading) return;
+  if (_photosLoadedProjectId === currentProject.id) return;
+  await loadProjectPhotos(currentProject.id, true);
+}
+
+async function loadProjectPhotos(pid, reset = true) {
+  if (_photosLoading) return;
+  _photosLoading = true;
+  const btn = document.getElementById('photo-load-more-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '載入中...'; }
+  try {
+    const from = reset ? 0 : _photoOffset;
+    const to = from + PHOTO_PAGE_SIZE - 1;
+    const { data, error } = await sb.from('photos')
+      .select('*')
+      .eq('project_id', pid)
+      .order('created_at', { ascending: false })
+      .range(from, to);
+    if (error) throw error;
+    const rows = data || [];
+    DB.photos = reset ? rows : [...DB.photos, ...rows];
+    _photosLoadedProjectId = pid;
+    _photoOffset = from + rows.length;
+    _photosHasMore = rows.length === PHOTO_PAGE_SIZE;
+    renderPhotos();
+  } catch(e) {
+    showToast('照片載入失敗：' + e.message, 'error');
+  } finally {
+    _photosLoading = false;
+    if (btn) { btn.disabled = false; btn.textContent = '載入更多照片'; }
+  }
+}
+
+async function loadMoreProjectPhotos() {
+  if (!currentProject || !_photosHasMore) return;
+  await loadProjectPhotos(currentProject.id, false);
 }
 
 function renderPhotos() {
@@ -1616,7 +1672,9 @@ function renderPhotos() {
   const photos = DB.photos.filter(p => p.project_id===currentProject.id);
   const grid = document.getElementById('photo-grid'), empty = document.getElementById('photo-empty');
   const dlBar = document.getElementById('photo-dl-bar');
-  const isDesigner = currentUser.role==='designer';
+  const isDesigner = isDesignerRole(currentUser.role);
+  const moreWrap = document.getElementById('photo-load-more-wrap');
+  if (moreWrap) moreWrap.style.display = _photosHasMore ? 'flex' : 'none';
   // 顯示/隱藏一鍵下載列
   if (isDesigner && photos.length>0) { dlBar.style.display='flex'; dlBar.classList.remove('hidden'); }
   else { dlBar.style.display='none'; }
@@ -1627,7 +1685,7 @@ function renderPhotos() {
     const fname = (ph.description||'photo').replace(/[^\w一-鿿]/g,'_') + '_' + (ph.created_at?.slice(0,10)||'') + '.jpg';
     return `<div style="display:flex; flex-direction:column; gap:4px;">
       <div class="photo-item" onclick="openLightbox(${idx})">
-        <img src="${ph.storage_url||''}" alt="${ph.description||''}">
+        <img src="${ph.storage_url||''}" alt="${ph.description||''}" loading="lazy" decoding="async" fetchpriority="low">
         ${canDel ? `<div class="del-overlay" style="pointer-events:none;"><button onclick="event.stopPropagation();deletePhoto('${ph.id}')" style="background:var(--red);border:none;color:white;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;pointer-events:auto;">🗑 刪除</button></div>` : ''}
       </div>
       <div style="padding:0 2px;">
@@ -1682,7 +1740,11 @@ function lbDownload() {
   downloadPhoto(ph.storage_url, fname);
 }
 async function downloadAllPhotos() {
-  const photos = DB.photos.filter(p => p.project_id===currentProject.id);
+  if (!currentProject) return;
+  // 只有使用者主動按「一鍵下載全部」時，才查詢全部照片
+  const { data, error } = await sb.from('photos').select('*').eq('project_id', currentProject.id).order('created_at', { ascending: false });
+  if (error) { showToast('讀取照片清單失敗：' + error.message, 'error'); return; }
+  const photos = data || [];
   if (!photos.length) return;
   showToast(`開始下載 ${photos.length} 張照片...`);
   for (let i=0; i<photos.length; i++) {
@@ -1711,7 +1773,7 @@ async function deletePhoto(id) {
     const path = ph.storage_url?.split('/project-photos/')[1];
     if (path) await sb.storage.from('project-photos').remove([path]);
     await sb.from('photos').delete().eq('id', id);
-    await loadProjectPhotos(currentProject.id); renderPhotos(); showToast('照片已刪除');
+    await loadProjectPhotos(currentProject.id, true); showToast('照片已刪除');
   } catch(e) { showToast('刪除失敗', 'error'); }
 }
 
